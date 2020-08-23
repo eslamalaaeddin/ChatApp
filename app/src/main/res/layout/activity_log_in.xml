@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".LogInActivity">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="224dp"
+            android:src="@drawable/dummy"
+            android:scaleType="fitXY"
+            android:layout_marginBottom="16dp" />
+
+
+        <EditText
+            android:id="@+id/mail_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="8dp"
+            android:hint="Email" />
+
+
+        <EditText
+            android:id="@+id/password_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            android:hint="Password" />
+
+
+        <TextView
+            android:id="@+id/forget_password_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Forget password?"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_gravity="end" />
+
+
+        <Button
+            android:id="@+id/log_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Log in"
+            android:textAllCaps="false"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp" />
+
+        <TextView
+            android:id="@+id/new_account_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New account?"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_gravity="end" />
+
+        <TextView
+            android:id="@+id/phone_log_in_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Or log in with your phone"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="center" />
+
+        <Button
+            android:id="@+id/phone_log_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Log in with phone"
+            android:textAllCaps="false"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp" />
+
+
+    </LinearLayout>
+</layout>
