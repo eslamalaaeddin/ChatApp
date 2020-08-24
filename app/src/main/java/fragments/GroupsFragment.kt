@@ -94,8 +94,6 @@ class GroupsFragment : Fragment() {
                 itemView.setOnLongClickListener(this)
             }
 
-
-
             fun bind (groupName : String) {
                groupNameTextView.text = groupName
             }
