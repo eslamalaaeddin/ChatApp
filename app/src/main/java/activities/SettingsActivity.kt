@@ -1,18 +1,16 @@
-package com.example.whatsapp
+package activities
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
+import com.example.whatsapp.R
 import com.example.whatsapp.databinding.ActivitySettingsBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
-import kotlinx.android.synthetic.main.create_group_dialog.view.*
-
+private const val GALLERY_PICK_NUMBER = 1
 class SettingsActivity : AppCompatActivity() {
     private lateinit var activitySettingsBinding: ActivitySettingsBinding
     private lateinit var auth: FirebaseAuth
@@ -28,10 +26,20 @@ class SettingsActivity : AppCompatActivity() {
 
         currentUser = auth.currentUser!!
 
-        activitySettingsBinding = DataBindingUtil.setContentView(this,R.layout.activity_settings)
+        activitySettingsBinding = DataBindingUtil.setContentView(this, R.layout.activity_settings)
 
         activitySettingsBinding.updateAccountButton.setOnClickListener {
             updateSettings()
+        }
+
+        //when clicking the image view
+
+        activitySettingsBinding.userImageView.setOnClickListener {
+            val imageIntent = Intent()
+            imageIntent.action = Intent.ACTION_GET_CONTENT
+            imageIntent.type = "image/*"
+
+            startActivityForResult(imageIntent, GALLERY_PICK_NUMBER)
         }
 
         retrieveUserInfo()
@@ -93,7 +101,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun sendUserToMainActivity() {
-        val mainActivityIntent = Intent(this,MainActivity::class.java)
+        val mainActivityIntent = Intent(this, MainActivity::class.java)
         //to handle the back button logic
         mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(mainActivityIntent)
