@@ -1,5 +1,6 @@
 package fragments
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -30,17 +31,26 @@ class GroupsFragment : Fragment() {
     private lateinit var rootRef: DatabaseReference
     private var groupsAdapter = GroupsAdapter(emptyList())
     private lateinit var database: FirebaseDatabase
-
     private var groupsList = mutableListOf<String>()
+
+
+    private lateinit var callback: Callback
+    //to delegate the response to click to the hosting activity
+    interface Callback{
+        fun onGroupClicked(groupName:String)
+    }
+
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        callback = context as Callback
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
         database = FirebaseDatabase.getInstance()
-
         rootRef = database.reference
-
 
         retrieveGroups()
     }
@@ -52,7 +62,8 @@ class GroupsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
-        fragmentGroupsBinding = DataBindingUtil.inflate(inflater , R.layout.fragment_groups , container,false)
+        fragmentGroupsBinding =
+            DataBindingUtil.inflate(inflater , R.layout.fragment_groups , container,false)
         return fragmentGroupsBinding.root
     }
 
@@ -99,14 +110,13 @@ class GroupsFragment : Fragment() {
             }
 
             override fun onClick(item: View?) {
-
+                val groupName = list[adapterPosition]
+                callback.onGroupClicked(groupName)
             }
 
             override fun onLongClick(item: View?): Boolean {
                 return true
             }
-
-
 
         }
 
