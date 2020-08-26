@@ -138,12 +138,12 @@ class SettingsActivity : AppCompatActivity() {
 
         if (userName.isNotEmpty() && userStatus.isNotEmpty()) {
             currentUser = auth.currentUser!!
-            val userMap = HashMap<String, String>()
+            val userMap = HashMap<String, Any>()
             userMap.put("uid", currentUser.uid)
             userMap.put("name", userName)
             userMap.put("status", userStatus)
 
-            rootRef.child("Users").child(currentUser.uid).setValue(userMap)
+            rootRef.child("Users").child(currentUser.uid).updateChildren(userMap)
 
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
