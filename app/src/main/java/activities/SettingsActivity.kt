@@ -3,6 +3,8 @@ package activities
 import android.R.attr
 import android.app.ProgressDialog
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -34,14 +36,15 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var currentUser: FirebaseUser
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        activitySettingsBinding = DataBindingUtil.setContentView(this, R.layout.activity_settings)
+
+        setUpToolbar()
 
         auth = FirebaseAuth.getInstance()
 
         rootRef = FirebaseDatabase.getInstance().reference
 
         currentUser = auth.currentUser!!
-
-        activitySettingsBinding = DataBindingUtil.setContentView(this, R.layout.activity_settings)
 
         userProfileImageReference = FirebaseStorage.getInstance().reference.child("Profile images")
 
@@ -213,5 +216,14 @@ class SettingsActivity : AppCompatActivity() {
                 it.setCanceledOnTouchOutside(false)
                 it.show()
             }
+    }
+
+    private fun setUpToolbar() {
+        setSupportActionBar(activitySettingsBinding.mainToolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Settings"
+        activitySettingsBinding.mainToolbar.setTitleTextColor(Color.WHITE)
+        activitySettingsBinding.mainToolbar.overflowIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
+        activitySettingsBinding.mainToolbar.navigationIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
     }
 }
