@@ -136,11 +136,10 @@ class ChatsFragment : Fragment() {
         }
 
         override fun onClick(itemView: View?) {
-//            val userId = usersIdsList[adapterPosition]
-//            val profileIntent = Intent(context, ProfileActivity::class.java)
-//            profileIntent.putExtra(USER_ID,userId)
-//            startActivity(profileIntent)
-//
+            val userId = usersIdsList[adapterPosition]
+            val profileIntent = Intent(context, ProfileActivity::class.java)
+            profileIntent.putExtra(USER_ID,userId)
+            startActivity(profileIntent)
 
         }
     }
