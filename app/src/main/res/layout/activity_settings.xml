@@ -11,13 +11,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context=".SettingsActivity">
+        tools:context="activities.SettingsActivity">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/main_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/actionBarSize"
+            style="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            android:background="@color/colorPrimary"/>
+
 
         <com.mikhaellopez.circularimageview.CircularImageView
             android:layout_width="256dp"
             android:layout_height="256dp"
             android:id="@+id/user_image_view"
-            android:src="@drawable/dummy_avatar"
             android:layout_gravity="center"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
@@ -25,9 +32,7 @@
             android:layout_marginBottom="32dp"
             app:civ_border_color="@color/colorPrimary"
             app:civ_border_width="4dp"
-            app:civ_shadow="true"
-            app:civ_shadow_radius="2dp"
-            app:civ_shadow_color="@color/colorPrimary" />
+            />
 
 
         <EditText
