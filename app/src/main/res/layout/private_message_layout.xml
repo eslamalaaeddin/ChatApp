@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <!-- Receiver -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="start"
+            android:layout_marginTop="56dp"
+            android:layout_marginStart="8dp"
+            android:id="@+id/receiver_message_layout"
+            android:background="@drawable/receiver_messages_background">
+
+            <TextView
+                android:id="@+id/receiver_message_text"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="4dp"
+                android:gravity="center"
+                android:layout_gravity="start"
+                tools:text="."
+                android:padding="8dp"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="bottom"
+                android:paddingEnd="21dp"
+                android:paddingBottom="4dp"
+                android:text="5:02 AM"
+                android:id="@+id/receiver_time_sent_text_view" />
+
+
+        </LinearLayout>
+
+
+        <!-- Sender -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="end"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/sender_messages_background"
+            android:id="@+id/sender_message_layout">
+
+            <TextView
+                android:id="@+id/sender_message_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                tools:text="."
+                android:textSize="14sp"
+                android:padding="8dp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginEnd="4dp"
+                android:layout_gravity="end" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="bottom"
+                android:paddingEnd="21dp"
+                android:paddingBottom="4dp"
+                android:text="5:02 AM"
+                android:id="@+id/sender_time_sent_text_view" />
+
+        </LinearLayout>
+
+
+    </FrameLayout>
+</layout>
