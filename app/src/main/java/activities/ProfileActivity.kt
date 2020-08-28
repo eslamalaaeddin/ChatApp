@@ -295,6 +295,7 @@ class ProfileActivity : AppCompatActivity() {
              }
     }
 
+
     private fun removeContact(){
         contactsRef.child(currentUserIdFromDb).child(currentUserIdFromIntent)
             .removeValue().addOnCompleteListener { task ->
