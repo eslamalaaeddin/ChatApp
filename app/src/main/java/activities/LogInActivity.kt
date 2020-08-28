@@ -4,13 +4,20 @@ import android.app.ProgressDialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.example.whatsapp.R
+import com.example.whatsapp.Utils.DEVICE_TOKEN_CHILD
+import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityLogInBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.iid.FirebaseInstanceId
 
+private const val TAG = "LogInActivity"
 class LogInActivity : AppCompatActivity() {
 
 
@@ -21,6 +28,8 @@ class LogInActivity : AppCompatActivity() {
     //firebase authentication instance
     private lateinit var auth: FirebaseAuth
 
+    private lateinit var userRef:DatabaseReference
+
     //progress dialog
     private lateinit var progressDialog: ProgressDialog
 
@@ -29,6 +38,8 @@ class LogInActivity : AppCompatActivity() {
         activityLogInBinding = DataBindingUtil.setContentView(this, R.layout.activity_log_in)
 
         auth = FirebaseAuth.getInstance()
+
+        userRef = FirebaseDatabase.getInstance().reference.child(USERS_CHILD)
 
         activityLogInBinding.newAccountTextView.setOnClickListener {
             sendUserToRegisterActivity()
@@ -84,8 +95,7 @@ class LogInActivity : AppCompatActivity() {
         auth.signInWithEmailAndPassword(mail,password)
             .addOnCompleteListener {task ->
                 if (task.isSuccessful) {
-                    Toast.makeText(this, "Welcome!", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, MainActivity::class.java))
+                         startActivity(Intent(this, MainActivity::class.java))
                 }
                 else{
                     Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
