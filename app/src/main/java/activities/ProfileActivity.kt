@@ -19,6 +19,9 @@ class ProfileActivity : AppCompatActivity() {
 
     private lateinit var chatRequestRef : DatabaseReference
 
+
+    private lateinit var contactsRef : DatabaseReference
+
     private lateinit var auth: FirebaseAuth
 
     private lateinit var currentUserIdFromDb:String
@@ -37,6 +40,8 @@ class ProfileActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 
         chatRequestRef = rootRef.child("Chat requests")
+
+        contactsRef = rootRef.child("Contacts")
 
         currentUserIdFromIntent = intent.getStringExtra(USER_ID).toString()
 
@@ -85,6 +90,7 @@ class ProfileActivity : AppCompatActivity() {
                     }
 
                     manageChatRequest()
+                    //should be called dynamically
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -95,24 +101,73 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun manageChatRequest() {
         //if the user has sent a request
-        chatRequestRef.child(currentUserIdFromDb).addValueEventListener(object : ValueEventListener{
+        chatRequestRef.child(currentUserIdFromDb).addValueEventListener(object :
+            ValueEventListener {
+            //check if we are not friends yet --> sender side
+            //check if we are not friends yet --> receiver side
+            //check if we are friends --> both sides
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.hasChild(currentUserIdFromIntent)) {
-                    val requestType = snapshot.child(currentUserIdFromIntent).child("requestType").value.toString()
-
+                    val requestType = snapshot.child(currentUserIdFromIntent)
+                        .child("requestType").value.toString()
+                    /*
+                        Sender side
+                     */
                     if (requestType == "sent") {
                         currentRequestState = "request_sent"
-                        activityProfileBinding.messageRequestButton.text = "Cancel chat request"
+                        activityProfileBinding.messageRequestButton.apply {
+                            text = "Cancel chat request"
+                            setOnClickListener {
+                                cancelChatRequest()
+                            }
+                        }
                     }
+                    /*
+                        receiver side
+                     */
+                    else if (requestType == "received") {
+                        currentRequestState = "request_received"
 
-                    else{
+                        //Accept chat request
+                        activityProfileBinding.messageRequestButton.apply {
+                            text = "Accept chat request"
+                            isEnabled = true
+                        }
+                        //Decline chat request
+                        activityProfileBinding.messageDeclineButton.apply {
+                            visibility = View.VISIBLE
+                            text = "Decline chat request"
+                            isEnabled = true
+                            setOnClickListener {
+                                declineChatRequest()
+                                //المفروض يحدث عندي ابدل كانسيل يبقى سيند تاني لانه رفض/
+                            }
+                        }
 
                     }
+                }
+
+                //already friends
+                else {
+                    contactsRef.child(currentUserIdFromDb).addListenerForSingleValueEvent(object :
+                        ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            //we are friends?
+                            if (snapshot.hasChild(currentUserIdFromIntent)) {
+                                currentRequestState = "friends"
+                                activityProfileBinding.messageRequestButton.text = "Remove this contact"
+                            }
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                            Toast.makeText(this@ProfileActivity, error.message, Toast.LENGTH_SHORT).show()
+                        }
+                    })
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+                Toast.makeText(this@ProfileActivity, error.message, Toast.LENGTH_SHORT).show()
             }
         })
 
@@ -125,19 +180,49 @@ class ProfileActivity : AppCompatActivity() {
                 if (currentRequestState == "new") {
                     sendChatRequest()
                 }
-
+                //check if the user has already sent a request
                 if (currentRequestState == "request_sent") {
-
+                    declineChatRequest()
                 }
+                //check if the user has already received a request
+                if (currentRequestState == "request_received") {
+                   acceptChatRequest()
+                }
+
+                //check if the users are already friends
+                if (currentRequestState == "friends") {
+                    removeContact()
+                }
+
             }
         }
-        //if you are in self chat
+        //if you are in your profile
         else{
             activityProfileBinding.messageRequestButton.visibility = View.INVISIBLE
         }
     }
 
-   private fun sendChatRequest() {
+    private fun declineChatRequest() {
+        //receiver side
+        chatRequestRef.child(currentUserIdFromIntent).child(currentUserIdFromDb)
+            .removeValue().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    //Sender side
+                    chatRequestRef.child(currentUserIdFromDb).child(currentUserIdFromIntent)
+                    .removeValue()
+
+                    activityProfileBinding.messageRequestButton.isEnabled = true
+                    activityProfileBinding.messageRequestButton.text = "Send message request"
+                    currentRequestState = "new"
+
+                    //can be subistituted with block this user
+                    activityProfileBinding.messageDeclineButton.isEnabled = false
+                    activityProfileBinding.messageDeclineButton.visibility = View.INVISIBLE
+                }
+            }
+    }
+
+    private fun sendChatRequest() {
        //currentUserIdFromDb == sender
        //currentUserIdFromIntent == receiver
 
@@ -165,6 +250,90 @@ class ProfileActivity : AppCompatActivity() {
                        }
                    }
                }
+    }
+
+    private fun acceptChatRequest () {
+        //to be shown that each one (sender and receiver) are now in contact
+         contactsRef.child(currentUserIdFromDb).child(currentUserIdFromIntent).child("Contacts").setValue("saved")
+             .addOnCompleteListener {task ->
+                 if (task.isSuccessful) {
+                     contactsRef.child(currentUserIdFromIntent).child(currentUserIdFromDb).child("Contacts").setValue("saved")
+                         .addOnCompleteListener {task ->
+                             if (task.isSuccessful) {
+                                    //remove the chat request as both sender and receiver are now friends
+                                    chatRequestRef.
+                                    child(currentUserIdFromDb).
+                                    child(currentUserIdFromIntent).
+                                    removeValue()
+                                        .addOnCompleteListener {task ->
+                                            if (task.isSuccessful) {
+                                                chatRequestRef.
+                                                child(currentUserIdFromIntent).
+                                                child(currentUserIdFromDb).
+                                                removeValue()
+                                                    .addOnCompleteListener {task ->
+                                                        activityProfileBinding.messageRequestButton.apply {
+                                                            isEnabled = true
+                                                            currentRequestState = "friends"
+                                                            text = "Remove this contact"
+                                                            Toast.makeText(
+                                                                this@ProfileActivity,
+                                                                "Added to your contacts",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        }
+
+                                                        activityProfileBinding.messageDeclineButton.apply {
+                                                            visibility = View.INVISIBLE
+                                                        }
+                                                    }
+                                            }
+                                        }
+                             }
+                         }
+                 }
+             }
+    }
+
+    private fun removeContact(){
+        contactsRef.child(currentUserIdFromDb).child(currentUserIdFromIntent)
+            .removeValue().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    contactsRef.child(currentUserIdFromIntent).child(currentUserIdFromDb)
+                        .removeValue().addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                activityProfileBinding.messageRequestButton.isEnabled = true
+                                activityProfileBinding.messageRequestButton.text = "Send message request"
+                                currentRequestState = "new"
+
+                                activityProfileBinding.messageDeclineButton.isEnabled = false
+                                activityProfileBinding.messageDeclineButton.visibility = View.INVISIBLE
+                            }
+                        }
+                }
+            }
+    }
+
+    private fun cancelChatRequest() {
+        //sender side
+        chatRequestRef.child(currentUserIdFromDb).child(currentUserIdFromIntent)
+            .removeValue().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    //Sender side
+                    chatRequestRef.child(currentUserIdFromIntent).child(currentUserIdFromDb)
+                        .removeValue()
+
+                    activityProfileBinding.messageRequestButton.isEnabled = true
+                    activityProfileBinding.messageRequestButton.text = "Send message request"
+                    currentRequestState = "new"
+
+                    //can be subistituted with block this user
+                    activityProfileBinding.messageDeclineButton.isEnabled = false
+                    activityProfileBinding.messageDeclineButton.visibility = View.INVISIBLE
+                }
+            }
+
+
     }
 
 
