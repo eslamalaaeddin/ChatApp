@@ -10,17 +10,23 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
+import com.example.whatsapp.Callback
 import com.example.whatsapp.R
 import com.example.whatsapp.TabsAdapter
+import com.example.whatsapp.Utils
+import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import com.google.firebase.iid.FirebaseInstanceId
 import fragments.GroupsFragment
 import kotlinx.android.synthetic.main.create_group_dialog.view.*
-
+private const val USER_ID = "user id"
+private const val USER_NAME = "user name"
+private const val USER_IMAGE = "user image"
 private const val GROUP_NAME = "group name"
-class MainActivity : AppCompatActivity() , GroupsFragment.Callback{
+class MainActivity : AppCompatActivity() , Callback {
 
     private lateinit var tabsAdapter: TabsAdapter
 
@@ -33,6 +39,8 @@ class MainActivity : AppCompatActivity() , GroupsFragment.Callback{
     private lateinit var rootRef: DatabaseReference
 
     private  var currentUser:FirebaseUser? = null
+
+    private lateinit var usersRef :DatabaseReference
 
 
     private lateinit var alertBuilder: AlertDialog.Builder
@@ -52,6 +60,8 @@ class MainActivity : AppCompatActivity() , GroupsFragment.Callback{
 
         //get firebase auth
         auth = FirebaseAuth.getInstance()
+
+        usersRef = FirebaseDatabase.getInstance().reference.child(USERS_CHILD)
 
         //get current user
         currentUser = auth.currentUser
@@ -92,13 +102,15 @@ class MainActivity : AppCompatActivity() , GroupsFragment.Callback{
     }
 
     private fun verifyUserExistence() {
-        val currentUserId = currentUser?.uid
+        val currentUserId = currentUser?.uid.toString()
+        val deviceToken = FirebaseInstanceId.getInstance().getToken()
+        usersRef.child(currentUserId).child(Utils.DEVICE_TOKEN_CHILD).setValue(deviceToken)
 
-        rootRef.child("Users").child(currentUserId!!).addValueEventListener(object : ValueEventListener {
+        rootRef.child("Users").child(currentUserId).addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 //if user name does exist
                 if (snapshot.child("name").exists()) {
-                    Toast.makeText(this@MainActivity, "Welcome", Toast.LENGTH_SHORT).show()
+
                 }
 
                 else{
@@ -199,5 +211,13 @@ class MainActivity : AppCompatActivity() , GroupsFragment.Callback{
 
     override fun onGroupClicked(groupName: String) {
         sendUserToGroupChatActivity(groupName)
+    }
+
+    override fun onUserChatClicked(userName: String, userId: String, userImage:String) {
+        val privateChatIntent = Intent(this, PrivateChatActivity::class.java)
+        privateChatIntent.putExtra(USER_NAME,userName)
+        privateChatIntent.putExtra(USER_ID,userId)
+        privateChatIntent.putExtra(USER_IMAGE,userImage)
+        startActivity(privateChatIntent)
     }
 }
