@@ -1,6 +1,5 @@
 package activities
 
-import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -18,12 +17,21 @@ import com.example.whatsapp.PrivateMessageModel
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.DEVICE_TOKEN_CHILD
+import com.example.whatsapp.Utils.MESSAGES_CHILD
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityPrivateChatBinding
 import com.example.whatsapp.databinding.PrivateMessageLayoutBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.google.gson.Gson
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import notifications.NotificationData
+import notifications.PushNotification
+import notifications.RetrofitInstance
+import okhttp3.internal.Util
 
 private const val USER_ID = "user id"
 private const val USER_NAME = "user name"
@@ -46,8 +54,12 @@ class PrivateChatActivity : AppCompatActivity() {
 
     private lateinit var usersRef: DatabaseReference
 
+    private lateinit var currentUserName: String
+
     private lateinit var messageSenderId : String
     private lateinit var messageReceiverId : String
+
+    private lateinit var currentMessage:String
 
     private lateinit var userImageView: ImageView
     private lateinit var userNameTextView: TextView
@@ -61,59 +73,72 @@ class PrivateChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         activityPrivateChatBinding =
             DataBindingUtil.setContentView(this,R.layout.activity_private_chat)
-        setUpToolbar()
+
 
         auth = FirebaseAuth.getInstance()
 
         senderId = auth.currentUser?.uid.toString()
         receiverId = intent.getStringExtra(USER_ID).toString()
 
+        //Utils.senderId = senderId
+
         rootRef = FirebaseDatabase.getInstance().reference
 
         usersRef = rootRef.child(USERS_CHILD)
 
+        setUpToolbar()
+
         getTokens()
 
-        activityPrivateChatBinding.sendMessageButton.setOnClickListener { sendMessage() }
+        getSenderName()
 
+        activityPrivateChatBinding.sendMessageButton.setOnClickListener {
+            sendMessage()
+            pushNotification()
+        }
 
         messagesAdapter = PrivateMessagesAdapter(messagesList)
         activityPrivateChatBinding.privateChatRecyclerView.adapter = messagesAdapter
         activityPrivateChatBinding.privateChatRecyclerView.layoutManager = LinearLayoutManager(this)
-
 
     }
 
 
     override fun onStart() {
         super.onStart()
-        rootRef.child(Utils.MESSAGES_CHILD).child(senderId).child(receiverId).addChildEventListener(object : ChildEventListener{
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                val ourMessages = snapshot.getValue(PrivateMessageModel::class.java)
+        rootRef.child(MESSAGES_CHILD).child(senderId).child(receiverId).addChildEventListener(
+            object : ChildEventListener {
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                    val ourMessages = snapshot.getValue(PrivateMessageModel::class.java)
 
-                if (ourMessages != null) {
-                    messagesList.add(ourMessages)
-                    messagesAdapter.notifyDataSetChanged()
-
-                    //to scroll to the bottom of recycler view
-                    if (messagesList.isNotEmpty()){
-                        activityPrivateChatBinding.privateChatRecyclerView.smoothScrollToPosition(messagesList.size-1)
+                    if (ourMessages != null) {
+                        messagesList.add(ourMessages)
+                        messagesAdapter.notifyDataSetChanged()
+                        //to scroll to the bottom of recycler view
+                        if (messagesList.isNotEmpty()) {
+                            activityPrivateChatBinding.privateChatRecyclerView.smoothScrollToPosition(
+                                messagesList.size - 1
+                            )
+                        }
                     }
                 }
-            }
 
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-            }
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                }
 
-            override fun onChildRemoved(snapshot: DataSnapshot) {
-            }
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+                }
 
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-            }
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+                }
 
-            override fun onCancelled(error: DatabaseError) {
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
+
+
+
+
     }
 
     private fun setUpToolbar() {
@@ -132,35 +157,55 @@ class PrivateChatActivity : AppCompatActivity() {
         userNameTextView = findViewById(R.id.user_name_text_view)
         lastSeenTextView = findViewById(R.id.user_last_seen)
 
-        userNameTextView.text = intent.getStringExtra(USER_NAME)
-        val imageUrl = intent.getStringExtra(USER_IMAGE).toString()
+            usersRef.child(receiverId).child("name").addValueEventListener(object : ValueEventListener{
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    userNameTextView.text = snapshot.value.toString()
+                }
 
-        if (imageUrl.isNotEmpty()) {
-            Picasso.get()
-                .load(imageUrl)
-                .placeholder(R.drawable.dummy_avatar)
-                .into(userImageView)
-        }
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
+                }
+            })
+
+            usersRef.child(receiverId).child("image").addValueEventListener(object : ValueEventListener{
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val imageUrl = snapshot.value.toString()
+                    if (imageUrl.isNotEmpty()) {
+                        Picasso.get()
+                            .load(imageUrl)
+                            .placeholder(R.drawable.dummy_avatar)
+                            .into(userImageView)
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
+                }
+            })
+
+
+
 
 //        activityPrivateChatBinding.mainToolbar.setTitleTextColor(Color.WHITE)
 //        activityPrivateChatBinding.mainToolbar.overflowIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
       //  activityPrivateChatBinding.mainToolbar.navigationIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
     }
 
+
     private fun sendMessage() {
-        val message = activityPrivateChatBinding.sendMessageEditText.editableText.toString()
+         currentMessage = activityPrivateChatBinding.sendMessageEditText.editableText.toString()
 
-        if(message.isNotEmpty()) {
-            val messageSenderRef = "${Utils.MESSAGES_CHILD}/$senderId/$receiverId"
-            val messageReceiverRef = "${Utils.MESSAGES_CHILD}/$receiverId/$senderId"
+        if(currentMessage.isNotEmpty()) {
+            val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
+            val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
 
-            val userMessageKeyRef = rootRef.child(Utils.MESSAGES_CHILD).
+            val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
             child(senderId).child(receiverId).push()
 
             val messagePushId = userMessageKeyRef.key
 
             val messageTextBody = HashMap<String,Any>()
-            messageTextBody.put("message",message)
+            messageTextBody.put("message",currentMessage)
             messageTextBody.put("type","text")
             messageTextBody.put("from",senderId)
 
@@ -186,7 +231,6 @@ class PrivateChatActivity : AppCompatActivity() {
             ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 senderToken = snapshot.value.toString()
-                Toast.makeText(this@PrivateChatActivity, senderToken, Toast.LENGTH_SHORT).show()
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -196,13 +240,46 @@ class PrivateChatActivity : AppCompatActivity() {
         usersRef.child(receiverId).child(DEVICE_TOKEN_CHILD).addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     receiverToken = snapshot.value.toString()
-                    Toast.makeText(this@PrivateChatActivity, receiverToken, Toast.LENGTH_SHORT).show()
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     TODO("Not yet implemented")
                 }
             })
+    }
+
+    private fun pushNotification(){
+      val notification =   PushNotification(
+            NotificationData(currentUserName, currentMessage), receiverToken)
+        if (currentMessage.isNotEmpty()){
+            sendNotification(notification)
+        }
+    }
+
+    private fun sendNotification(notification: PushNotification) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = RetrofitInstance.api.postNotification(notification)
+            if(response.isSuccessful) {
+                Log.d(TAG, "Response: ${Gson().toJson(response)}")
+            } else {
+                Log.e(TAG, response.errorBody().toString())
+            }
+        } catch(e: Exception) {
+            Log.e(TAG, e.toString())
+        }
+    }
+
+    private fun getSenderName(){
+        usersRef.child(senderId).child("name").addValueEventListener(object :ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                currentUserName =  snapshot.value.toString()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+        })
+
     }
 
 
@@ -255,21 +332,25 @@ class PrivateChatActivity : AppCompatActivity() {
 
 
             if (fromMessagesType == "text") {
-                holder.receiverMessageTextView.visibility = View.INVISIBLE
 
-                holder.receiverMessageLayout.visibility = View.INVISIBLE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTextView.setBackgroundResource(R.drawable.sender_messages_background)
                     holder.senderMessageTextView.text = myMessages.message
+                    holder.senderMessageTextView.visibility = View.VISIBLE
+                    holder.senderMessageLayout.visibility = View.VISIBLE
+                    holder.receiverMessageTextView.visibility = View.GONE
+                    holder.receiverMessageLayout.visibility = View.GONE
+
                 }
 
                 else{
-                    holder.senderMessageTextView.visibility = View.INVISIBLE
+                    holder.senderMessageTextView.visibility = View.GONE
                     holder.receiverMessageTextView.visibility = View.VISIBLE
 
-                    holder.senderMessageLayout.visibility = View.INVISIBLE
+                    holder.senderMessageLayout.visibility = View.GONE
                     holder.receiverMessageLayout.visibility = View.VISIBLE
+
 
 
                     holder.receiverMessageTextView.setBackgroundResource(R.drawable.receiver_messages_background)
