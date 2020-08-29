@@ -14,6 +14,7 @@ import com.example.whatsapp.Callback
 import com.example.whatsapp.R
 import com.example.whatsapp.TabsAdapter
 import com.example.whatsapp.Utils
+import com.example.whatsapp.Utils.STATE_CHILD
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -22,6 +23,10 @@ import com.google.firebase.database.*
 import com.google.firebase.iid.FirebaseInstanceId
 import fragments.GroupsFragment
 import kotlinx.android.synthetic.main.create_group_dialog.view.*
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.HashMap
+
 private const val USER_ID = "user id"
 private const val USER_NAME = "user name"
 private const val USER_IMAGE = "user image"
@@ -39,6 +44,8 @@ class MainActivity : AppCompatActivity() , Callback {
     private lateinit var rootRef: DatabaseReference
 
     private  var currentUser:FirebaseUser? = null
+
+    private lateinit var currentUserId : String
 
     private lateinit var usersRef :DatabaseReference
 
@@ -66,6 +73,8 @@ class MainActivity : AppCompatActivity() , Callback {
         //get current user
         currentUser = auth.currentUser
 
+         currentUserId = currentUser?.uid.toString()
+
         rootRef = FirebaseDatabase.getInstance().reference
 
 
@@ -79,6 +88,22 @@ class MainActivity : AppCompatActivity() , Callback {
 
         else{
             verifyUserExistence()
+
+            updateUserStatus("online")
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if(currentUser != null) {
+            updateUserStatus("offline")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if(currentUser != null) {
+            updateUserStatus("offline")
         }
     }
     
@@ -219,5 +244,27 @@ class MainActivity : AppCompatActivity() , Callback {
         privateChatIntent.putExtra(USER_ID,userId)
         privateChatIntent.putExtra(USER_IMAGE,userImage)
         startActivity(privateChatIntent)
+    }
+
+    private fun updateUserStatus (state :String) {
+        var currentDate = ""
+        var currentTime = ""
+
+        val calender = Calendar.getInstance()
+        //get date and time
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+        val timeFormat = SimpleDateFormat("hh:mm a")
+
+        currentDate = dateFormat.format(calender.time)
+        currentTime = timeFormat.format(calender.time)
+
+        val userStateMap = HashMap<String,Any> ()
+        userStateMap.put("date",currentDate)
+        userStateMap.put("time",currentTime)
+        userStateMap.put("state",state)
+
+
+        rootRef.child(USERS_CHILD).child(currentUserId).child(STATE_CHILD).updateChildren(userStateMap)
+
     }
 }
