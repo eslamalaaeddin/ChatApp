@@ -26,6 +26,7 @@
             android:layout_marginEnd="8dp"
             app:civ_border_color="@color/colorPrimary"
             app:civ_border_width="1dp"
+            android:cropToPadding="true"
              />
 
         <LinearLayout
@@ -59,7 +60,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:id="@+id/user_status_text_view"
-                tools:text="Hey ! I'm using whatsapp"
+                tools:text="Last seen"
                 android:textSize="12sp"
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
