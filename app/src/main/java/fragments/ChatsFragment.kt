@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -28,6 +29,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.squareup.picasso.Picasso
+import kotlin.math.log
 
 private const val TAG = "ChatsFragment"
 
@@ -36,8 +38,15 @@ class ChatsFragment : Fragment() {
     private lateinit var contactsReference: DatabaseReference
     private lateinit var auth: FirebaseAuth
     private lateinit var currentUser: FirebaseUser
+
+    private lateinit var currentUserId: String
     private lateinit var usersReference: DatabaseReference
     private lateinit var contactsAdapter: FirebaseRecyclerAdapter<ContactsModel, ContactsViewHolder>
+
+    private lateinit var rootReference: DatabaseReference
+
+    private lateinit var messagesReference:DatabaseReference
+
     private  var usersIdsList =  mutableListOf<String>()
     private  var usersNamesList =  mutableListOf<String>()
     private  var usersImagesList =  mutableListOf<String>()
@@ -54,7 +63,11 @@ class ChatsFragment : Fragment() {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
         currentUser = auth.currentUser!!
+
+        rootReference = FirebaseDatabase.getInstance().reference
+        currentUserId = currentUser.uid
         usersReference = FirebaseDatabase.getInstance().reference.child("Users")
+        messagesReference = FirebaseDatabase.getInstance().reference.child("Messages")
         contactsReference = FirebaseDatabase.getInstance().reference.child("Contacts").child(currentUser.uid)
 
     }
@@ -100,18 +113,26 @@ class ChatsFragment : Fragment() {
             override fun onBindViewHolder(holder: ContactsViewHolder, position: Int, model: ContactsModel) {
                val userIds = getRef(position).key.toString()
                 //to get current user data
-               usersReference.child(userIds).addValueEventListener(object :ValueEventListener{
+              rootReference.child("Users").child(userIds).addValueEventListener(object : ValueEventListener {
                    override fun onDataChange(snapshot: DataSnapshot) {
-                        holder.bind(snapshot)
-                        usersIdsList.add(snapshot.child("uid").value.toString())
-                        usersNamesList.add(snapshot.child("name").value.toString())
-                        usersImagesList.add(snapshot.child("image").value.toString())
+                       //snap shot == { key = BGOgKddJIVWRH60cKLoIlepQVet1, value = {image=....}
+
+                       Log.i(TAG, "OOO onDataChange: $snapshot")
+                       Log.i(TAG, "OOO onDataChange: ${snapshot.key}")
+                       Log.i(TAG, "OOO onDataChange: ${snapshot.value}")
+                       holder.bind(snapshot)
+                       usersIdsList.add(snapshot.child("uid").value.toString())
+                       usersNamesList.add(snapshot.child("name").value.toString())
+                       usersImagesList.add(snapshot.child("image").value.toString())
+
                    }
 
                    override fun onCancelled(error: DatabaseError) {
 
                    }
                })
+
+
             }
 
         }
@@ -127,13 +148,27 @@ class ChatsFragment : Fragment() {
 
     inner class ContactsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
         private val userNameTextView : TextView = itemView.findViewById(R.id.user_name_text_view)
-        private val userStatusTextView : TextView = itemView.findViewById(R.id.user_status_text_view)
+        private val userLastSeenTextView: TextView =  itemView.findViewById(R.id.user_last_seen_text_view)
+       // private val userLastMessageTextView : TextView = itemView.findViewById(R.id.last_message_text_view)
+      //  private val userLastChatTimeTextView : TextView = itemView.findViewById(R.id.last_chat_time_text_view)
         private val userImageView : ImageView = itemView.findViewById(R.id.user_image_view)
 
         fun bind(snapshot: DataSnapshot) {
 
+            val time = snapshot.child("state").child("time").value.toString()
+            val date = snapshot.child("state").child("date").value.toString()
+            val state = snapshot.child("state").child("state").value.toString()
+
+            if (state == "offline") {
+
+                userLastSeenTextView.text =  "Last seen: $time, $date"
+            }
+            else if (state == "online") {
+                userLastSeenTextView.text =  state
+            }
+
             userNameTextView.text = snapshot.child("name").value.toString()
-            userStatusTextView.text =  snapshot.child("status").value.toString()
+
 
             val imageUrl = snapshot.child("image").value.toString()
             if (imageUrl.isNotEmpty()) {
