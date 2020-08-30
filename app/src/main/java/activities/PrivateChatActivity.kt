@@ -476,14 +476,14 @@ class PrivateChatActivity : AppCompatActivity() {
 
     }
 
-//    private fun getLoadingDialog() {
-//        progressDialog = ProgressDialog(this)
-//            .also {
-//                title = "Attachment is uploading"
-//                it.setCanceledOnTouchOutside(false)
-//                it.show()
-//            }
-//    }
+    private fun getLoadingDialog() {
+        progressDialog = ProgressDialog(this)
+            .also {
+                title = "Attachment is uploading"
+                it.setCanceledOnTouchOutside(false)
+                it.show()
+            }
+    }
 
     override fun onStop() {
         super.onStop()
