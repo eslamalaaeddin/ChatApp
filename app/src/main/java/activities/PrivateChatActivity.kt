@@ -1,5 +1,9 @@
 package activities
 
+import android.app.ProgressDialog
+import android.content.DialogInterface
+import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +14,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,9 +26,14 @@ import com.example.whatsapp.Utils.MESSAGES_CHILD
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityPrivateChatBinding
 import com.example.whatsapp.databinding.PrivateMessageLayoutBinding
+import com.google.android.gms.tasks.Continuation
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageTask
+import com.google.firebase.storage.UploadTask
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +50,7 @@ import kotlin.collections.HashMap
 private const val USER_ID = "user id"
 private const val USER_NAME = "user name"
 private const val USER_IMAGE = "user image"
+private const val IMAGE_REQUEST_CODE = 1
 private const val TAG = "PrivateChatActivity"
 class PrivateChatActivity : AppCompatActivity() {
 
@@ -67,10 +78,20 @@ class PrivateChatActivity : AppCompatActivity() {
     private lateinit var messageReceiverId : String
 
     private lateinit var currentMessage:String
+    private lateinit var currentDate :String
+    private lateinit var currentTime :String
 
     private lateinit var userImageView: ImageView
     private lateinit var userNameTextView: TextView
     private lateinit var lastSeenTextView: TextView
+
+    private lateinit var progressDialog: ProgressDialog
+
+
+    private var checker:String = ""
+    private var url:String = ""
+    private lateinit var fileUri:Uri
+
 
     private var backPressed = false
 
@@ -82,7 +103,6 @@ class PrivateChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         activityPrivateChatBinding =
             DataBindingUtil.setContentView(this,R.layout.activity_private_chat)
-
 
         auth = FirebaseAuth.getInstance()
 
@@ -117,7 +137,109 @@ class PrivateChatActivity : AppCompatActivity() {
         activityPrivateChatBinding.privateChatRecyclerView.layoutManager = linearLayout
         activityPrivateChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount -1)
 
+        activityPrivateChatBinding.attachFileButton.setOnClickListener {
+            val options = arrayOf("images","PDF","MS Word")
+
+            val alertDialogBuilder = AlertDialog.Builder(this)
+                .setTitle("Choose file type")
+                .setItems(options,object : DialogInterface.OnClickListener{
+                    override fun onClick(p0: DialogInterface?, i: Int) {
+                       when(i) {
+                           //images
+                           0 -> {
+                               checker = "image"
+                               val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
+                               imagesIntent.type = "image/*"
+                                startActivityForResult(Intent.createChooser(imagesIntent,"Choose an image"),
+                                    IMAGE_REQUEST_CODE)
+                           }
+                           //PDF
+                           1 -> {
+                               checker = "pdf"
+                           }
+                           //MS Word
+                           2 -> {
+                               checker= "docx"
+                           }
+                       }
+                    }
+                })
+                getLoadingDialog()
+        }
+
+
+
     }
+
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//        if (requestCode == IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data!=null && data.data!=null) {
+//
+//          getLoadingDialog()
+//
+//            fileUri = data.data!!
+//
+//            if (checker!="image") {
+//
+//            }
+//            else if (checker =="image") {
+//                val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
+//
+//                val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
+//                val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
+//
+//                val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
+//                child(senderId).child(receiverId).push()
+//
+//                val messagePushId = userMessageKeyRef.key.toString()
+//
+//                val filePath = storageRef.child("$messagePushId.jpg")
+//                val uploadTask = filePath.putFile(fileUri)
+//
+//                uploadTask.continueWithTask(object :
+//                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
+//                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
+//                        if(!task.isSuccessful)
+//                        {
+//                            throw task.exception!!
+//                        }
+//                        return filePath.downloadUrl
+//                    }
+//                }).addOnCompleteListener {
+//                    if (it.isSuccessful) {
+//                        url = it.result.toString()
+//
+//                        val messageImageBody = HashMap<String,Any>()
+//                        messageImageBody.put("message",url)
+//                        messageImageBody.put("name",fileUri.lastPathSegment.toString())
+//                        messageImageBody.put("type",checker)
+//                        messageImageBody.put("from",senderId)
+//                        messageImageBody.put("to",receiverId)
+//                        messageImageBody.put("messageKey",messagePushId)
+//                        messageImageBody.put("date",currentDate)
+//                        messageImageBody.put("time",currentTime)
+//
+//                        val messageBodyDetails = HashMap<String,Any>()
+//                        messageBodyDetails.put("$messageSenderRef/$messagePushId",messageImageBody)
+//                        messageBodyDetails.put("$messageReceiverRef/$messagePushId",messageImageBody)
+//
+//                        rootRef.updateChildren(messageBodyDetails).addOnCompleteListener {task ->
+//                            if (!task.isSuccessful) {
+//                                Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+//
+//                            }
+//                        }
+//
+//                    }
+//                }
+//
+//            }
+//            else{
+//                Toast.makeText(this, "Choose a valid attachment", Toast.LENGTH_SHORT).show()
+//            }
+//        }
+//        progressDialog.dismiss()
+//    }
 
 
     override fun onStart() {
@@ -221,8 +343,8 @@ class PrivateChatActivity : AppCompatActivity() {
             val dateFormat = SimpleDateFormat("MMM dd, yyyy")
             val timeFormat = SimpleDateFormat("hh:mm a")
 
-            val currentDate = dateFormat.format(calender.time)
-            val currentTime = timeFormat.format(calender.time)
+             currentDate = dateFormat.format(calender.time)
+             currentTime = timeFormat.format(calender.time)
 
             val messageTextBody = HashMap<String,Any>()
             messageTextBody.put("message",currentMessage)
@@ -353,6 +475,15 @@ class PrivateChatActivity : AppCompatActivity() {
 
 
     }
+
+//    private fun getLoadingDialog() {
+//        progressDialog = ProgressDialog(this)
+//            .also {
+//                title = "Attachment is uploading"
+//                it.setCanceledOnTouchOutside(false)
+//                it.show()
+//            }
+//    }
 
     override fun onStop() {
         super.onStop()
