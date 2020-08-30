@@ -22,6 +22,7 @@ import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityPrivateChatBinding
 import com.example.whatsapp.databinding.PrivateMessageLayoutBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
@@ -32,6 +33,9 @@ import notifications.NotificationData
 import notifications.PushNotification
 import notifications.RetrofitInstance
 import okhttp3.internal.Util
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.HashMap
 
 private const val USER_ID = "user id"
 private const val USER_NAME = "user name"
@@ -46,6 +50,9 @@ class PrivateChatActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var senderId:String
     private lateinit var receiverId:String
+
+    private lateinit var currentUser : FirebaseUser
+    private lateinit var currentUserId : String
 
     private lateinit var senderToken:String
     private lateinit var receiverToken:String
@@ -65,6 +72,8 @@ class PrivateChatActivity : AppCompatActivity() {
     private lateinit var userNameTextView: TextView
     private lateinit var lastSeenTextView: TextView
 
+    private var backPressed = false
+
     private  var messagesAdapter = PrivateMessagesAdapter(emptyList())
 
     private var messagesList = mutableListOf<PrivateMessageModel>()
@@ -80,11 +89,19 @@ class PrivateChatActivity : AppCompatActivity() {
         senderId = auth.currentUser?.uid.toString()
         receiverId = intent.getStringExtra(USER_ID).toString()
 
-        //Utils.senderId = senderId
+        Utils.senderId = senderId
 
         rootRef = FirebaseDatabase.getInstance().reference
 
         usersRef = rootRef.child(USERS_CHILD)
+
+        currentUser = auth.currentUser!!
+
+        currentUserId = currentUser.uid.toString()
+
+
+
+
 
         setUpToolbar()
 
@@ -99,7 +116,10 @@ class PrivateChatActivity : AppCompatActivity() {
 
         messagesAdapter = PrivateMessagesAdapter(messagesList)
         activityPrivateChatBinding.privateChatRecyclerView.adapter = messagesAdapter
-        activityPrivateChatBinding.privateChatRecyclerView.layoutManager = LinearLayoutManager(this)
+        val linearLayout = LinearLayoutManager(this)
+      //  linearLayout.reverseLayout = true
+        activityPrivateChatBinding.privateChatRecyclerView.layoutManager = linearLayout
+        activityPrivateChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount -1)
 
     }
 
@@ -136,10 +156,10 @@ class PrivateChatActivity : AppCompatActivity() {
                 }
             })
 
-
-
-
+        updateUserStatus("online")
+        displayLastSeen()
     }
+
 
     private fun setUpToolbar() {
 
@@ -152,37 +172,33 @@ class PrivateChatActivity : AppCompatActivity() {
 
         supportActionBar?.customView = toolbarView
 
+        Log.i(TAG, "WWW setUpToolbar: $senderId")
+        Log.i(TAG, "WWW setUpToolbar: $receiverId")
+
 
         userImageView = findViewById(R.id.user_image_view)
         userNameTextView = findViewById(R.id.user_name_text_view)
         lastSeenTextView = findViewById(R.id.user_last_seen)
 
-            usersRef.child(receiverId).child("name").addValueEventListener(object : ValueEventListener{
+            usersRef.child(receiverId).addValueEventListener(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    userNameTextView.text = snapshot.value.toString()
-                }
 
-                override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
-                }
-            })
+                    userNameTextView.text = snapshot.child("name").value.toString()
 
-            usersRef.child(receiverId).child("image").addValueEventListener(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val imageUrl = snapshot.value.toString()
+                    val imageUrl = snapshot.child("image").value.toString()
                     if (imageUrl.isNotEmpty()) {
                         Picasso.get()
                             .load(imageUrl)
                             .placeholder(R.drawable.dummy_avatar)
                             .into(userImageView)
                     }
+
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     TODO("Not yet implemented")
                 }
             })
-
 
 
 
@@ -204,10 +220,20 @@ class PrivateChatActivity : AppCompatActivity() {
 
             val messagePushId = userMessageKeyRef.key
 
+            val calender = Calendar.getInstance()
+            //get date and time
+            val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+            val timeFormat = SimpleDateFormat("hh:mm a")
+
+            val currentDate = dateFormat.format(calender.time)
+            val currentTime = timeFormat.format(calender.time)
+
             val messageTextBody = HashMap<String,Any>()
             messageTextBody.put("message",currentMessage)
             messageTextBody.put("type","text")
             messageTextBody.put("from",senderId)
+            messageTextBody.put("date",currentDate)
+            messageTextBody.put("time",currentTime)
 
             val messageBodyDetails = HashMap<String,Any>()
             messageBodyDetails.put("$messageSenderRef/$messagePushId",messageTextBody)
@@ -250,7 +276,7 @@ class PrivateChatActivity : AppCompatActivity() {
 
     private fun pushNotification(){
       val notification =   PushNotification(
-            NotificationData(currentUserName, currentMessage), receiverToken)
+            NotificationData(currentUserName, currentMessage,Utils.senderId), receiverToken)
         if (currentMessage.isNotEmpty()){
             sendNotification(notification)
         }
@@ -280,6 +306,70 @@ class PrivateChatActivity : AppCompatActivity() {
             }
         })
 
+    }
+
+    private fun displayLastSeen(){
+        rootRef.child("Users").child(receiverId).addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+
+                val time = snapshot.child("state").child("time").value.toString()
+                val date = snapshot.child("state").child("date").value.toString()
+                val state = snapshot.child("state").child("state").value.toString()
+
+                if (state == "offline") {
+
+                    lastSeenTextView.text =  "Last seen: $time, $date"
+                }
+                else if (state == "online") {
+                    lastSeenTextView.apply {
+                        text = state
+                        //setBackgroundResource(R.color.colorPrimary)
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+        })
+    }
+
+//    private fun updateUserStatus (state:String) {
+//        var currentDate = ""
+//        var currentTime = ""
+//
+//        val calender = Calendar.getInstance()
+//        //get date and time
+//        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+//        val timeFormat = SimpleDateFormat("hh:mm a")
+//
+//        currentDate = dateFormat.format(calender.time)
+//        currentTime = timeFormat.format(calender.time)
+//
+//        val userStateMap = HashMap<String,Any> ()
+//        userStateMap.put("date",currentDate)
+//        userStateMap.put("time",currentTime)
+//        userStateMap.put("state",state)
+//
+//        rootRef.child(USERS_CHILD).child(currentUserId).child(Utils.STATE_CHILD).updateChildren(userStateMap)
+//
+//
+//    }
+
+//    override fun onStop() {
+//        super.onStop()
+//        if (backPressed){
+//
+//        }
+//        else{
+//              updateUserStatus("offline")
+//        }
+//
+//    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+          backPressed = true
     }
 
 
@@ -333,7 +423,6 @@ class PrivateChatActivity : AppCompatActivity() {
 
             if (fromMessagesType == "text") {
 
-
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTextView.setBackgroundResource(R.drawable.sender_messages_background)
                     holder.senderMessageTextView.text = myMessages.message
@@ -347,18 +436,16 @@ class PrivateChatActivity : AppCompatActivity() {
                 else{
                     holder.senderMessageTextView.visibility = View.GONE
                     holder.receiverMessageTextView.visibility = View.VISIBLE
-
                     holder.senderMessageLayout.visibility = View.GONE
                     holder.receiverMessageLayout.visibility = View.VISIBLE
-
-
-
                     holder.receiverMessageTextView.setBackgroundResource(R.drawable.receiver_messages_background)
                     holder.receiverMessageTextView.text = myMessages.message
                 }
             }
         }
     }
+
+
 
 
 }
