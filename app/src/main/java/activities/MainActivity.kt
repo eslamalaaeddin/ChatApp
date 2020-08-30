@@ -53,6 +53,9 @@ class MainActivity : AppCompatActivity() , Callback {
     private lateinit var alertBuilder: AlertDialog.Builder
     private lateinit var groupDialog: AlertDialog
 
+    private var privateChatIntent : Intent? = null
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,7 +98,7 @@ class MainActivity : AppCompatActivity() , Callback {
 
     override fun onStop() {
         super.onStop()
-        if(currentUser != null) {
+        if(privateChatIntent == null) {
             updateUserStatus("offline")
         }
     }
@@ -239,10 +242,10 @@ class MainActivity : AppCompatActivity() , Callback {
     }
 
     override fun onUserChatClicked(userName: String, userId: String, userImage:String) {
-        val privateChatIntent = Intent(this, PrivateChatActivity::class.java)
-        privateChatIntent.putExtra(USER_NAME,userName)
-        privateChatIntent.putExtra(USER_ID,userId)
-        privateChatIntent.putExtra(USER_IMAGE,userImage)
+         privateChatIntent = Intent(this, PrivateChatActivity::class.java)
+        privateChatIntent?.putExtra(USER_NAME,userName)
+        privateChatIntent?.putExtra(USER_ID,userId)
+        privateChatIntent?.putExtra(USER_IMAGE,userImage)
         startActivity(privateChatIntent)
     }
 
