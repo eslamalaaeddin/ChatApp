@@ -171,75 +171,75 @@ class PrivateChatActivity : AppCompatActivity() {
 
     }
 
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//        if (requestCode == IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data!=null && data.data!=null) {
-//
-//          getLoadingDialog()
-//
-//            fileUri = data.data!!
-//
-//            if (checker!="image") {
-//
-//            }
-//            else if (checker =="image") {
-//                val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
-//
-//                val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
-//                val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
-//
-//                val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
-//                child(senderId).child(receiverId).push()
-//
-//                val messagePushId = userMessageKeyRef.key.toString()
-//
-//                val filePath = storageRef.child("$messagePushId.jpg")
-//                val uploadTask = filePath.putFile(fileUri)
-//
-//                uploadTask.continueWithTask(object :
-//                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
-//                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
-//                        if(!task.isSuccessful)
-//                        {
-//                            throw task.exception!!
-//                        }
-//                        return filePath.downloadUrl
-//                    }
-//                }).addOnCompleteListener {
-//                    if (it.isSuccessful) {
-//                        url = it.result.toString()
-//
-//                        val messageImageBody = HashMap<String,Any>()
-//                        messageImageBody.put("message",url)
-//                        messageImageBody.put("name",fileUri.lastPathSegment.toString())
-//                        messageImageBody.put("type",checker)
-//                        messageImageBody.put("from",senderId)
-//                        messageImageBody.put("to",receiverId)
-//                        messageImageBody.put("messageKey",messagePushId)
-//                        messageImageBody.put("date",currentDate)
-//                        messageImageBody.put("time",currentTime)
-//
-//                        val messageBodyDetails = HashMap<String,Any>()
-//                        messageBodyDetails.put("$messageSenderRef/$messagePushId",messageImageBody)
-//                        messageBodyDetails.put("$messageReceiverRef/$messagePushId",messageImageBody)
-//
-//                        rootRef.updateChildren(messageBodyDetails).addOnCompleteListener {task ->
-//                            if (!task.isSuccessful) {
-//                                Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
-//
-//                            }
-//                        }
-//
-//                    }
-//                }
-//
-//            }
-//            else{
-//                Toast.makeText(this, "Choose a valid attachment", Toast.LENGTH_SHORT).show()
-//            }
-//        }
-//        progressDialog.dismiss()
-//    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data!=null && data.data!=null) {
+
+          getLoadingDialog()
+
+            fileUri = data.data!!
+
+            if (checker!="image") {
+
+            }
+            else if (checker =="image") {
+                val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
+
+                val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
+                val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
+
+                val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
+                child(senderId).child(receiverId).push()
+
+                val messagePushId = userMessageKeyRef.key.toString()
+
+                val filePath = storageRef.child("$messagePushId.jpg")
+                val uploadTask = filePath.putFile(fileUri)
+
+                uploadTask.continueWithTask(object :
+                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
+                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
+                        if(!task.isSuccessful)
+                        {
+                            throw task.exception!!
+                        }
+                        return filePath.downloadUrl
+                    }
+                }).addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        url = it.result.toString()
+
+                        val messageImageBody = HashMap<String,Any>()
+                        messageImageBody.put("message",url)
+                        messageImageBody.put("name",fileUri.lastPathSegment.toString())
+                        messageImageBody.put("type",checker)
+                        messageImageBody.put("from",senderId)
+                        messageImageBody.put("to",receiverId)
+                        messageImageBody.put("messageKey",messagePushId)
+                        messageImageBody.put("date",currentDate)
+                        messageImageBody.put("time",currentTime)
+
+                        val messageBodyDetails = HashMap<String,Any>()
+                        messageBodyDetails.put("$messageSenderRef/$messagePushId",messageImageBody)
+                        messageBodyDetails.put("$messageReceiverRef/$messagePushId",messageImageBody)
+
+                        rootRef.updateChildren(messageBodyDetails).addOnCompleteListener {task ->
+                            if (!task.isSuccessful) {
+                                Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+
+                            }
+                        }
+
+                    }
+                }
+
+            }
+            else{
+                Toast.makeText(this, "Choose a valid attachment", Toast.LENGTH_SHORT).show()
+            }
+        }
+        progressDialog.dismiss()
+    }
 
 
     override fun onStart() {
