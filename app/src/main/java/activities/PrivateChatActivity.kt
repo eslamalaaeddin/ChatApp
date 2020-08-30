@@ -334,27 +334,27 @@ class PrivateChatActivity : AppCompatActivity() {
         })
     }
 
-//    private fun updateUserStatus (state:String) {
-//        var currentDate = ""
-//        var currentTime = ""
-//
-//        val calender = Calendar.getInstance()
-//        //get date and time
-//        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
-//        val timeFormat = SimpleDateFormat("hh:mm a")
-//
-//        currentDate = dateFormat.format(calender.time)
-//        currentTime = timeFormat.format(calender.time)
-//
-//        val userStateMap = HashMap<String,Any> ()
-//        userStateMap.put("date",currentDate)
-//        userStateMap.put("time",currentTime)
-//        userStateMap.put("state",state)
-//
-//        rootRef.child(USERS_CHILD).child(currentUserId).child(Utils.STATE_CHILD).updateChildren(userStateMap)
-//
-//
-//    }
+    private fun updateUserStatus (state:String) {
+        var currentDate = ""
+        var currentTime = ""
+
+        val calender = Calendar.getInstance()
+        //get date and time
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+        val timeFormat = SimpleDateFormat("hh:mm a")
+
+        currentDate = dateFormat.format(calender.time)
+        currentTime = timeFormat.format(calender.time)
+
+        val userStateMap = HashMap<String,Any> ()
+        userStateMap.put("date",currentDate)
+        userStateMap.put("time",currentTime)
+        userStateMap.put("state",state)
+
+        rootRef.child(USERS_CHILD).child(currentUserId).child(Utils.STATE_CHILD).updateChildren(userStateMap)
+
+
+    }
 
 //    override fun onStop() {
 //        super.onStop()
