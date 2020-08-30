@@ -97,11 +97,7 @@ class PrivateChatActivity : AppCompatActivity() {
 
         currentUser = auth.currentUser!!
 
-        currentUserId = currentUser.uid.toString()
-
-
-
-
+        currentUserId = currentUser.uid
 
         setUpToolbar()
 
@@ -218,7 +214,7 @@ class PrivateChatActivity : AppCompatActivity() {
             val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
             child(senderId).child(receiverId).push()
 
-            val messagePushId = userMessageKeyRef.key
+            val messagePushId = userMessageKeyRef.key.toString()
 
             val calender = Calendar.getInstance()
             //get date and time
@@ -232,6 +228,8 @@ class PrivateChatActivity : AppCompatActivity() {
             messageTextBody.put("message",currentMessage)
             messageTextBody.put("type","text")
             messageTextBody.put("from",senderId)
+            messageTextBody.put("to",receiverId)
+            messageTextBody.put("messageKey",messagePushId)
             messageTextBody.put("date",currentDate)
             messageTextBody.put("time",currentTime)
 
@@ -379,6 +377,10 @@ class PrivateChatActivity : AppCompatActivity() {
         inner class PopularMoviesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
              val senderMessageTextView : TextView = itemView.findViewById(R.id.sender_message_text)
              val receiverMessageTextView : TextView = itemView.findViewById(R.id.receiver_message_text)
+             val senderMessageTimeTextView:TextView = itemView.findViewById(R.id.sender_time_sent_text_view)
+             val receiverMessageTimeTextView:TextView = itemView.findViewById(R.id.receiver_time_sent_text_view)
+             val senderMessageImageView : ImageView = itemView.findViewById(R.id.sender_message_image_view)
+             val receiverMessageImageView : ImageView = itemView.findViewById(R.id.receiver_message_image_view)
 
             val senderMessageLayout : LinearLayout = itemView.findViewById(R.id.sender_message_layout)
             val receiverMessageLayout : LinearLayout = itemView.findViewById(R.id.receiver_message_layout)
@@ -422,24 +424,36 @@ class PrivateChatActivity : AppCompatActivity() {
 
 
             if (fromMessagesType == "text") {
+                holder.senderMessageImageView.visibility = View.GONE
+                holder.receiverMessageImageView.visibility = View.GONE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTextView.setBackgroundResource(R.drawable.sender_messages_background)
                     holder.senderMessageTextView.text = myMessages.message
+                    holder.senderMessageTimeTextView.text = myMessages.time
                     holder.senderMessageTextView.visibility = View.VISIBLE
                     holder.senderMessageLayout.visibility = View.VISIBLE
+                    holder.senderMessageTimeTextView.visibility = View.VISIBLE
+
+
                     holder.receiverMessageTextView.visibility = View.GONE
                     holder.receiverMessageLayout.visibility = View.GONE
+                    holder.receiverMessageTimeTextView.visibility = View.GONE
 
                 }
 
                 else{
                     holder.senderMessageTextView.visibility = View.GONE
-                    holder.receiverMessageTextView.visibility = View.VISIBLE
                     holder.senderMessageLayout.visibility = View.GONE
+                    holder.senderMessageTimeTextView.visibility = View.GONE
+
+                    holder.receiverMessageTextView.visibility = View.VISIBLE
                     holder.receiverMessageLayout.visibility = View.VISIBLE
+                    holder.receiverMessageTimeTextView.visibility = View.VISIBLE
+
                     holder.receiverMessageTextView.setBackgroundResource(R.drawable.receiver_messages_background)
                     holder.receiverMessageTextView.text = myMessages.message
+                    holder.receiverMessageTimeTextView.text = myMessages.time
                 }
             }
         }
