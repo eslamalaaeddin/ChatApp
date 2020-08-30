@@ -356,16 +356,16 @@ class PrivateChatActivity : AppCompatActivity() {
 
     }
 
-//    override fun onStop() {
-//        super.onStop()
-//        if (backPressed){
-//
-//        }
-//        else{
-//              updateUserStatus("offline")
-//        }
-//
-//    }
+    override fun onStop() {
+        super.onStop()
+        if (backPressed){
+
+        }
+        else{
+              updateUserStatus("offline")
+        }
+
+    }
 
     override fun onBackPressed() {
         super.onBackPressed()
