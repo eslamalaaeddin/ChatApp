@@ -164,7 +164,10 @@ class ChatsFragment : Fragment() {
                 userLastSeenTextView.text =  "Last seen: $time, $date"
             }
             else if (state == "online") {
-                userLastSeenTextView.text =  state
+                userLastSeenTextView.apply {
+                    text = state
+                    //setBackgroundResource(R.color.colorPrimary)
+                }
             }
 
             userNameTextView.text = snapshot.child("name").value.toString()
