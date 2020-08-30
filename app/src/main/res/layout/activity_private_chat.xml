@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:background="#4C4C4C"
         tools:context="activities.PrivateChatActivity">
 
         <androidx.appcompat.widget.Toolbar
@@ -26,6 +27,7 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:id="@+id/private_chat_recycler_view"
+            android:background="#4C4C4C"
             />
 
         <LinearLayout
@@ -36,8 +38,13 @@
             <EditText
                 android:layout_width="0dp"
                 android:layout_weight="5"
-                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/round_background"
                 android:id="@+id/send_message_edit_text"
+                android:textColorHint="#757474"
+                android:paddingStart="4dp"
+                android:backgroundTint="@android:color/white"
                 android:hint="Type a message..." />
 
             <Button
@@ -46,6 +53,10 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/send_message_button"
                 android:text="send"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/colorPrimary"
+                android:layout_margin="4dp"
+                android:background="@drawable/round_button"
                 android:layout_gravity="center" />
 
         </LinearLayout>
