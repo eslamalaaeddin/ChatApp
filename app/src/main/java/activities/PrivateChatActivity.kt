@@ -762,29 +762,29 @@ class PrivateChatActivity : VisibleActivity() {
                 }
             }
 
-//            else if(fromMessagesType =="docx" || fromMessagesType=="pdf"){
-//                if (fromUserId == messageSenderId) {
-//                    holder.senderMessageImageView.visibility = View.VISIBLE
-//                    holder.senderMessageImageView.setBackgroundResource(R.drawable.ic_file)
-//
-////                    holder.itemView.setOnClickListener {
-////                        val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-////                        holder.itemView.context.startActivity(downloadIntent)
-////                        Log.i(TAG, "BBB onBindViewHolder: ${myMessages.message}")
-////                      //  Log.i(TAG, "BBB onBindViewHolder: ${Uri.parse(myMessages.message)}")
-////                    }
-//
-//                }
-//                else{
-//                    holder.receiverMessageImageView.visibility = View.VISIBLE
-//                    holder.receiverMessageImageView.setBackgroundResource(R.drawable.ic_file)
-//
-////                    holder.itemView.setOnClickListener {
-////                        val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-////                        holder.itemView.context.startActivity(downloadIntent)
-////                    }
-//                }
-//            }
+            else if(fromMessagesType =="docx" || fromMessagesType=="pdf"){
+                if (fromUserId == messageSenderId) {
+                    holder.senderMessageImageView.visibility = View.VISIBLE
+                    holder.senderMessageImageView.setBackgroundResource(R.drawable.ic_file)
+
+//                    holder.itemView.setOnClickListener {
+//                        val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+//                        holder.itemView.context.startActivity(downloadIntent)
+//                        Log.i(TAG, "BBB onBindViewHolder: ${myMessages.message}")
+//                      //  Log.i(TAG, "BBB onBindViewHolder: ${Uri.parse(myMessages.message)}")
+//                    }
+
+                }
+                else{
+                    holder.receiverMessageImageView.visibility = View.VISIBLE
+                    holder.receiverMessageImageView.setBackgroundResource(R.drawable.ic_file)
+
+//                    holder.itemView.setOnClickListener {
+//                        val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+//                        holder.itemView.context.startActivity(downloadIntent)
+//                    }
+                }
+            }
 
 //            if (fromUserId == senderId) {
 //                holder.itemView.setOnLongClickListener {
