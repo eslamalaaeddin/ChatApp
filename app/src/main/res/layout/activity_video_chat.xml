@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/holo_blue_dark"
+        android:id="@+id/subscriber_view"
+        tools:context="activities.VideoChatActivity">
+
+        <FrameLayout
+            android:layout_width="96dp"
+            android:layout_height="128dp"
+            android:background="@android:color/holo_orange_light"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="8dp"
+            android:id="@+id/publisher_view"
+            />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/cancel_call_button"
+            android:text="cancel"
+            android:background="@drawable/round_button"
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:layout_margin="16dp"
+            android:padding="8dp"
+            android:textSize="18sp"
+            android:layout_gravity="bottom"
+            android:textColor="@android:color/white"
+
+            />
+
+    </FrameLayout>
+</layout>
