@@ -655,19 +655,19 @@ class PrivateChatActivity : VisibleActivity() {
 
             }
 
-            //to get message date
-//            override fun onLongClick(p0: View?): Boolean {
-//               var messageDate =messages[adapterPosition].date
-//                val currentDate = SimpleDateFormat("MMM dd, yyyy").format(Calendar.getInstance().time)
-//                if (messageDate == currentDate) {
-//                    Snackbar.make(p0!!, "Sent: today",Snackbar.LENGTH_LONG).show()
-//                }
-//                else{
-//                    Snackbar.make(p0!!, "Sent: $messageDate",Snackbar.LENGTH_LONG).show()
-//                }
-//
-//               return true
-//            }
+            to get message date
+            override fun onLongClick(p0: View?): Boolean {
+               var messageDate =messages[adapterPosition].date
+                val currentDate = SimpleDateFormat("MMM dd, yyyy").format(Calendar.getInstance().time)
+                if (messageDate == currentDate) {
+                    Snackbar.make(p0!!, "Sent: today",Snackbar.LENGTH_LONG).show()
+                }
+                else{
+                    Snackbar.make(p0!!, "Sent: $messageDate",Snackbar.LENGTH_LONG).show()
+                }
+
+               return true
+            }
 
         }
 
