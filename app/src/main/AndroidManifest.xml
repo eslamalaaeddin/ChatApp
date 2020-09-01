@@ -6,11 +6,11 @@
         android:name="activities.PrivateChatActivity.PRIVATE"
         android:protectionLevel="signature" />
 
-<!--    <uses-permission android:name="android.permission.INTERNET" /> &lt;!&ndash; for image cropping &ndash;&gt;-->
-<!--    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />-->
-<!--    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />-->
-<!--    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />-->
-<!--    <uses-permission android:name="activities.PrivateChatActivity.PRIVATE" />-->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- for image cropping -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="activities.PrivateChatActivity.PRIVATE" />
 
     <application
         android:allowBackup="true"
@@ -54,16 +54,16 @@
             </intent-filter>
         </service>
 
-<!--        <receiver-->
-<!--            android:name="notifications.NotificationReceiver"-->
-<!--            android:exported="false"-->
-<!--            android:permission="activities.PrivateChatActivity.PRIVATE"-->
+        <receiver
+            android:name="notifications.NotificationReceiver"
+            android:exported="false"
+            android:permission="activities.PrivateChatActivity.PRIVATE"
 
-<!--            >-->
-<!--            <intent-filter  android:priority="-999">-->
-<!--                <action android:name="activities.PrivateChatActivity.SHOW_NOTIFICATION" />-->
-<!--            </intent-filter>-->
-<!--        </receiver>-->
+            >
+            <intent-filter  android:priority="-999">
+                <action android:name="activities.PrivateChatActivity.SHOW_NOTIFICATION" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
