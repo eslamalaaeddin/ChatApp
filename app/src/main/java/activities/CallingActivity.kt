@@ -83,64 +83,64 @@ class CallingActivity : AppCompatActivity() {
 //        receiverSide()
 //    }
 //
-//    override fun onStart() {
-//        super.onStart()
+    override fun onStart() {
+        super.onStart()
+
+//        //form sender
+//        senderSide()
 //
-////        //form sender
-////        senderSide()
-////
-////        //from receiver
-////        receiverSide()
-//        mediaPlayer.start()
-//
-//        usersRef.child(receiverId).addListenerForSingleValueEvent(object : ValueEventListener{
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                if (checker != "clicked" && !snapshot.hasChild("Calling") && !snapshot.hasChild("Ringing")) {
-//
-//
-//                    val callingInfo = HashMap<String,Any>()
-//                    callingInfo.put("calling",receiverId )
-//
-//                    usersRef.child(senderId).child("Calling").updateChildren(callingInfo)
-//                        .addOnCompleteListener {
-//                            if (it.isSuccessful){
-//                                val ringingInfo = HashMap<String,Any>()
-//
-//                                ringingInfo.put("ringing",senderId )
-//
-//                                usersRef.child(receiverId).child("Ringing").updateChildren(ringingInfo)
-//                            }
-//                        }
-//
-//                }
-//                else{
-//
-//                }
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                TODO("Not yet implemented")
-//            }
-//        })
-//
-//        usersRef.addValueEventListener(object : ValueEventListener{
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                if (snapshot.child(senderId).hasChild("Ringing") && !snapshot.child(senderId).hasChild("Calling")){
-//                    activityCallingBinding.acceptCallButton.visibility = View.VISIBLE
-//                }
-//
-//                if (snapshot.child(receiverId).child("Ringing").hasChild("picked")){
-//                    mediaPlayer.stop()
-//                    val videoChatIntent = Intent(this@CallingActivity,VideoChatActivity::class.java)
-//                    startActivity(videoChatIntent)
-//                }
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                TODO("Not yet implemented")
-//            }
-//        })
-//    }
+//        //from receiver
+//        receiverSide()
+        mediaPlayer.start()
+
+        usersRef.child(receiverId).addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (checker != "clicked" && !snapshot.hasChild("Calling") && !snapshot.hasChild("Ringing")) {
+
+
+                    val callingInfo = HashMap<String,Any>()
+                    callingInfo.put("calling",receiverId )
+
+                    usersRef.child(senderId).child("Calling").updateChildren(callingInfo)
+                        .addOnCompleteListener {
+                            if (it.isSuccessful){
+                                val ringingInfo = HashMap<String,Any>()
+
+                                ringingInfo.put("ringing",senderId )
+
+                                usersRef.child(receiverId).child("Ringing").updateChildren(ringingInfo)
+                            }
+                        }
+
+                }
+                else{
+
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+        })
+
+        usersRef.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.child(senderId).hasChild("Ringing") && !snapshot.child(senderId).hasChild("Calling")){
+                    activityCallingBinding.acceptCallButton.visibility = View.VISIBLE
+                }
+
+                if (snapshot.child(receiverId).child("Ringing").hasChild("picked")){
+                    mediaPlayer.stop()
+                    val videoChatIntent = Intent(this@CallingActivity,VideoChatActivity::class.java)
+                    startActivity(videoChatIntent)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+        })
+    }
     //cancel from sender side
     private fun senderSide() {
         usersRef.child(senderId).child("Calling")
