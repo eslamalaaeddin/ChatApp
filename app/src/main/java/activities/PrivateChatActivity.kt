@@ -1,5 +1,6 @@
 package activities
 
+import android.app.Notification
 import android.app.ProgressDialog
 import android.content.DialogInterface
 import android.content.Intent
@@ -27,7 +28,9 @@ import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityPrivateChatBinding
 import com.example.whatsapp.databinding.PrivateMessageLayoutBinding
 import com.google.android.gms.tasks.Continuation
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
@@ -50,9 +53,24 @@ import kotlin.collections.HashMap
 private const val USER_ID = "user id"
 private const val USER_NAME = "user name"
 private const val USER_IMAGE = "user image"
+private const val RECEIVER_ID = "receiver id"
 private const val IMAGE_REQUEST_CODE = 1
 private const val TAG = "PrivateChatActivity"
-class PrivateChatActivity : AppCompatActivity() {
+
+
+class PrivateChatActivity : VisibleActivity() {
+
+
+
+    companion object{
+
+        const val ACTION_SHOW_NOTIFICATION =
+            "activities.PrivateChatActivity.SHOW_NOTIFICATION"
+        const val PERM_PRIVATE = "activities.PrivateChatActivity.PRIVATE"
+
+        const val REQUEST_CODE = "REQUEST_CODE"
+        const val NOTIFICATION = "NOTIFICATION"
+    }
 
     private lateinit var activityPrivateChatBinding: ActivityPrivateChatBinding
 
@@ -84,6 +102,7 @@ class PrivateChatActivity : AppCompatActivity() {
     private lateinit var userImageView: ImageView
     private lateinit var userNameTextView: TextView
     private lateinit var lastSeenTextView: TextView
+    private lateinit var videoCallImageView: ImageView
 
     private lateinit var progressDialog: ProgressDialog
 
@@ -156,15 +175,31 @@ class PrivateChatActivity : AppCompatActivity() {
                            //PDF
                            1 -> {
                                checker = "pdf"
+                               val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
+                               imagesIntent.type = "application/pdf"
+                               startActivityForResult(Intent.createChooser(imagesIntent,"Choose a PDF file"),
+                                   IMAGE_REQUEST_CODE)
                            }
                            //MS Word
                            2 -> {
                                checker= "docx"
+                               val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
+                               imagesIntent.type = "application/msword"
+                               startActivityForResult(Intent.createChooser(imagesIntent,"Choose an MS Word file"),
+                                   IMAGE_REQUEST_CODE)
                            }
                        }
                     }
-                })
-                getLoadingDialog()
+                }).show()
+//                getLoadingDialog()
+        }
+
+        //video call
+
+        videoCallImageView.setOnClickListener {
+            val callingIntent = Intent(this,CallingActivity::class.java)
+            callingIntent.putExtra(RECEIVER_ID,receiverId)
+            startActivity(callingIntent)
         }
 
 
@@ -180,7 +215,72 @@ class PrivateChatActivity : AppCompatActivity() {
             fileUri = data.data!!
 
             if (checker!="image") {
+                val storageRef = FirebaseStorage.getInstance().reference.child("Document files")
 
+                val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
+                val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
+
+                val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
+                child(senderId).child(receiverId).push()
+
+                val messagePushId = userMessageKeyRef.key.toString()
+
+                val filePath = storageRef.child("$messagePushId.$checker")
+
+                filePath.putFile(fileUri).addOnCompleteListener(object : OnCompleteListener<UploadTask.TaskSnapshot>{
+                    override fun onComplete(task: Task<UploadTask.TaskSnapshot>) {
+                        if (task.isSuccessful) {
+
+                            val calender = Calendar.getInstance()
+                            //get date and time
+                            val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+                            val timeFormat = SimpleDateFormat("hh:mm a")
+
+                            currentDate = dateFormat.format(calender.time)
+                            currentTime = timeFormat.format(calender.time)
+
+                            filePath.downloadUrl.addOnCompleteListener {
+                                rootRef.child("Messages").child(senderId).child(receiverId)
+                                .child(messagePushId).child("message")
+                                .setValue(it.result.toString()).addOnCompleteListener {
+
+                                }
+                            }
+
+
+
+                            val messageImageBody = HashMap<String,Any>()
+//                            rootRef.child("Messages").child(senderId).child(receiverId)
+//                                .child(messagePushId).child("message")
+//                                .setValue(task.result.toString()).addOnCompleteListener {
+//                                    messageImageBody.put("message",it.result.toString())
+//                                }
+                            messageImageBody.put("name",fileUri.lastPathSegment.toString())
+                            messageImageBody.put("type",checker)
+                            messageImageBody.put("from",senderId)
+                            messageImageBody.put("to",receiverId)
+                            messageImageBody.put("messageKey",messagePushId)
+                            messageImageBody.put("date",currentDate)
+                            messageImageBody.put("time",currentTime)
+
+                            val messageBodyDetails = HashMap<String,Any>()
+                            messageBodyDetails.put("$messageSenderRef/$messagePushId",messageImageBody)
+                            messageBodyDetails.put("$messageReceiverRef/$messagePushId",messageImageBody)
+
+
+
+                            rootRef.updateChildren(messageBodyDetails)
+                            progressDialog.dismiss()
+                        }
+                    }
+                }).addOnFailureListener{
+                    progressDialog.dismiss()
+                    Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                }.addOnProgressListener {
+                    val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+                    progressDialog.show()
+                    progressDialog.setMessage("$progress % Uploading...")
+                }
             }
             else if (checker =="image") {
                 val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
@@ -208,6 +308,15 @@ class PrivateChatActivity : AppCompatActivity() {
                 }).addOnCompleteListener {
                     if (it.isSuccessful) {
                         url = it.result.toString()
+
+                        val calender = Calendar.getInstance()
+                        //get date and time
+                        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+                        val timeFormat = SimpleDateFormat("hh:mm a")
+
+                        currentDate = dateFormat.format(calender.time)
+                        currentTime = timeFormat.format(calender.time)
+
 
                         val messageImageBody = HashMap<String,Any>()
                         messageImageBody.put("message",url)
@@ -297,6 +406,7 @@ class PrivateChatActivity : AppCompatActivity() {
         userImageView = findViewById(R.id.user_image_view)
         userNameTextView = findViewById(R.id.user_name_text_view)
         lastSeenTextView = findViewById(R.id.user_last_seen)
+        videoCallImageView = findViewById(R.id.video_call_image_view)
 
             usersRef.child(receiverId).addValueEventListener(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -369,6 +479,8 @@ class PrivateChatActivity : AppCompatActivity() {
         else{
 
         }
+        //send a broadcast intent
+       // sendBroadcast(Intent(ACTION_SHOW_NOTIFICATION), PERM_PRIVATE)
         activityPrivateChatBinding.sendMessageEditText.text.clear()
     }
 
@@ -488,12 +600,24 @@ class PrivateChatActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         if (backPressed){
-
+            updateUserStatus("online")
         }
         else{
               updateUserStatus("offline")
+
         }
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (backPressed){
+            updateUserStatus("online")
+        }
+        else{
+            updateUserStatus("offline")
+
+        }
     }
 
     override fun onBackPressed() {
@@ -505,7 +629,7 @@ class PrivateChatActivity : AppCompatActivity() {
    inner class PrivateMessagesAdapter (private val messages:List<PrivateMessageModel>) :
         RecyclerView.Adapter<PrivateMessagesAdapter.PopularMoviesViewHolder>() {
 
-        inner class PopularMoviesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+        inner class PopularMoviesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener,View.OnLongClickListener {
              val senderMessageTextView : TextView = itemView.findViewById(R.id.sender_message_text)
              val receiverMessageTextView : TextView = itemView.findViewById(R.id.receiver_message_text)
              val senderMessageTimeTextView:TextView = itemView.findViewById(R.id.sender_time_sent_text_view)
@@ -520,6 +644,7 @@ class PrivateChatActivity : AppCompatActivity() {
 
             init {
                 itemView.setOnClickListener(this)
+                itemView.setOnLongClickListener(this)
             }
 
             fun bind(messageModel: PrivateMessageModel) {
@@ -529,6 +654,20 @@ class PrivateChatActivity : AppCompatActivity() {
             override fun onClick(item: View?) {
 
             }
+
+            //to get message date
+//            override fun onLongClick(p0: View?): Boolean {
+//               var messageDate =messages[adapterPosition].date
+//                val currentDate = SimpleDateFormat("MMM dd, yyyy").format(Calendar.getInstance().time)
+//                if (messageDate == currentDate) {
+//                    Snackbar.make(p0!!, "Sent: today",Snackbar.LENGTH_LONG).show()
+//                }
+//                else{
+//                    Snackbar.make(p0!!, "Sent: $messageDate",Snackbar.LENGTH_LONG).show()
+//                }
+//
+//               return true
+//            }
 
         }
 
@@ -587,7 +726,216 @@ class PrivateChatActivity : AppCompatActivity() {
                     holder.receiverMessageTimeTextView.text = myMessages.time
                 }
             }
+
+//            else if (fromMessagesType == "image") {
+//
+//                holder.receiverMessageTextView.visibility = View.GONE
+//                holder.senderMessageTextView.visibility = View.GONE
+//
+//                if (fromUserId == messageSenderId) {
+//                    holder.senderMessageTimeTextView.visibility = View.VISIBLE
+//                    holder.senderMessageTimeTextView.text = myMessages.time
+//                    holder.receiverMessageLayout.visibility = View.GONE
+//
+//
+//                    holder.senderMessageImageView.visibility = View.VISIBLE
+//                    holder.receiverMessageImageView.visibility = View.GONE
+//                    Picasso.get()
+//                        .load(myMessages.message)
+//                        .placeholder(R.drawable.dummy_avatar)
+//                        .into(holder.senderMessageImageView)
+//
+//            }
+//
+//                else{
+//
+//                    holder.receiverMessageTimeTextView.visibility = View.VISIBLE
+//                    holder.receiverMessageTimeTextView.text = myMessages.time
+//                    holder.senderMessageLayout.visibility = View.GONE
+//
+//                    holder.receiverMessageImageView.visibility = View.VISIBLE
+//                    holder.senderMessageImageView.visibility = View.GONE
+//                    Picasso.get()
+//                        .load(myMessages.message)
+//                        .placeholder(R.drawable.dummy_avatar)
+//                        .into(holder.receiverMessageImageView)
+//                }
+//            }
+
+//            else if(fromMessagesType =="docx" || fromMessagesType=="pdf"){
+//                if (fromUserId == messageSenderId) {
+//                    holder.senderMessageImageView.visibility = View.VISIBLE
+//                    holder.senderMessageImageView.setBackgroundResource(R.drawable.ic_file)
+//
+////                    holder.itemView.setOnClickListener {
+////                        val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+////                        holder.itemView.context.startActivity(downloadIntent)
+////                        Log.i(TAG, "BBB onBindViewHolder: ${myMessages.message}")
+////                      //  Log.i(TAG, "BBB onBindViewHolder: ${Uri.parse(myMessages.message)}")
+////                    }
+//
+//                }
+//                else{
+//                    holder.receiverMessageImageView.visibility = View.VISIBLE
+//                    holder.receiverMessageImageView.setBackgroundResource(R.drawable.ic_file)
+//
+////                    holder.itemView.setOnClickListener {
+////                        val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+////                        holder.itemView.context.startActivity(downloadIntent)
+////                    }
+//                }
+//            }
+
+//            if (fromUserId == senderId) {
+//                holder.itemView.setOnLongClickListener {
+//
+//                    if (myMessages.type == "pdf" || myMessages.type == "docx"){
+//                        val options = arrayOf("Download","Delete for me","Delete for every one", "Cancel")
+//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
+//                        alertDialogBuilder.setTitle("Delete message?")
+//
+//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
+//                            when(position) {
+//                                //Download
+//                                0 -> {
+//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+//                                    holder.itemView.context.startActivity(downloadIntent)
+//                                }
+//                                //Delete for me
+//                                1 -> {
+//
+//                                }
+//                                //Delete for every one
+//                                2 -> {}
+//
+//                            }
+//                        }.show()
+//                    }
+//
+//                    else if (myMessages.type == "text"){
+//                        val options = arrayOf("Delete for me","Delete for every one", "Cancel")
+//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
+//                        alertDialogBuilder.setTitle("Delete message?")
+//
+//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
+//                            when(position) {
+//                                //Delete for me
+//                                0 -> {
+//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+//                                    holder.itemView.context.startActivity(downloadIntent)
+//                                }
+//                                //Delete for every one
+//                                1 -> {
+//
+//                                }
+//
+//                            }
+//                        }.show()
+//                    }
+//
+//                    else if (myMessages.type == "image"){
+//                        val options = arrayOf("View","Download","Delete for me","Delete for every one", "Cancel")
+//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
+//                        alertDialogBuilder.setTitle("Delete message?")
+//
+//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
+//                            when(position) {
+//                                //Delete for me
+//                                0 -> {
+//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+//                                    holder.itemView.context.startActivity(downloadIntent)
+//                                }
+//                                //Delete for every one
+//                                1 -> {
+//
+//                                }
+//
+//                            }
+//                        }.show()
+//                    }
+//
+//                    return@setOnLongClickListener true
+//
+//                }
+//            }
+//
+//            else{
+//                holder.itemView.setOnLongClickListener {
+//
+//                    if (myMessages.type == "pdf" || myMessages.type == "docx"){
+//                        val options = arrayOf("Download","Delete for me", "Cancel")
+//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
+//                        alertDialogBuilder.setTitle("Delete message?")
+//
+//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
+//                            when(position) {
+//                                //Download
+//                                0 -> {
+//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+//                                    holder.itemView.context.startActivity(downloadIntent)
+//                                }
+//                                //Delete for me
+//                                1 -> {
+//
+//                                }
+//                                //Delete for every one
+//                                2 -> {}
+//
+//                            }
+//                        }.show()
+//                    }
+//
+//                    else if (myMessages.type == "text"){
+//                        val options = arrayOf("Delete for me", "Cancel")
+//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
+//                        alertDialogBuilder.setTitle("Delete message?")
+//
+//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
+//                            when(position) {
+//                                //Delete for me
+//                                0 -> {
+//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+//                                    holder.itemView.context.startActivity(downloadIntent)
+//                                }
+//                                //Delete for every one
+//                                1 -> {
+//
+//                                }
+//
+//                            }
+//                        }.show()
+//                    }
+//
+//                    else if (myMessages.type == "image"){
+//                        val options = arrayOf("View","Download","Delete for me", "Cancel")
+//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
+//                        alertDialogBuilder.setTitle("Delete message?")
+//
+//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
+//                            when(position) {
+//                                //Delete for me
+//                                0 -> {
+//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+//                                    holder.itemView.context.startActivity(downloadIntent)
+//                                }
+//                                //Delete for every one
+//                                1 -> {
+//
+//                                }
+//
+//                            }
+//                        }.show()
+//                    }
+//
+//                    return@setOnLongClickListener true
+//
+//                }
+//            }
         }
+    }
+
+    private fun deleteSentMessages () {
+
     }
 
 
