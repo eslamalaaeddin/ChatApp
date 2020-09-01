@@ -176,41 +176,41 @@ class CallingActivity : AppCompatActivity() {
 //            })
 //    }
 //
-//    //cancel from receiver side
-//    private fun receiverSide () {
-//        usersRef.child(senderId).child("Ringing")
-//            .addListenerForSingleValueEvent(object : ValueEventListener{
-//                override fun onDataChange(snapshot: DataSnapshot) {
-//                    if (snapshot.exists() && snapshot.hasChild("ringing")){
-//                        ringingId = snapshot.child("ringing").value.toString()
-//
-//                        usersRef.child(ringingId).child("Calling")
-//                            .removeValue()
-//                            .addOnCompleteListener {
-//                                if (it.isSuccessful){
-//                                    usersRef.child(senderId).child("Ringing")
-//                                        .removeValue()
-//                                        .addOnCompleteListener {
-//                                            // startActivity(Intent(this@CallingActivity,MainActivity::class.java))
-//                                            senderSide()
-//                                            finish()
-//                                        }
-//                                }
-//                            }
-//
-//                    }
-//                    else{
-//                        //startActivity(Intent(this@CallingActivity,MainActivity::class.java))
-//                        finish()
-//                    }
-//                }
-//
-//                override fun onCancelled(error: DatabaseError) {
-//                    TODO("Not yet implemented")
-//                }
-//            })
-//    }
-//
+    //cancel from receiver side
+    private fun receiverSide () {
+        usersRef.child(senderId).child("Ringing")
+            .addListenerForSingleValueEvent(object : ValueEventListener{
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists() && snapshot.hasChild("ringing")){
+                        ringingId = snapshot.child("ringing").value.toString()
+
+                        usersRef.child(ringingId).child("Calling")
+                            .removeValue()
+                            .addOnCompleteListener {
+                                if (it.isSuccessful){
+                                    usersRef.child(senderId).child("Ringing")
+                                        .removeValue()
+                                        .addOnCompleteListener {
+                                            // startActivity(Intent(this@CallingActivity,MainActivity::class.java))
+                                            senderSide()
+                                            finish()
+                                        }
+                                }
+                            }
+
+                    }
+                    else{
+                        //startActivity(Intent(this@CallingActivity,MainActivity::class.java))
+                        finish()
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
+                }
+            })
+    }
+
 
     private fun getReceiverInfo() {
         usersRef.addValueEventListener(object : ValueEventListener {
