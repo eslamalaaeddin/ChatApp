@@ -74,15 +74,15 @@ class CallingActivity : AppCompatActivity() {
 
 
     }
-//
-//    private fun cancelCall() {
-//        //form sender
-//        senderSide()
-//
-//        //from receiver
-//        receiverSide()
-//    }
-//
+
+    private fun cancelCall() {
+        //form sender
+        senderSide()
+
+        //from receiver
+        receiverSide()
+    }
+
     override fun onStart() {
         super.onStart()
 
