@@ -2,6 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.whatsapp">
 
+    <permission
+        android:name="activities.PrivateChatActivity.PRIVATE"
+        android:protectionLevel="signature" />
+
+<!--    <uses-permission android:name="android.permission.INTERNET" /> &lt;!&ndash; for image cropping &ndash;&gt;-->
+<!--    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />-->
+<!--    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />-->
+<!--    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />-->
+<!--    <uses-permission android:name="activities.PrivateChatActivity.PRIVATE" />-->
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -9,13 +19,51 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name="activities.VisibleActivity"></activity>
+        <activity android:name="activities.VideoChatActivity" />
+        <activity android:name="activities.CallingActivity" />
+        <activity
+            android:name="activities.PrivateChatActivity"
+            android:parentActivityName="activities.MainActivity" />
+        <activity android:name="activities.ProfileActivity" />
+        <activity
+            android:name="activities.FindFriendsActivity"
+            android:parentActivityName="activities.MainActivity" />
+        <activity android:name="activities.PhoneLogInActivity" />
+        <activity android:name="activities.GroupChatActivity" />
+        <activity android:name="activities.SettingsActivity" />
+        <activity android:name="activities.RegisterActivity" />
+        <activity android:name="activities.LogInActivity" />
+        <activity android:name="activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat" />
+
+        <service
+            android:name="notifications.MyFirebaseMessagingService"
+            android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            </intent-filter>
+        </service>
+
+<!--        <receiver-->
+<!--            android:name="notifications.NotificationReceiver"-->
+<!--            android:exported="false"-->
+<!--            android:permission="activities.PrivateChatActivity.PRIVATE"-->
+
+<!--            >-->
+<!--            <intent-filter  android:priority="-999">-->
+<!--                <action android:name="activities.PrivateChatActivity.SHOW_NOTIFICATION" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
     </application>
 
 </manifest>
