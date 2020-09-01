@@ -655,7 +655,7 @@ class PrivateChatActivity : VisibleActivity() {
 
             }
 
-            to get message date
+            //to get message date
             override fun onLongClick(p0: View?): Boolean {
                var messageDate =messages[adapterPosition].date
                 val currentDate = SimpleDateFormat("MMM dd, yyyy").format(Calendar.getInstance().time)
@@ -727,40 +727,40 @@ class PrivateChatActivity : VisibleActivity() {
                 }
             }
 
-//            else if (fromMessagesType == "image") {
-//
-//                holder.receiverMessageTextView.visibility = View.GONE
-//                holder.senderMessageTextView.visibility = View.GONE
-//
-//                if (fromUserId == messageSenderId) {
-//                    holder.senderMessageTimeTextView.visibility = View.VISIBLE
-//                    holder.senderMessageTimeTextView.text = myMessages.time
-//                    holder.receiverMessageLayout.visibility = View.GONE
-//
-//
-//                    holder.senderMessageImageView.visibility = View.VISIBLE
-//                    holder.receiverMessageImageView.visibility = View.GONE
-//                    Picasso.get()
-//                        .load(myMessages.message)
-//                        .placeholder(R.drawable.dummy_avatar)
-//                        .into(holder.senderMessageImageView)
-//
-//            }
-//
-//                else{
-//
-//                    holder.receiverMessageTimeTextView.visibility = View.VISIBLE
-//                    holder.receiverMessageTimeTextView.text = myMessages.time
-//                    holder.senderMessageLayout.visibility = View.GONE
-//
-//                    holder.receiverMessageImageView.visibility = View.VISIBLE
-//                    holder.senderMessageImageView.visibility = View.GONE
-//                    Picasso.get()
-//                        .load(myMessages.message)
-//                        .placeholder(R.drawable.dummy_avatar)
-//                        .into(holder.receiverMessageImageView)
-//                }
-//            }
+            else if (fromMessagesType == "image") {
+
+                holder.receiverMessageTextView.visibility = View.GONE
+                holder.senderMessageTextView.visibility = View.GONE
+
+                if (fromUserId == messageSenderId) {
+                    holder.senderMessageTimeTextView.visibility = View.VISIBLE
+                    holder.senderMessageTimeTextView.text = myMessages.time
+                    holder.receiverMessageLayout.visibility = View.GONE
+
+
+                    holder.senderMessageImageView.visibility = View.VISIBLE
+                    holder.receiverMessageImageView.visibility = View.GONE
+                    Picasso.get()
+                        .load(myMessages.message)
+                        .placeholder(R.drawable.dummy_avatar)
+                        .into(holder.senderMessageImageView)
+
+            }
+
+                else{
+
+                    holder.receiverMessageTimeTextView.visibility = View.VISIBLE
+                    holder.receiverMessageTimeTextView.text = myMessages.time
+                    holder.senderMessageLayout.visibility = View.GONE
+
+                    holder.receiverMessageImageView.visibility = View.VISIBLE
+                    holder.senderMessageImageView.visibility = View.GONE
+                    Picasso.get()
+                        .load(myMessages.message)
+                        .placeholder(R.drawable.dummy_avatar)
+                        .into(holder.receiverMessageImageView)
+                }
+            }
 
 //            else if(fromMessagesType =="docx" || fromMessagesType=="pdf"){
 //                if (fromUserId == messageSenderId) {
