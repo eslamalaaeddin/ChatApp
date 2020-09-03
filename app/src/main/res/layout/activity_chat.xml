@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ChatActivity">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/cancel_chat_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginBottom="24dp"
+            app:srcCompat="@drawable/ic_cancel"
+            android:background="#EF0A0A"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <FrameLayout
+            android:id="@+id/frameLayout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <FrameLayout
+                android:id="@+id/subscriber_container"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/publisher_container"
+                android:layout_width="@dimen/publisher_width"
+                android:layout_height="@dimen/publisher_height"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="@dimen/publisher_right_margin"
+                android:layout_marginRight="@dimen/publisher_end_margin"
+                android:layout_marginBottom="@dimen/publisher_bottom_margin"
+                android:background="@color/white"
+                android:padding="@dimen/publisher_padding" />
+
+        </FrameLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
