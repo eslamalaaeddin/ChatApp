@@ -28,10 +28,6 @@
             android:id="@+id/find_friends_recycler_view"
             />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/dummy_button_test"/>
 
     </LinearLayout>
 </layout>
