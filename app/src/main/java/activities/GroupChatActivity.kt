@@ -9,13 +9,13 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.whatsapp.MessageModel
+import models.MessageModel
 import com.example.whatsapp.R
 import com.example.whatsapp.databinding.ActivityGroupChatBinding
+import com.example.whatsapp.databinding.SelfMessageItemBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import java.text.SimpleDateFormat
@@ -26,6 +26,8 @@ private const val GROUP_NAME = "group name"
 private const val TAG = "GroupChatActivity"
 class GroupChatActivity : AppCompatActivity() {
     private lateinit var activityGroupChatBinding: ActivityGroupChatBinding
+
+    private lateinit var selfMessageItemBinding: SelfMessageItemBinding
 
     private lateinit var auth: FirebaseAuth
     private lateinit var database: FirebaseDatabase
@@ -39,14 +41,15 @@ class GroupChatActivity : AppCompatActivity() {
     private lateinit var groupMessageKeyReference: DatabaseReference
     private lateinit var groupNameReference: DatabaseReference
 
+    private lateinit var messagesAdapter:MessagesAdapter
+
     private var retrievedMessagesModel = mutableListOf<MessageModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        activityGroupChatBinding = DataBindingUtil.setContentView(this,
-            R.layout.activity_group_chat
-        )
+        activityGroupChatBinding = DataBindingUtil.setContentView(this, R.layout.activity_group_chat)
+
 
         currentGroupName = intent.getStringExtra(GROUP_NAME).toString()
         setUpToolbar(currentGroupName)
@@ -67,7 +70,7 @@ class GroupChatActivity : AppCompatActivity() {
 
         activityGroupChatBinding.sendMessageButton.setOnClickListener {
             setMessageInfoToDb()
-            activityGroupChatBinding.sendMessageEditText.setText("")
+            activityGroupChatBinding.sendMessageEditText.text.clear()
 
         }
     }
@@ -75,16 +78,18 @@ class GroupChatActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        database.reference.child("Groups").child(currentGroupName).addValueEventListener(object :
-            ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                displayMessages(snapshot)
-            }
+        //replace it with add child even listener
 
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@GroupChatActivity, error.message, Toast.LENGTH_SHORT).show()
-            }
-        })
+//        database.reference.child("Groups").child(currentGroupName).addValueEventListener(object :
+//            ValueEventListener {
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                displayMessages(snapshot)
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//                Toast.makeText(this@GroupChatActivity, error.message, Toast.LENGTH_SHORT).show()
+//            }
+//        })
     }
 
     private fun setUpToolbar(groupName:String) {
@@ -130,6 +135,7 @@ class GroupChatActivity : AppCompatActivity() {
 
             val messageInfoMap = HashMap<String,Any>()
             messageInfoMap.put("name",currentUserName)
+            messageInfoMap.put("uid",currentUserId)
             messageInfoMap.put("message",currentMessage)
             messageInfoMap.put("date",currentDate)
             messageInfoMap.put("time",currentTime)
@@ -143,18 +149,18 @@ class GroupChatActivity : AppCompatActivity() {
 
     private fun displayMessages (snapshot: DataSnapshot) {
         retrievedMessagesModel.clear()
+        messagesAdapter =  MessagesAdapter(retrievedMessagesModel)
         for (note in snapshot.children) {
             val currentMessageModel = note.getValue(MessageModel::class.java)
             retrievedMessagesModel.add(currentMessageModel!!)
+            messagesAdapter.notifyDataSetChanged()
         }
 
-        activityGroupChatBinding.groupChatRecyclerView.adapter = MessagesAdapter(retrievedMessagesModel)
+        activityGroupChatBinding.groupChatRecyclerView.adapter = messagesAdapter
         //to scroll to the bottom of recycler view
         if (retrievedMessagesModel.isNotEmpty()){
             activityGroupChatBinding.groupChatRecyclerView.smoothScrollToPosition(retrievedMessagesModel.size-1)
         }
-
-
     }
 
 
@@ -163,7 +169,7 @@ class GroupChatActivity : AppCompatActivity() {
         inner class MessagesHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener, View.OnLongClickListener {
             private val messageBodyTextView : TextView = itemView.findViewById(R.id.message_body_text_view)
             private val messageTimeTextView : TextView = itemView.findViewById(R.id.message_time_text_view)
-            private val messageSenderTextView : TextView = itemView.findViewById(R.id.message_sender_text_view)
+            private val messageSenderTextView : TextView = itemView.findViewById(R.id.message_text_view)
 
 
             init {
@@ -192,11 +198,12 @@ class GroupChatActivity : AppCompatActivity() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessagesHolder {
 
+
             if (getItemViewType(parent.childCount) ==1) {
                val cardView =
                     LayoutInflater.from(parent.context).inflate(
                         R.layout.self_message_item
-                        ,parent,false ) as CardView
+                        ,parent,false )
                 return MessagesHolder(cardView)
             }
 
@@ -204,7 +211,7 @@ class GroupChatActivity : AppCompatActivity() {
                 val cardView =
                     LayoutInflater.from(parent.context).inflate(
                         R.layout.others_message_item
-                        ,parent,false ) as CardView
+                        ,parent,false )
                 return MessagesHolder(cardView)
             }
 
@@ -217,9 +224,11 @@ class GroupChatActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: MessagesHolder, position: Int) {
             val messageModel = list[holder.adapterPosition]
+
                 holder.bind(messageModel)
+            if (list[position].name == currentUserName) {
 
-
+            }
 
         }
 

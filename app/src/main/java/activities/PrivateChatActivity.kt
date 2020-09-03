@@ -1,16 +1,12 @@
 package activities
 
-import android.app.Notification
 import android.app.ProgressDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -19,7 +15,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.whatsapp.PrivateMessageModel
+import com.example.whatsapp.ChatActivity
+import models.PrivateMessageModel
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.DEVICE_TOKEN_CHILD
@@ -35,7 +32,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageTask
 import com.google.firebase.storage.UploadTask
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
@@ -45,7 +41,6 @@ import kotlinx.coroutines.launch
 import notifications.NotificationData
 import notifications.PushNotification
 import notifications.RetrofitInstance
-import okhttp3.internal.Util
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -54,7 +49,7 @@ private const val USER_ID = "user id"
 private const val USER_NAME = "user name"
 private const val USER_IMAGE = "user image"
 private const val RECEIVER_ID = "receiver id"
-private const val IMAGE_REQUEST_CODE = 1
+private const val REQUEST_NUM = 1
 private const val TAG = "PrivateChatActivity"
 
 
@@ -157,7 +152,7 @@ class PrivateChatActivity : VisibleActivity() {
         activityPrivateChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount -1)
 
         activityPrivateChatBinding.attachFileButton.setOnClickListener {
-            val options = arrayOf("images","PDF","MS Word")
+            val options = arrayOf("Images","Video","PDF","MS Word")
 
             val alertDialogBuilder = AlertDialog.Builder(this)
                 .setTitle("Choose file type")
@@ -170,23 +165,31 @@ class PrivateChatActivity : VisibleActivity() {
                                val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
                                imagesIntent.type = "image/*"
                                 startActivityForResult(Intent.createChooser(imagesIntent,"Choose an image"),
-                                    IMAGE_REQUEST_CODE)
+                                    REQUEST_NUM)
+                           }
+                           //Video
+                           1 -> {
+                               checker = "video"
+                               val videoIntent = Intent(Intent.ACTION_GET_CONTENT)
+                               videoIntent.type = "video/*"
+                               startActivityForResult(Intent.createChooser(videoIntent,"Choose a video"),
+                                   REQUEST_NUM)
                            }
                            //PDF
-                           1 -> {
+                           2 -> {
                                checker = "pdf"
                                val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
                                imagesIntent.type = "application/pdf"
                                startActivityForResult(Intent.createChooser(imagesIntent,"Choose a PDF file"),
-                                   IMAGE_REQUEST_CODE)
+                                   REQUEST_NUM)
                            }
                            //MS Word
-                           2 -> {
+                           3 -> {
                                checker= "docx"
                                val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
                                imagesIntent.type = "application/msword"
                                startActivityForResult(Intent.createChooser(imagesIntent,"Choose an MS Word file"),
-                                   IMAGE_REQUEST_CODE)
+                                   REQUEST_NUM)
                            }
                        }
                     }
@@ -196,25 +199,19 @@ class PrivateChatActivity : VisibleActivity() {
 
         //video call
 
-        videoCallImageView.setOnClickListener {
-            val callingIntent = Intent(this,CallingActivity::class.java)
-            callingIntent.putExtra(RECEIVER_ID,receiverId)
-            startActivity(callingIntent)
-        }
-
 
 
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data!=null && data.data!=null) {
+        if (requestCode == REQUEST_NUM && resultCode == RESULT_OK && data!=null && data.data!=null) {
 
           getLoadingDialog()
 
             fileUri = data.data!!
 
-            if (checker!="image") {
+            if (checker!="image" && checker!="video") {
                 val storageRef = FirebaseStorage.getInstance().reference.child("Document files")
 
                 val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -281,6 +278,68 @@ class PrivateChatActivity : VisibleActivity() {
                     progressDialog.show()
                     progressDialog.setMessage("$progress % Uploading...")
                 }
+            }
+
+            else if (checker == "video") {
+                val storageRef = FirebaseStorage.getInstance().reference.child("Video files")
+
+                val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
+                val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
+
+                val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
+                child(senderId).child(receiverId).push()
+
+                val messagePushId = userMessageKeyRef.key.toString()
+
+                val filePath = storageRef.child("$messagePushId.mp4")
+                val uploadTask = filePath.putFile(fileUri)
+
+                uploadTask.continueWithTask(object :
+                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
+                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
+                        if(!task.isSuccessful)
+                        {
+                            throw task.exception!!
+                        }
+                        return filePath.downloadUrl
+                    }
+                }).addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        url = it.result.toString()
+
+                        val calender = Calendar.getInstance()
+                        //get date and time
+                        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+                        val timeFormat = SimpleDateFormat("hh:mm a")
+
+                        currentDate = dateFormat.format(calender.time)
+                        currentTime = timeFormat.format(calender.time)
+
+
+                        val messageImageBody = HashMap<String,Any>()
+                        messageImageBody.put("message",url)
+                        messageImageBody.put("name",fileUri.lastPathSegment.toString())
+                        messageImageBody.put("type",checker)
+                        messageImageBody.put("from",senderId)
+                        messageImageBody.put("to",receiverId)
+                        messageImageBody.put("messageKey",messagePushId)
+                        messageImageBody.put("date",currentDate)
+                        messageImageBody.put("time",currentTime)
+
+                        val messageBodyDetails = HashMap<String,Any>()
+                        messageBodyDetails.put("$messageSenderRef/$messagePushId",messageImageBody)
+                        messageBodyDetails.put("$messageReceiverRef/$messagePushId",messageImageBody)
+
+                        rootRef.updateChildren(messageBodyDetails).addOnCompleteListener {task ->
+                            if (!task.isSuccessful) {
+                                Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+
+                            }
+                        }
+
+                    }
+                }
+
             }
             else if (checker =="image") {
                 val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
@@ -406,7 +465,6 @@ class PrivateChatActivity : VisibleActivity() {
         userImageView = findViewById(R.id.user_image_view)
         userNameTextView = findViewById(R.id.user_name_text_view)
         lastSeenTextView = findViewById(R.id.user_last_seen)
-        videoCallImageView = findViewById(R.id.video_call_image_view)
 
             usersRef.child(receiverId).addValueEventListener(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -417,7 +475,7 @@ class PrivateChatActivity : VisibleActivity() {
                     if (imageUrl.isNotEmpty()) {
                         Picasso.get()
                             .load(imageUrl)
-                            .placeholder(R.drawable.dummy_avatar)
+                            .placeholder(R.drawable.ic_person)
                             .into(userImageView)
                     }
 
@@ -742,7 +800,7 @@ class PrivateChatActivity : VisibleActivity() {
                     holder.receiverMessageImageView.visibility = View.GONE
                     Picasso.get()
                         .load(myMessages.message)
-                        .placeholder(R.drawable.dummy_avatar)
+                        .placeholder(R.drawable.ic_person)
                         .into(holder.senderMessageImageView)
 
             }
@@ -757,8 +815,49 @@ class PrivateChatActivity : VisibleActivity() {
                     holder.senderMessageImageView.visibility = View.GONE
                     Picasso.get()
                         .load(myMessages.message)
-                        .placeholder(R.drawable.dummy_avatar)
+                        .placeholder(R.drawable.ic_person)
                         .into(holder.receiverMessageImageView)
+                }
+            }
+
+            else if (fromMessagesType == "video") {
+
+                holder.receiverMessageTextView.visibility = View.GONE
+                holder.senderMessageTextView.visibility = View.GONE
+
+                if (fromUserId == messageSenderId) {
+                    holder.senderMessageTimeTextView.visibility = View.VISIBLE
+                    holder.senderMessageTimeTextView.text = myMessages.time
+                    holder.receiverMessageLayout.visibility = View.GONE
+
+
+                    holder.senderMessageImageView.visibility = View.VISIBLE
+                    holder.receiverMessageImageView.visibility = View.GONE
+
+                    holder.senderMessageImageView.setImageResource(R.drawable.ic_video)
+                    holder.receiverMessageImageView.visibility = View.GONE
+
+                    holder.senderMessageImageView.setOnClickListener {
+                        Toast.makeText(this@PrivateChatActivity, myMessages.message, Toast.LENGTH_SHORT).show()
+                    }
+
+                }
+
+                else{
+
+                    holder.receiverMessageTimeTextView.visibility = View.VISIBLE
+                    holder.receiverMessageTimeTextView.text = myMessages.time
+                    holder.senderMessageLayout.visibility = View.GONE
+
+                    holder.receiverMessageImageView.visibility = View.VISIBLE
+                    holder.senderMessageImageView.visibility = View.GONE
+                   //
+                    holder.receiverMessageImageView.setImageResource(R.drawable.ic_video)
+
+                    holder.receiverMessageImageView.setOnClickListener {
+                        Toast.makeText(this@PrivateChatActivity, myMessages.message, Toast.LENGTH_SHORT).show()
+                    }
+                    //
                 }
             }
 
@@ -934,11 +1033,30 @@ class PrivateChatActivity : VisibleActivity() {
         }
     }
 
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.private_chat_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+
+            R.id.establish_video_chat -> makeVideoCall()
+
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     private fun deleteSentMessages () {
 
     }
 
-
+    private fun makeVideoCall () {
+        val callingIntent = Intent(this,ChatActivity::class.java)
+        callingIntent.putExtra(RECEIVER_ID,receiverId)
+        startActivity(callingIntent)
+    }
 
 
 }

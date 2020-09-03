@@ -17,6 +17,7 @@ import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.STATE_CHILD
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityMainBinding
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
@@ -31,6 +32,7 @@ private const val USER_ID = "user id"
 private const val USER_NAME = "user name"
 private const val USER_IMAGE = "user image"
 private const val GROUP_NAME = "group name"
+private const val PHONE_NUMBER = "phone number"
 class MainActivity : AppCompatActivity() , Callback {
 
     private lateinit var tabsAdapter: TabsAdapter
@@ -55,12 +57,15 @@ class MainActivity : AppCompatActivity() , Callback {
 
     private var privateChatIntent : Intent? = null
 
+    private lateinit var phoneNumber:String
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+
+        phoneNumber = intent.getStringExtra(PHONE_NUMBER).toString()
 
         //Setting the toolbar title and its color
         setUpToolbar()
@@ -86,7 +91,7 @@ class MainActivity : AppCompatActivity() , Callback {
     override fun onStart() {
         super.onStart()
         if(currentUser == null) {
-            sendUserToLogInActivity()
+            sendUserToPhoneLogInActivity()
         }
 
         else{
@@ -111,8 +116,8 @@ class MainActivity : AppCompatActivity() , Callback {
     }
     
 
-    private fun sendUserToLogInActivity() {
-        val loginIntent = Intent(this , LogInActivity::class.java)
+    private fun sendUserToPhoneLogInActivity() {
+        val loginIntent = Intent(this , PhoneLogInActivity::class.java)
         loginIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(loginIntent)
         finish()
@@ -125,13 +130,14 @@ class MainActivity : AppCompatActivity() , Callback {
 
     private fun sendUserToSettingsActivity() {
         val settingIntent = Intent(this , SettingsActivity::class.java)
+        settingIntent.putExtra(PHONE_NUMBER,phoneNumber)
         startActivity(settingIntent)
 
     }
 
     private fun verifyUserExistence() {
         val currentUserId = currentUser?.uid.toString()
-        val deviceToken = FirebaseInstanceId.getInstance().getToken()
+        val deviceToken = FirebaseInstanceId.getInstance().token
         usersRef.child(currentUserId).child(Utils.DEVICE_TOKEN_CHILD).setValue(deviceToken)
 
         rootRef.child("Users").child(currentUserId).addValueEventListener(object : ValueEventListener {
@@ -143,6 +149,7 @@ class MainActivity : AppCompatActivity() , Callback {
 
                 else{
                     sendUserToSettingsActivity()
+                    //Snackbar.make(activityMainBinding.mainToolbar,"HI",Snackbar.LENGTH_INDEFINITE).show()
                 }
             }
 
@@ -223,7 +230,7 @@ class MainActivity : AppCompatActivity() , Callback {
                 R.id.settings_item -> sendUserToSettingsActivity()
                 R.id.log_out_item -> {
                     auth.signOut()
-                    sendUserToLogInActivity()
+                    sendUserToPhoneLogInActivity()
                 }
         }
         return super.onOptionsItemSelected(item)

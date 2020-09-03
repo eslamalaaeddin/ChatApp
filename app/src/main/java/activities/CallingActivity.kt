@@ -66,8 +66,8 @@ class CallingActivity : AppCompatActivity() {
             usersRef.child(senderId).child("Ringing").updateChildren(pickedUpMap).addOnCompleteListener {
                 if (it.isComplete) {
                     mediaPlayer.stop()
-                    val videoChatIntent = Intent(this,VideoChatActivity::class.java)
-                    startActivity(videoChatIntent)
+//                    val videoChatIntent = Intent(this,VideoChatActivity::class.java)
+//                    startActivity(videoChatIntent)
                 }
             }
         }
@@ -131,8 +131,8 @@ class CallingActivity : AppCompatActivity() {
 
                 if (snapshot.child(receiverId).child("Ringing").hasChild("picked")){
                     mediaPlayer.stop()
-                    val videoChatIntent = Intent(this@CallingActivity,VideoChatActivity::class.java)
-                    startActivity(videoChatIntent)
+//                    val videoChatIntent = Intent(this@CallingActivity,VideoChatActivity::class.java)
+//                    startActivity(videoChatIntent)
                 }
             }
 
@@ -156,7 +156,7 @@ class CallingActivity : AppCompatActivity() {
                                     usersRef.child(senderId).child("Calling")
                                         .removeValue()
                                         .addOnCompleteListener {
-                                            // startActivity(Intent(this@CallingActivity,MainActivity::class.java))
+                                             startActivity(Intent(this@CallingActivity,MainActivity::class.java))
                                             receiverSide()
                                             finish()
                                         }
@@ -165,7 +165,7 @@ class CallingActivity : AppCompatActivity() {
 
                     }
                     else{
-                        //startActivity(Intent(this@CallingActivity,MainActivity::class.java))
+                        startActivity(Intent(this@CallingActivity,MainActivity::class.java))
                         finish()
                     }
                 }
@@ -191,7 +191,7 @@ class CallingActivity : AppCompatActivity() {
                                     usersRef.child(senderId).child("Ringing")
                                         .removeValue()
                                         .addOnCompleteListener {
-                                            // startActivity(Intent(this@CallingActivity,MainActivity::class.java))
+                                            startActivity(Intent(this@CallingActivity,MainActivity::class.java))
                                             senderSide()
                                             finish()
                                         }
@@ -200,7 +200,7 @@ class CallingActivity : AppCompatActivity() {
 
                     }
                     else{
-                        //startActivity(Intent(this@CallingActivity,MainActivity::class.java))
+                        startActivity(Intent(this@CallingActivity,MainActivity::class.java))
                         finish()
                     }
                 }
@@ -210,7 +210,6 @@ class CallingActivity : AppCompatActivity() {
                 }
             })
     }
-
 
     private fun getReceiverInfo() {
         usersRef.addValueEventListener(object : ValueEventListener {
@@ -225,7 +224,7 @@ class CallingActivity : AppCompatActivity() {
                     if (receiverImageUrl.isNotEmpty()) {
                         Picasso.get()
                             .load(receiverImageUrl)
-                            .placeholder(R.drawable.dummy_avatar)
+                            .placeholder(R.drawable.ic_person)
                             .into(activityCallingBinding.callerImageView)
                     }
 

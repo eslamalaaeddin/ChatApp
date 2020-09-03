@@ -25,6 +25,7 @@ import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 
 private const val TAG = "SettingsActivity"
+private const val PHONE_NUMBER = "phone number"
 private const val GALLERY_PICK_NUMBER = 1
 class SettingsActivity : AppCompatActivity() {
     private lateinit var activitySettingsBinding: ActivitySettingsBinding
@@ -34,6 +35,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var userProfileImageReference: StorageReference
 
     private lateinit var currentUser: FirebaseUser
+    private lateinit var phoneNumber:String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activitySettingsBinding = DataBindingUtil.setContentView(this, R.layout.activity_settings)
@@ -47,6 +49,8 @@ class SettingsActivity : AppCompatActivity() {
         currentUser = auth.currentUser!!
 
         userProfileImageReference = FirebaseStorage.getInstance().reference.child("Profile images")
+
+        phoneNumber = intent.getStringExtra(PHONE_NUMBER).toString()
 
         activitySettingsBinding.updateAccountButton.setOnClickListener {
             updateSettings()
@@ -88,13 +92,6 @@ class SettingsActivity : AppCompatActivity() {
             val filePath = userProfileImageReference.child("${currentUser.uid}.jpg")
           filePath.putFile(resultUri).addOnCompleteListener { taskSnapshot ->
                 if (taskSnapshot.isSuccessful) {
-                    Toast.makeText(
-                        this@SettingsActivity,
-                        "profile image updated successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    
-
 
                    filePath.downloadUrl.addOnCompleteListener {task ->
 
@@ -104,7 +101,6 @@ class SettingsActivity : AppCompatActivity() {
                                .setValue(imageUrl).addOnCompleteListener { task ->
 
                                    if (task.isSuccessful) {
-                                       Toast.makeText(this, "Image added to the DB successfully", Toast.LENGTH_SHORT).show()
                                    } else {
                                        Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
                                    }
@@ -117,9 +113,6 @@ class SettingsActivity : AppCompatActivity() {
 
                        progressDialog.dismiss()
                    }
-                    
-                    
-            
 
                 } else {
                     Toast.makeText(
@@ -145,6 +138,7 @@ class SettingsActivity : AppCompatActivity() {
             userMap.put("uid", currentUser.uid)
             userMap.put("name", userName)
             userMap.put("status", userStatus)
+            userMap.put("phoneNumber", phoneNumber)
 
             rootRef.child("Users").child(currentUser.uid).updateChildren(userMap)
 
@@ -175,7 +169,7 @@ class SettingsActivity : AppCompatActivity() {
 
                         Picasso.get()
                             .load(userImageUrl)
-                            .placeholder(R.drawable.dummy_avatar)
+                            .placeholder(R.drawable.ic_person)
                             .into(activitySettingsBinding.userImageView)
 
                         fillEditTexts(userName, userStatus)

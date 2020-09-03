@@ -15,7 +15,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import java.util.concurrent.TimeUnit
-
+private const val PHONE_NUMBER = "phone number"
 private const val TAG = "PhoneLogInActivity"
 class PhoneLogInActivity : AppCompatActivity() {
     private lateinit var activityPhoneLogInBinding: ActivityPhoneLogInBinding
@@ -25,7 +25,7 @@ class PhoneLogInActivity : AppCompatActivity() {
     private lateinit var callbacks : PhoneAuthProvider.OnVerificationStateChangedCallbacks
 
     private lateinit var progressDialog: ProgressDialog
-
+    private lateinit var phoneNumber:String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -39,9 +39,7 @@ class PhoneLogInActivity : AppCompatActivity() {
 
             setVisibilityOnSuccess()
 
-            val phoneNumber = activityPhoneLogInBinding.phoneNumberEditText.editableText.toString()
-            
-            
+             phoneNumber = activityPhoneLogInBinding.phoneNumberEditText.editableText.toString()
 
             if (phoneNumber.isNotEmpty()) {
                 Log.i(TAG, "onCreate: $phoneNumber")
@@ -140,6 +138,7 @@ class PhoneLogInActivity : AppCompatActivity() {
 
     private fun sendUserToMainActivity() {
         val mainActivityIntent = Intent(this, MainActivity::class.java)
+        mainActivityIntent.putExtra(PHONE_NUMBER,phoneNumber)
         startActivity(mainActivityIntent)
     }
 }

@@ -22,6 +22,8 @@ class ProfileActivity : AppCompatActivity() {
 
     private lateinit var contactsRef : DatabaseReference
 
+    private lateinit var notificationReference: DatabaseReference
+
     private lateinit var auth: FirebaseAuth
 
     private lateinit var currentUserIdFromDb:String
@@ -73,7 +75,7 @@ class ProfileActivity : AppCompatActivity() {
                             val userImageUrl = snapshot.child("image").value.toString()
                             Picasso.get()
                                 .load(userImageUrl)
-                                .placeholder(R.drawable.dummy_avatar)
+                                .placeholder(R.drawable.ic_person)
                                 .into(activityProfileBinding.userImageView)
                         }
 
@@ -233,6 +235,9 @@ class ProfileActivity : AppCompatActivity() {
        setValue("sent").addOnCompleteListener { task ->
 
                    if (task.isSuccessful) {
+
+
+
                        chatRequestRef.
                        child(currentUserIdFromIntent).
                        child(currentUserIdFromDb).
@@ -240,10 +245,25 @@ class ProfileActivity : AppCompatActivity() {
                        setValue("received").
                        addOnCompleteListener{task ->
                            if (task.isSuccessful) {
-                               activityProfileBinding.messageRequestButton.apply {
-                                   isEnabled = true
-                                   currentRequestState = "request_sent"
-                                   this.text = "Cancel chat request"
+
+                               val requestChatNotificationMap = HashMap<String,String>()
+                               requestChatNotificationMap.put("from",currentUserIdFromDb)
+                               requestChatNotificationMap.put("type","request")
+
+                               notificationReference = rootRef.child("Notifications")
+
+                               notificationReference.child(currentUserIdFromIntent).push() .setValue(requestChatNotificationMap)
+                                   .addOnCompleteListener {task ->
+                                       if (task.isSuccessful) {
+
+                                           activityProfileBinding.messageRequestButton.apply {
+                                               isEnabled = true
+                                               currentRequestState = "request_sent"
+                                               this.text = "Cancel chat request"
+                                       }
+                                   }
+
+
                                }
 
                            }

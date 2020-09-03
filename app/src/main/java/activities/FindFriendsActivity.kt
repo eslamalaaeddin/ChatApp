@@ -283,7 +283,7 @@ class FindFriendsActivity : AppCompatActivity() {
                 if (list[adapterPosition].image.isNotEmpty()) {
                     Picasso.get()
                         .load(list[adapterPosition].image)
-                        .placeholder(R.drawable.dummy_avatar)
+                        .placeholder(R.drawable.ic_person)
                         .into(userImageView)
                 }
             }
