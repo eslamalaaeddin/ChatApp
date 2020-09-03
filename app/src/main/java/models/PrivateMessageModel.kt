@@ -1,4 +1,4 @@
-package com.example.whatsapp
+package models
 
 class PrivateMessageModel(var from:String,
                           var message:String,
