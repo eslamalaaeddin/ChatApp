@@ -20,7 +20,7 @@
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:id="@+id/user_image_view"
-            android:src="@drawable/dummy_avatar"
+            app:srcCompat="@drawable/ic_person"
             android:layout_gravity="start"
             android:layout_marginStart="2dp"
             android:layout_marginEnd="8dp"
