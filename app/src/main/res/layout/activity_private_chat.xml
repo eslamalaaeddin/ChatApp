@@ -47,28 +47,28 @@
                 android:backgroundTint="@android:color/white"
                 android:hint="Type a message..." />
 
-            <Button
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:id="@+id/attach_file_button"
-                android:text="file"
                 android:textColor="@android:color/white"
                 android:backgroundTint="@color/colorPrimary"
                 android:layout_margin="4dp"
-                android:background="@drawable/round_button"
+                app:borderWidth="0dp"
+                app:srcCompat="@drawable/ic_file"
                />
 
-            <Button
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:id="@+id/send_message_button"
-                android:text="send"
                 android:textColor="@android:color/white"
                 android:backgroundTint="@color/colorPrimary"
                 android:layout_margin="4dp"
-                android:background="@drawable/round_button"
+                app:borderWidth="0dp"
+                app:srcCompat="@drawable/ic_send"
                 android:layout_gravity="center" />
 
         </LinearLayout>

@@ -17,12 +17,11 @@
             android:id="@+id/user_image_view"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginStart="4dp"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="4dp"
+            android:cropToPadding="true"
             app:civ_border_color="@color/colorPrimary"
             app:civ_border_width="1dp"
-            android:cropToPadding="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -34,10 +33,10 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="4dp"
 
-            android:text="Mahmoud Sanad"
             android:textColor="#FFFFFF"
             app:layout_constraintStart_toEndOf="@+id/user_image_view"
-            app:layout_constraintTop_toTopOf="@+id/user_image_view" />
+            app:layout_constraintTop_toTopOf="@+id/user_image_view"
+            tools:text="Mahmoud Sanad" />
 
         <TextView
             android:id="@+id/user_last_seen"

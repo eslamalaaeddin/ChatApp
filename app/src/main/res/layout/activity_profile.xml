@@ -17,17 +17,15 @@
             android:layout_width="256dp"
             android:layout_height="256dp"
             android:id="@+id/user_image_view"
-            android:src="@drawable/dummy_avatar"
             android:layout_gravity="center"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginTop="64dp"
+            android:layout_marginTop="32dp"
             android:layout_marginBottom="32dp"
             app:civ_border_color="@color/colorPrimary"
             app:civ_border_width="2dp"
-            app:civ_shadow="true"
-            app:civ_shadow_radius="2dp"
-            app:civ_shadow_color="@color/colorPrimary" />
+            android:cropToPadding="true"
+            />
 
 
         <TextView
@@ -62,7 +60,7 @@
             android:id="@+id/message_request_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Message"
+            android:text="Send chat request"
             android:textAllCaps="false"
             android:textSize="18sp"
             android:layout_gravity="center"
@@ -71,6 +69,23 @@
             android:paddingBottom="8dp"
             android:paddingStart="32dp"
             android:paddingEnd="32dp" />
+
+        <Button
+
+            android:id="@+id/message_decline_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel message request"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp"
+            android:visibility="invisible"
+            />
 
     </LinearLayout>
 </layout>

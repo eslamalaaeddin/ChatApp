@@ -45,7 +45,7 @@
                 >
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/user_name_text_view"
                     tools:text="Islam AlaaEddin"
@@ -53,13 +53,14 @@
                     android:textColor="@android:color/black"
                     />
 
+
+
             </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:id="@+id/user_status_text_view"
+                android:layout_height="wrap_content"
+                android:id="@+id/user_last_seen_text_view"
                 tools:text="Last seen"
                 android:textSize="12sp"
                 android:layout_marginStart="4dp"
@@ -67,6 +68,8 @@
 
                 android:textColor="@android:color/black"
                 />
+
+
 
         </LinearLayout>
 

@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context=".GroupChatActivity">
+        tools:context="activities.GroupChatActivity">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/main_toolbar"
@@ -20,29 +20,12 @@
             style="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             android:background="@color/colorPrimary" />
 
-        <ScrollView
+        <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/group_chat_text_display"
-                    tools:text="I love Alaa"
-                    android:textSize="21sp"
-                    android:textAllCaps="false"
-                    android:textColor="@android:color/black"
-                    android:padding="8dp" />
-
-            </LinearLayout>
-
-        </ScrollView>
+            android:layout_weight="1"
+            android:id="@+id/group_chat_recycler_view"
+            />
 
         <LinearLayout
             android:layout_width="match_parent"

@@ -28,11 +28,27 @@
             android:layout_gravity="center"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginTop="64dp"
+            android:layout_marginTop="32dp"
             android:layout_marginBottom="32dp"
             app:civ_border_color="@color/colorPrimary"
             app:civ_border_width="4dp"
+            android:cropToPadding="true"
             />
+
+        <Button
+
+            android:id="@+id/update_account_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Update "
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp" />
 
 
         <EditText
@@ -57,20 +73,7 @@
             android:layout_marginBottom="8dp"
             android:hint="Status" />
 
-        <Button
 
-            android:id="@+id/update_account_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Update "
-            android:textAllCaps="false"
-            android:textSize="18sp"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:paddingStart="32dp"
-            android:paddingEnd="32dp" />
 
     </LinearLayout>
 </layout>
