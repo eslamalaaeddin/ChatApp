@@ -1,7 +1,10 @@
 package fragments
 
+import activities.CallingActivity
+import activities.FindFriendsActivity
 import activities.PrivateChatActivity
 import activities.ProfileActivity
+
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -22,6 +25,7 @@ import com.example.whatsapp.Callback
 import com.example.whatsapp.ContactsModel
 
 import com.example.whatsapp.R
+import com.example.whatsapp.UserStateModel
 import com.example.whatsapp.databinding.FragmentChatsBinding
 import com.firebase.ui.database.FirebaseRecyclerAdapter
 import com.firebase.ui.database.FirebaseRecyclerOptions
@@ -32,6 +36,7 @@ import com.squareup.picasso.Picasso
 import kotlin.math.log
 
 private const val TAG = "ChatsFragment"
+private const val CALLER_ID = "receiver id"
 
 class ChatsFragment : Fragment() {
     private lateinit var fragmentChatsBinding :FragmentChatsBinding
@@ -41,11 +46,14 @@ class ChatsFragment : Fragment() {
 
     private lateinit var currentUserId: String
     private lateinit var usersReference: DatabaseReference
-    private lateinit var contactsAdapter: FirebaseRecyclerAdapter<ContactsModel, ContactsViewHolder>
+//    private lateinit var contactsAdapter: FirebaseRecyclerAdapter<ContactsModel, ContactsViewHolder>
 
     private lateinit var rootReference: DatabaseReference
-
+    private  var phoneContactsAdapter =  ContactAdapterFromFirebase (emptyList(), emptyList())
+    val listFromFirebaseDb = mutableListOf<ContactsModel>()
     private lateinit var messagesReference:DatabaseReference
+
+    private lateinit var callBy:String
 
     private  var usersIdsList =  mutableListOf<String>()
     private  var usersNamesList =  mutableListOf<String>()
@@ -53,6 +61,9 @@ class ChatsFragment : Fragment() {
 
     private lateinit var callback: Callback
 
+    private var stateList = mutableListOf<UserStateModel>()
+
+    private lateinit var mySnapshot: DataSnapshot
     override fun onAttach(context: Context) {
         super.onAttach(context)
         callback = context as Callback
@@ -69,6 +80,7 @@ class ChatsFragment : Fragment() {
         usersReference = FirebaseDatabase.getInstance().reference.child("Users")
         messagesReference = FirebaseDatabase.getInstance().reference.child("Messages")
         contactsReference = FirebaseDatabase.getInstance().reference.child("Contacts").child(currentUser.uid)
+
 
     }
     override fun onCreateView(
@@ -88,116 +100,159 @@ class ChatsFragment : Fragment() {
             addItemDecoration( DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
             layoutManager = LinearLayoutManager(context)
         }
+        fragmentChatsBinding.fab.setOnClickListener {
+            sendUserToFindFriendsActivity()
+        }
+
+        usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+
+                for (phoneSnapshot in snapshot.children) {
+                    val id = phoneSnapshot.child("uid").value.toString()
+                    if (id != currentUserId) {
+                        val name = phoneSnapshot.child("name").value.toString()
+                        val image = phoneSnapshot.child("image").value.toString()
+                        val status = phoneSnapshot.child("status").value.toString()
+                        val currentPhoneNumber = phoneSnapshot.child("phoneNumber").value.toString()
+
+                        val date = phoneSnapshot.child("state").child("date").value.toString()
+                        val time = phoneSnapshot.child("state").child("time").value.toString()
+                        val state = phoneSnapshot.child("state").child("state").value.toString()
+
+                        usersIdsList.add(id)
+                        usersNamesList.add(name)
+                        usersImagesList.add(image)
+
+                        stateList.add(
+                            UserStateModel(
+                                date, state, time
+                            )
+                        )
+
+                        listFromFirebaseDb.add(
+                            ContactsModel(
+                                name,
+                                image,
+                                status,
+                                id,
+                                currentPhoneNumber
+                            )
+                        )
+                        Log.i(TAG, "QQQQ onDataChange: $name   $currentPhoneNumber")
+                        Log.i(TAG, "QQQQ onDataChange: $date   $state   $time")
+                    }
+                }
+
+                phoneContactsAdapter = ContactAdapterFromFirebase(listFromFirebaseDb,stateList)
+                fragmentChatsBinding.chatsRecyclerView.adapter = phoneContactsAdapter
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+
+        })
     }
 
     override fun onStart() {
         super.onStart()
-        
-        val options  =
-            FirebaseRecyclerOptions.Builder<ContactsModel>().setQuery(contactsReference,
-                ContactsModel::class.java).build()
+        checkForReceivingCalls()
+    }
 
-        contactsAdapter = object :
-            FirebaseRecyclerAdapter<ContactsModel, ContactsViewHolder>(options) {
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactsViewHolder {
-                val view =
-                    LayoutInflater.from(parent.context).inflate(R.layout.user_item_layout
-                        , parent
-                        , false)
+    // to return contacts from firebase db
+    inner class ContactAdapterFromFirebase(private val contactsModel : List<ContactsModel>,
+                                           private val userSatesModel:List<UserStateModel>)
+        : RecyclerView.Adapter<ContactAdapterFromFirebase.ContactsViewHolder>(){
 
-                return ContactsViewHolder(view)
-            }
+        override fun getItemCount(): Int {
+            return contactsModel.size
+        }
 
-          
-
-            override fun onBindViewHolder(holder: ContactsViewHolder, position: Int, model: ContactsModel) {
-               val userIds = getRef(position).key.toString()
-                //to get current user data
-              rootReference.child("Users").child(userIds).addValueEventListener(object : ValueEventListener {
-                   override fun onDataChange(snapshot: DataSnapshot) {
-                       //snap shot == { key = BGOgKddJIVWRH60cKLoIlepQVet1, value = {image=....}
-
-                       Log.i(TAG, "OOO onDataChange: $snapshot")
-                       Log.i(TAG, "OOO onDataChange: ${snapshot.key}")
-                       Log.i(TAG, "OOO onDataChange: ${snapshot.value}")
-                       holder.bind(snapshot)
-                       usersIdsList.add(snapshot.child("uid").value.toString())
-                       usersNamesList.add(snapshot.child("name").value.toString())
-                       usersImagesList.add(snapshot.child("image").value.toString())
-
-                   }
-
-                   override fun onCancelled(error: DatabaseError) {
-
-                   }
-               })
-
-
-            }
+        override fun onBindViewHolder(holder: ContactAdapterFromFirebase.ContactsViewHolder, position: Int) {
+            val userStateModel = userSatesModel[holder.adapterPosition]
+            val contactModel = contactsModel[holder.adapterPosition]
+            holder.bind(userStateModel,contactModel)
 
         }
 
-        //attaching recyclerView to the adapter
-        fragmentChatsBinding.chatsRecyclerView.adapter = contactsAdapter
-        fragmentChatsBinding.chatsRecyclerView.layoutManager = LinearLayoutManager(context)
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactsViewHolder {
+            return ContactsViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.friend_item_layout,parent,false))
+        }
 
-        contactsAdapter.startListening()
+        inner class ContactsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+            private val userNameTextView : TextView = itemView.findViewById(R.id.user_name_text_view)
+            private val userLastSeenTextView: TextView =  itemView.findViewById(R.id.user_status_text_view)
+            // private val userLastMessageTextView : TextView = itemView.findViewById(R.id.last_message_text_view)
+            //  private val userLastChatTimeTextView : TextView = itemView.findViewById(R.id.last_chat_time_text_view)
+            private val userImageView : ImageView = itemView.findViewById(R.id.user_image_view)
 
-    }
+            fun bind(userStateModel: UserStateModel,contactModel:ContactsModel) {
+
+                val time = userStateModel.time
+                val date = userStateModel.date
+                val state = userStateModel.state
+
+                if (state == "offline") {
+
+                    userLastSeenTextView.text =  "Last seen: $time, $date"
+                }
+                else if (state == "online") {
+                    userLastSeenTextView.apply {
+                        text = state
+                        //setBackgroundResource(R.color.colorPrimary)
+                    }
+                }
+
+                userNameTextView.text = contactModel.name
 
 
-    inner class ContactsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
-        private val userNameTextView : TextView = itemView.findViewById(R.id.user_name_text_view)
-        private val userLastSeenTextView: TextView =  itemView.findViewById(R.id.user_last_seen_text_view)
-       // private val userLastMessageTextView : TextView = itemView.findViewById(R.id.last_message_text_view)
-      //  private val userLastChatTimeTextView : TextView = itemView.findViewById(R.id.last_chat_time_text_view)
-        private val userImageView : ImageView = itemView.findViewById(R.id.user_image_view)
-
-        fun bind(snapshot: DataSnapshot) {
-
-            val time = snapshot.child("state").child("time").value.toString()
-            val date = snapshot.child("state").child("date").value.toString()
-            val state = snapshot.child("state").child("state").value.toString()
-
-            if (state == "offline") {
-
-                userLastSeenTextView.text =  "Last seen: $time, $date"
-            }
-            else if (state == "online") {
-                userLastSeenTextView.apply {
-                    text = state
-                    //setBackgroundResource(R.color.colorPrimary)
+                val imageUrl = contactModel.image
+                if (imageUrl.isNotEmpty()) {
+                    Picasso.get()
+                        .load(imageUrl)
+                        .placeholder(R.drawable.dummy_avatar)
+                        .into(userImageView)
                 }
             }
 
-            userNameTextView.text = snapshot.child("name").value.toString()
+            init {
+                itemView.setOnClickListener(this)
+            }
+
+            override fun onClick(itemView: View?) {
+                val userId = usersIdsList[adapterPosition]
+                val userName = usersNamesList[adapterPosition]
+                val userImage = usersImagesList[adapterPosition]
 
 
-            val imageUrl = snapshot.child("image").value.toString()
-            if (imageUrl.isNotEmpty()) {
-                Picasso.get()
-                    .load(imageUrl)
-                    .placeholder(R.drawable.dummy_avatar)
-                    .into(userImageView)
+                callback.onUserChatClicked(userName,userId,userImage)
             }
         }
 
-        init {
-            itemView.setOnClickListener(this)
-        }
-
-        override fun onClick(itemView: View?) {
-            val userId = usersIdsList[adapterPosition]
-            val userName = usersNamesList[adapterPosition]
-            val userImage = usersImagesList[adapterPosition]
-
-
-            callback.onUserChatClicked(userName,userId,userImage)
-        }
     }
 
-    override fun onStop() {
-        super.onStop()
-        contactsAdapter.stopListening()
+    private fun checkForReceivingCalls() {
+        usersReference.child(currentUserId).child("Ringing").addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if(snapshot.hasChild("ringing")){
+                    //current caller Id
+                    callBy = snapshot.child("ringing").value.toString()
+                    //send user to calling activity
+                    val callingIntent = Intent(context, CallingActivity::class.java)
+                    callingIntent.putExtra(CALLER_ID,callBy)
+                    startActivity(callingIntent)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+        })
+    }
+
+    private fun sendUserToFindFriendsActivity() {
+        val findFriendsIntent = Intent(requireContext() , FindFriendsActivity::class.java)
+        startActivity(findFriendsIntent)
     }
 }
