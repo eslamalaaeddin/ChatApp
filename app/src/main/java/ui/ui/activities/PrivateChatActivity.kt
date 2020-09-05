@@ -1,4 +1,4 @@
-package activities
+package ui.ui.activities
 
 import android.app.ProgressDialog
 import android.content.DialogInterface
@@ -15,7 +15,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.whatsapp.ChatActivity
 import models.PrivateMessageModel
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
@@ -60,8 +59,8 @@ class PrivateChatActivity : VisibleActivity() {
     companion object{
 
         const val ACTION_SHOW_NOTIFICATION =
-            "activities.PrivateChatActivity.SHOW_NOTIFICATION"
-        const val PERM_PRIVATE = "activities.PrivateChatActivity.PRIVATE"
+            "ui.fragments.activities.PrivateChatActivity.SHOW_NOTIFICATION"
+        const val PERM_PRIVATE = "ui.fragments.activities.PrivateChatActivity.PRIVATE"
 
         const val REQUEST_CODE = "REQUEST_CODE"
         const val NOTIFICATION = "NOTIFICATION"
@@ -526,6 +525,11 @@ class PrivateChatActivity : VisibleActivity() {
             val messageBodyDetails = HashMap<String,Any>()
             messageBodyDetails.put("$messageSenderRef/$messagePushId",messageTextBody)
             messageBodyDetails.put("$messageReceiverRef/$messagePushId",messageTextBody)
+
+            val map = HashMap<String,Any>()
+            map.put("uid",receiverId)
+
+            rootRef.child(USERS_CHILD).child(currentUserId).child("Chats").updateChildren(map)
 
             rootRef.updateChildren(messageBodyDetails).addOnCompleteListener {task ->
                 if (!task.isSuccessful) {
@@ -1053,7 +1057,7 @@ class PrivateChatActivity : VisibleActivity() {
     }
 
     private fun makeVideoCall () {
-        val callingIntent = Intent(this,ChatActivity::class.java)
+        val callingIntent = Intent(this, VideoChatActivity::class.java)
         callingIntent.putExtra(RECEIVER_ID,receiverId)
         startActivity(callingIntent)
     }
