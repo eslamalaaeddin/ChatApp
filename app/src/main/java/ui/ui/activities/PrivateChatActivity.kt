@@ -37,9 +37,7 @@ import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import notifications.NotificationData
-import notifications.PushNotification
-import notifications.RetrofitInstance
+import notifications.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -414,8 +412,8 @@ class PrivateChatActivity : VisibleActivity() {
         rootRef.child(MESSAGES_CHILD).child(senderId).child(receiverId).addChildEventListener(
             object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+//                    messagesList.clear()
                     val ourMessages = snapshot.getValue(PrivateMessageModel::class.java)
-
                     if (ourMessages != null) {
                         messagesList.add(ourMessages)
                         messagesAdapter.notifyDataSetChanged()
@@ -527,9 +525,15 @@ class PrivateChatActivity : VisibleActivity() {
             messageBodyDetails.put("$messageReceiverRef/$messagePushId",messageTextBody)
 
             val map = HashMap<String,Any>()
-            map.put("uid",receiverId)
+            map.put("to",receiverId)
+            map.put("from",senderId)
 
-            rootRef.child(USERS_CHILD).child(currentUserId).child("Chats").updateChildren(map)
+            rootRef.child(USERS_CHILD).child(currentUserId).child("Chats").updateChildren(map).addOnCompleteListener {
+                if (it.isComplete) {
+
+                    rootRef.child(USERS_CHILD).child(receiverId).child("Chats").updateChildren(map)
+                }
+            }
 
             rootRef.updateChildren(messageBodyDetails).addOnCompleteListener {task ->
                 if (!task.isSuccessful) {
@@ -573,6 +577,25 @@ class PrivateChatActivity : VisibleActivity() {
             NotificationData(currentUserName, currentMessage,Utils.senderId), receiverToken)
         if (currentMessage.isNotEmpty()){
             sendNotification(notification)
+        }
+    }
+
+    private fun pushVideoChatNotificationRequest () {
+        val notification =   PushVideoChatNotification(
+            VideoChatNotificationData(currentUserName,"I Want to make a video chat with you",Utils.senderId), receiverToken)
+            sendVideoChatNotification(notification)
+    }
+
+    private fun sendVideoChatNotification(notification: PushVideoChatNotification) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = RetrofitInstance.api.postVideoNotification(notification)
+            if(response.isSuccessful) {
+                Log.d(TAG, "Response: ${Gson().toJson(response)}")
+            } else {
+                Log.e(TAG, response.errorBody().toString())
+            }
+        } catch(e: Exception) {
+            Log.e(TAG, e.toString())
         }
     }
 
@@ -842,7 +865,8 @@ class PrivateChatActivity : VisibleActivity() {
                     holder.receiverMessageImageView.visibility = View.GONE
 
                     holder.senderMessageImageView.setOnClickListener {
-                        Toast.makeText(this@PrivateChatActivity, myMessages.message, Toast.LENGTH_SHORT).show()
+                        val videoIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+                        startActivity(videoIntent)
                     }
 
                 }
@@ -859,7 +883,8 @@ class PrivateChatActivity : VisibleActivity() {
                     holder.receiverMessageImageView.setImageResource(R.drawable.ic_video)
 
                     holder.receiverMessageImageView.setOnClickListener {
-                        Toast.makeText(this@PrivateChatActivity, myMessages.message, Toast.LENGTH_SHORT).show()
+                        val videoIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
+                        startActivity(videoIntent)
                     }
                     //
                 }
@@ -1060,6 +1085,7 @@ class PrivateChatActivity : VisibleActivity() {
         val callingIntent = Intent(this, VideoChatActivity::class.java)
         callingIntent.putExtra(RECEIVER_ID,receiverId)
         startActivity(callingIntent)
+        pushVideoChatNotificationRequest()
     }
 
 
