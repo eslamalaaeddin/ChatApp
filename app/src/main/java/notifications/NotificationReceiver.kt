@@ -1,6 +1,6 @@
 package notifications
 
-import activities.PrivateChatActivity
+import ui.ui.activities.PrivateChatActivity
 import android.app.Activity.RESULT_OK
 import android.app.Notification
 import android.content.BroadcastReceiver

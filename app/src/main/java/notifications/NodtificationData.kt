@@ -1,6 +1,13 @@
 package notifications
 
-class NotificationData (
-    val userName:String,
-    val message:String
+data class NotificationData (
+    val title:String,
+    val message:String,
+    val uid:String
+)
+
+data class VideoChatNotificationData (
+    val title:String,
+    val message:String,
+    val uid:String
 )
