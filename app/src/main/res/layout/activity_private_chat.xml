@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="#4C4C4C"
-        tools:context="activities.PrivateChatActivity">
+        tools:context="ui.ui.activities.PrivateChatActivity">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/main_toolbar"
@@ -48,27 +48,37 @@
                 android:hint="Type a message..." />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:id="@+id/attach_file_button"
                 android:textColor="@android:color/white"
                 android:backgroundTint="@color/colorPrimary"
                 android:layout_margin="4dp"
                 app:borderWidth="0dp"
+                android:layout_gravity="center"
                 app:srcCompat="@drawable/ic_file"
                />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:id="@+id/send_message_button"
                 android:textColor="@android:color/white"
                 android:backgroundTint="@color/colorPrimary"
                 android:layout_margin="4dp"
                 app:borderWidth="0dp"
                 app:srcCompat="@drawable/ic_send"
+                android:layout_gravity="center" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:id="@+id/camera_button"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/colorPrimary"
+                android:layout_margin="4dp"
+                app:borderWidth="0dp"
+                app:srcCompat="@drawable/ic_camera"
                 android:layout_gravity="center" />
 
         </LinearLayout>
