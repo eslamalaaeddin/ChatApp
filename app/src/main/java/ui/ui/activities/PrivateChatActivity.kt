@@ -9,12 +9,12 @@ import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.marginBottom
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.example.whatsapp.BottomSheetDialog
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.DEVICE_TOKEN_CHILD
@@ -33,7 +33,6 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.UploadTask
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.private_message_layout.*
 import kotlinx.android.synthetic.main.video_player_dialog.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +51,7 @@ private const val REQUEST_NUM = 1
 private const val TAG = "PrivateChatActivity"
 private const val VIDEO_URL = "video url"
 
-class PrivateChatActivity : VisibleActivity() {
+class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListener {
 
 
 
@@ -99,6 +98,8 @@ class PrivateChatActivity : VisibleActivity() {
     private lateinit var videoCallImageView: ImageView
 
     private lateinit var progressDialog: ProgressDialog
+
+    private lateinit var bottomSheetDialog: BottomSheetDialog
 
 
     private var checker:String = ""
@@ -154,8 +155,13 @@ class PrivateChatActivity : VisibleActivity() {
         activityPrivateChatBinding.privateChatRecyclerView.layoutManager = linearLayout
         activityPrivateChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount - 1)
 
+//        activityPrivateChatBinding.attachFileButton.setOnClickListener {
+//             bottomSheetDialog = BottomSheetDialog()
+//            bottomSheetDialog.show(supportFragmentManager, "exampleBottomSheet")
+//        }
+
         activityPrivateChatBinding.attachFileButton.setOnClickListener {
-            val options = arrayOf("Images", "Video", "PDF", "MS Word")
+            val options = arrayOf("Images", "Video", "PDF", "MS Word","Audio")
 
             val alertDialogBuilder = AlertDialog.Builder(this)
                 .setTitle("Choose file type")
@@ -214,6 +220,19 @@ class PrivateChatActivity : VisibleActivity() {
                                     REQUEST_NUM
                                 )
                             }
+                            //Audio
+                            4 -> {
+                                checker = "audio"
+                                val audioIntent = Intent(Intent.ACTION_GET_CONTENT)
+                                audioIntent.type = "audio/*"
+                                startActivityForResult(
+                                    Intent.createChooser(
+                                        audioIntent,
+                                        "Choose an audio file"
+                                    ),
+                                    REQUEST_NUM
+                                )
+                            }
                         }
                     }
                 }).show()
@@ -233,8 +252,8 @@ class PrivateChatActivity : VisibleActivity() {
           getLoadingDialog()
 
             fileUri = data.data!!
-
-            if (checker!="image" && checker!="video") {
+            //documents
+            if (checker!="image" && checker!="video" && checker!="audio" ) {
                 val storageRef = FirebaseStorage.getInstance().reference.child("Document files")
 
                 val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -371,7 +390,73 @@ class PrivateChatActivity : VisibleActivity() {
                     }
                 }
 
+
             }
+
+            else if (checker == "audio") {
+                val storageRef = FirebaseStorage.getInstance().reference.child("Audio files")
+
+                val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
+                val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
+
+                val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
+                child(senderId).child(receiverId).push()
+
+                val messagePushId = userMessageKeyRef.key.toString()
+
+                val filePath = storageRef.child("$messagePushId.mp3")
+                val uploadTask = filePath.putFile(fileUri)
+
+                uploadTask.continueWithTask(object :
+                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
+                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
+                        if (!task.isSuccessful) {
+                            throw task.exception!!
+                        }
+                        return filePath.downloadUrl
+                    }
+                }).addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        url = it.result.toString()
+
+                        val calender = Calendar.getInstance()
+                        //get date and time
+                        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+                        val timeFormat = SimpleDateFormat("hh:mm a")
+
+                        currentDate = dateFormat.format(calender.time)
+                        currentTime = timeFormat.format(calender.time)
+
+
+                        val messageImageBody = HashMap<String, Any>()
+                        messageImageBody.put("message", url)
+                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
+                        messageImageBody.put("type", checker)
+                        messageImageBody.put("from", senderId)
+                        messageImageBody.put("to", receiverId)
+                        messageImageBody.put("messageKey", messagePushId)
+                        messageImageBody.put("date", currentDate)
+                        messageImageBody.put("time", currentTime)
+
+                        val messageBodyDetails = HashMap<String, Any>()
+                        messageBodyDetails.put("$messageSenderRef/$messagePushId", messageImageBody)
+                        messageBodyDetails.put(
+                            "$messageReceiverRef/$messagePushId",
+                            messageImageBody
+                        )
+
+                        rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
+                            if (!task.isSuccessful) {
+                                Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+
+                            }
+                        }
+
+                    }
+                }
+
+            }
+
             else if (checker =="image") {
                 val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
 
@@ -796,13 +881,13 @@ class PrivateChatActivity : VisibleActivity() {
 
             fun adjustMargins () {
                 val param = receiverMessageLayout.layoutParams as ViewGroup.MarginLayoutParams
-                param.setMargins(4,0,0,0)
+                param.setMargins(4, 0, 0, 0)
                 receiverMessageLayout.layoutParams = param
             }
 
             fun resetMargins () {
                 val param = receiverMessageLayout.layoutParams as ViewGroup.MarginLayoutParams
-                param.setMargins(4,8,4,0)
+                param.setMargins(4, 8, 4, 0)
                 receiverMessageLayout.layoutParams = param
             }
 
@@ -998,6 +1083,66 @@ class PrivateChatActivity : VisibleActivity() {
                         .asBitmap().load(myMessages.message).apply(options).into(holder.receiverMessageImageView)
 
 
+
+                    holder.receiverMessageImageView.setOnClickListener {
+                        val videoIntent = Intent(
+                            this@PrivateChatActivity,
+                            VideoPlayerActivity::class.java
+                        )
+                        videoIntent.putExtra(VIDEO_URL, myMessages.message)
+                        startActivity(videoIntent)
+
+                        //showVideoPlayerDialog(myMessages.message)
+
+                    }
+                }
+            }
+
+            else if (fromMessagesType == "audio") {
+
+                holder.receiverMessageTextView.visibility = View.GONE
+                holder.senderMessageTextView.visibility = View.GONE
+                holder.senderMessagePlay.visibility = View.GONE
+                holder.receiverMessagePlay.visibility = View.GONE
+
+                if (fromUserId == messageSenderId) {
+                    holder.senderMessageTimeTextView.visibility = View.VISIBLE
+                    holder.senderMessageTimeTextView.text = myMessages.time
+                    holder.receiverMessageLayout.visibility = View.GONE
+
+
+                    holder.senderMessageImageView.visibility = View.VISIBLE
+                    holder.receiverMessageImageView.visibility = View.GONE
+
+                       holder.senderMessageImageView.setImageResource(R.drawable.ic_audio)
+                    holder.receiverMessageImageView.visibility = View.GONE
+
+                    holder.senderMessageImageView.setOnClickListener {
+
+                        val videoIntent = Intent(
+                            this@PrivateChatActivity,
+                            VideoPlayerActivity::class.java
+                        )
+                        videoIntent.putExtra(VIDEO_URL, myMessages.message)
+                        startActivity(videoIntent)
+
+                        // showVideoPlayerDialog(myMessages.message)
+
+
+                    }
+
+                }
+
+                else{
+
+                    holder.receiverMessageTimeTextView.visibility = View.VISIBLE
+                    holder.receiverMessageTimeTextView.text = myMessages.time
+                    holder.senderMessageLayout.visibility = View.GONE
+
+                    holder.receiverMessageImageView.visibility = View.VISIBLE
+                    holder.senderMessageImageView.visibility = View.GONE
+
+                    holder.receiverMessageImageView.setImageResource(R.drawable.ic_audio)
 
                     holder.receiverMessageImageView.setOnClickListener {
                         val videoIntent = Intent(
@@ -1229,9 +1374,9 @@ class PrivateChatActivity : VisibleActivity() {
         //pushVideoChatNotificationRequest()
     }
 
-    private fun showVideoPlayerDialog(url:String) {
+    private fun showVideoPlayerDialog(url: String) {
         alertBuilder = AlertDialog.Builder(this)
-        view = layoutInflater.inflate(R.layout.video_player_dialog,null)
+        view = layoutInflater.inflate(R.layout.video_player_dialog, null)
         alertBuilder.setView(view)
 
         addNoteAlertDialog =  alertBuilder.create()
@@ -1245,6 +1390,29 @@ class PrivateChatActivity : VisibleActivity() {
         mediaController.setAnchorView(view.videoView)
 
 
+    }
+
+    override fun onFabClicked(textUnderFab: String?) {
+        when(textUnderFab) {
+            "PDF" -> {
+                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+            }
+            "Ms Word" -> {
+                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+            }
+            "Image" -> {
+                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+            }
+            "Audio" -> {
+                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+            }
+            "Video" -> {
+                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+            }
+            "Contact" -> {
+                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
 
