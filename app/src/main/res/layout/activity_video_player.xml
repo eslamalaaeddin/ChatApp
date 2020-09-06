@@ -13,15 +13,49 @@
         android:background="#000000"
         tools:context="ui.ui.activities.VideoPlayerActivity">
 
-        <VideoView
-            android:id="@+id/videoView"
+
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="196dp"
-            android:layout_marginBottom="196dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <VideoView
+                android:id="@+id/videoView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="196dp"
+                android:layout_marginEnd="0dp"
+                android:layout_marginStart="0dp"
+                android:layout_marginBottom="196dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="196dp"
+                android:layout_marginEnd="0dp"
+                android:layout_marginStart="0dp"
+                android:layout_marginBottom="196dp"
+                android:background="@drawable/ic_audio"
+                android:backgroundTint="@color/colorPrimary"
+                android:scaleType="centerCrop"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </FrameLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
