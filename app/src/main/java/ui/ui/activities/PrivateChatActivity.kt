@@ -1,8 +1,12 @@
 package ui.ui.activities
 
+import android.app.ActionBar
+import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -155,95 +159,13 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         activityPrivateChatBinding.privateChatRecyclerView.layoutManager = linearLayout
         activityPrivateChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount - 1)
 
-//        activityPrivateChatBinding.attachFileButton.setOnClickListener {
-//             bottomSheetDialog = BottomSheetDialog()
-//            bottomSheetDialog.show(supportFragmentManager, "exampleBottomSheet")
-//        }
-
         activityPrivateChatBinding.attachFileButton.setOnClickListener {
-            val options = arrayOf("Images", "Video", "PDF", "MS Word","Audio")
-
-            val alertDialogBuilder = AlertDialog.Builder(this)
-                .setTitle("Choose file type")
-                .setItems(options, object : DialogInterface.OnClickListener {
-                    override fun onClick(p0: DialogInterface?, i: Int) {
-                        when (i) {
-                            //images
-                            0 -> {
-                                checker = "image"
-                                val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
-                                imagesIntent.type = "image/*"
-                                startActivityForResult(
-                                    Intent.createChooser(
-                                        imagesIntent,
-                                        "Choose an image"
-                                    ),
-                                    REQUEST_NUM
-                                )
-                            }
-                            //Video
-                            1 -> {
-                                checker = "video"
-                                val videoIntent = Intent(Intent.ACTION_GET_CONTENT)
-                                videoIntent.type = "video/*"
-                                startActivityForResult(
-                                    Intent.createChooser(
-                                        videoIntent,
-                                        "Choose a video"
-                                    ),
-                                    REQUEST_NUM
-                                )
-                            }
-                            //PDF
-                            2 -> {
-                                checker = "pdf"
-                                val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
-                                imagesIntent.type = "application/pdf"
-                                startActivityForResult(
-                                    Intent.createChooser(
-                                        imagesIntent,
-                                        "Choose a PDF file"
-                                    ),
-                                    REQUEST_NUM
-                                )
-                            }
-                            //MS Word
-                            3 -> {
-                                checker = "docx"
-                                val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
-                                imagesIntent.type = "application/msword"
-                                startActivityForResult(
-                                    Intent.createChooser(
-                                        imagesIntent,
-                                        "Choose an MS Word file"
-                                    ),
-                                    REQUEST_NUM
-                                )
-                            }
-                            //Audio
-                            4 -> {
-                                checker = "audio"
-                                val audioIntent = Intent(Intent.ACTION_GET_CONTENT)
-                                audioIntent.type = "audio/*"
-                                startActivityForResult(
-                                    Intent.createChooser(
-                                        audioIntent,
-                                        "Choose an audio file"
-                                    ),
-                                    REQUEST_NUM
-                                )
-                            }
-                        }
-                    }
-                }).show()
-//                getLoadingDialog()
+             bottomSheetDialog = BottomSheetDialog()
+            bottomSheetDialog.show(supportFragmentManager, "exampleBottomSheet")
         }
 
-        //video call
-
-
-
     }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -993,6 +915,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                 holder.receiverMessageTextView.visibility = View.GONE
                 holder.senderMessageTextView.visibility = View.GONE
+                holder.senderMessagePlay.visibility = View.GONE
+                holder.receiverMessagePlay.visibility = View.GONE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
@@ -1004,8 +928,11 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     holder.receiverMessageImageView.visibility = View.GONE
                     Picasso.get()
                         .load(myMessages.message)
-                        .placeholder(R.drawable.ic_person)
                         .into(holder.senderMessageImageView)
+
+                    holder.senderMessageImageView.setOnClickListener {
+                        showImage(myMessages.message)
+                    }
 
             }
 
@@ -1019,8 +946,11 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     holder.senderMessageImageView.visibility = View.GONE
                     Picasso.get()
                         .load(myMessages.message)
-                        .placeholder(R.drawable.ic_person)
                         .into(holder.receiverMessageImageView)
+
+                    holder.receiverMessageImageView.setOnClickListener {
+                        showImage(myMessages.message)
+                    }
                 }
             }
 
@@ -1114,7 +1044,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     holder.senderMessageImageView.visibility = View.VISIBLE
                     holder.receiverMessageImageView.visibility = View.GONE
 
-                       holder.senderMessageImageView.setImageResource(R.drawable.ic_audio)
+                    holder.senderMessageImageView.setImageResource(R.drawable.ic_audio)
                     holder.receiverMessageImageView.visibility = View.GONE
 
                     holder.senderMessageImageView.setOnClickListener {
@@ -1374,7 +1304,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         //pushVideoChatNotificationRequest()
     }
 
-    private fun showVideoPlayerDialog(url: String) {
+    private fun showAudioPlayerDialog(url: String) {
         alertBuilder = AlertDialog.Builder(this)
         view = layoutInflater.inflate(R.layout.video_player_dialog, null)
         alertBuilder.setView(view)
@@ -1395,25 +1325,115 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     override fun onFabClicked(textUnderFab: String?) {
         when(textUnderFab) {
             "PDF" -> {
-                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+                sendMeToPDFsStorage()
             }
             "Ms Word" -> {
-                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+                sendMeToMSWordStorage()
             }
             "Image" -> {
-                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+                sendMeToImagesStorage()
             }
             "Audio" -> {
-                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+                sendMeToAudioStorage()
             }
             "Video" -> {
-                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+                sendMeToVideosStorage()
             }
             "Contact" -> {
-                Toast.makeText(this, textUnderFab, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Not implemented yet", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
+
+    private fun sendMeToAudioStorage() {
+        checker = "audio"
+        val audioIntent = Intent(Intent.ACTION_GET_CONTENT)
+        audioIntent.type = "audio/*"
+        startActivityForResult(
+            Intent.createChooser(
+                audioIntent,
+                "Choose an audio file"
+            ),
+            REQUEST_NUM
+        )
+    }
+
+    private fun sendMeToMSWordStorage() {
+        checker = "docx"
+        val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
+        imagesIntent.type = "application/msword"
+        startActivityForResult(
+            Intent.createChooser(
+                imagesIntent,
+                "Choose an MS Word file"
+            ),
+            REQUEST_NUM
+        )
+    }
+
+    private fun sendMeToPDFsStorage() {
+        checker = "pdf"
+        val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
+        imagesIntent.type = "application/pdf"
+        startActivityForResult(
+            Intent.createChooser(
+                imagesIntent,
+                "Choose a PDF file"
+            ),
+            REQUEST_NUM
+        )
+    }
+
+    private fun sendMeToVideosStorage() {
+        checker = "video"
+        val videoIntent = Intent(Intent.ACTION_GET_CONTENT)
+        videoIntent.type = "video/*"
+        startActivityForResult(
+            Intent.createChooser(
+                videoIntent,
+                "Choose a video"
+            ),
+            REQUEST_NUM
+        )
+    }
+
+    private fun sendMeToImagesStorage() {
+        checker = "image"
+        val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
+        imagesIntent.type = "image/*"
+        startActivityForResult(
+            Intent.createChooser(
+                imagesIntent,
+                "Choose an image"
+            ),
+            REQUEST_NUM
+        )
+    }
+
+    fun showImage(imageUrl:String) {
+        val builder = Dialog(this)
+        builder.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        builder.window?.setBackgroundDrawable(
+            ColorDrawable(Color.TRANSPARENT)
+        )
+        builder.setOnDismissListener {
+            //nothing;
+        }
+        val imageView = ImageView(this)
+
+             Picasso.get()
+                        .load(imageUrl)
+                        .into(imageView)
+
+
+        builder.addContentView(
+            imageView, ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        )
+
+        builder.show()
+    }
+
 
 
 }
