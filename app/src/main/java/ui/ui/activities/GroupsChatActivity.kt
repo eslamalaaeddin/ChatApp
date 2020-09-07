@@ -1,5 +1,6 @@
 package ui.ui.activities
 
+import android.annotation.SuppressLint
 import android.app.ActionBar
 import android.app.Dialog
 import android.app.ProgressDialog
@@ -175,6 +176,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
     }
 
 
+    @SuppressLint("SimpleDateFormat")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_NUM && resultCode == RESULT_OK  && checker!="captured image" && data != null && data.data != null) {
@@ -183,7 +185,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
             //documents
             if (checker!="image" && checker!="video" && checker!="audio" && checker!="captured image" ) {
-                fileUri = data?.data!!
+                fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Document files")
 
 
@@ -194,50 +196,47 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
                 val filePath = storageRef.child("$messagePushId.$checker")
 
-                filePath.putFile(fileUri!!).addOnCompleteListener(object :
-                    OnCompleteListener<UploadTask.TaskSnapshot> {
-                    override fun onComplete(task: Task<UploadTask.TaskSnapshot>) {
-                        if (task.isSuccessful) {
+                filePath.putFile(fileUri!!).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
 
-                            val calender = Calendar.getInstance()
-                            //get date and time
-                            val dateFormat = SimpleDateFormat("MMM dd, yyyy")
-                            val timeFormat = SimpleDateFormat("hh:mm a")
+                        val calender = Calendar.getInstance()
+                        //get date and time
+                        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+                        val timeFormat = SimpleDateFormat("hh:mm a")
 
-                            currentDate = dateFormat.format(calender.time)
-                            currentTime = timeFormat.format(calender.time)
+                        currentDate = dateFormat.format(calender.time)
+                        currentTime = timeFormat.format(calender.time)
 
-                            filePath.downloadUrl.addOnCompleteListener {
-                                rootRef.child(USERS_CHILD).
-                                child("Groups")
-                                    .child(groupId).child(
-                                    MESSAGES_CHILD)
-                                    .child(messagePushId).child("message")
-                                    .setValue(it.result.toString()).addOnCompleteListener {
+                        filePath.downloadUrl.addOnCompleteListener {
+                            rootRef.child(USERS_CHILD).child("Groups")
+                                .child(groupId).child(
+                                    MESSAGES_CHILD
+                                )
+                                .child(messagePushId).child("message")
+                                .setValue(it.result.toString()).addOnCompleteListener {
 
-                                    }
-                            }
-
-
-                            val messageImageBody = HashMap<String, Any>()
-//
-                            messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
-                            messageImageBody.put("type", checker)
-                            messageImageBody.put("from", senderId)
-                            messageImageBody.put("messageKey", messagePushId)
-                            messageImageBody.put("date", currentDate)
-                            messageImageBody.put("time", currentTime)
-
-                            val messageBodyDetails = HashMap<String, Any>()
-                            messageBodyDetails.put(messagePushId, messageImageBody)
-
-
-
-                            rootRef.child(USERS_CHILD).child("Groups").child(groupId).child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                            progressDialog.dismiss()
+                                }
                         }
+
+                        val messageImageBody = HashMap<String, Any>()
+                        //
+                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
+                        messageImageBody.put("type", checker)
+                        messageImageBody.put("from", senderId)
+                        messageImageBody.put("messageKey", messagePushId)
+                        messageImageBody.put("date", currentDate)
+                        messageImageBody.put("time", currentTime)
+
+                        val messageBodyDetails = HashMap<String, Any>()
+                        messageBodyDetails.put(messagePushId, messageImageBody)
+
+
+
+                        rootRef.child(USERS_CHILD).child("Groups").child(groupId)
+                            .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
+                        progressDialog.dismiss()
                     }
-                }).addOnFailureListener{
+                }.addOnFailureListener{
                     progressDialog.dismiss()
                     Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
                 }.addOnProgressListener {
@@ -248,31 +247,19 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
             }
 
             else if (checker == "video") {
-                fileUri = data?.data!!
+                fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Video files")
 
-                val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
-                val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
 
-                val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
-                child(senderId).child(receiverId).push()
+                val userMessageKeyRef = rootRef.child(USERS_CHILD).child("Groups").child(MESSAGES_CHILD).
+                push()
 
                 val messagePushId = userMessageKeyRef.key.toString()
 
-                val filePath = storageRef.child("$messagePushId.mp4")
-                val uploadTask = filePath.putFile(fileUri!!)
+                val filePath = storageRef.child("$messagePushId.$checker")
 
-                uploadTask.continueWithTask(object :
-                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
-                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
-                        if (!task.isSuccessful) {
-                            throw task.exception!!
-                        }
-                        return filePath.downloadUrl
-                    }
-                }).addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        url = it.result.toString()
+                filePath.putFile(fileUri).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
 
                         val calender = Calendar.getInstance()
                         //get date and time
@@ -282,63 +269,60 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                         currentDate = dateFormat.format(calender.time)
                         currentTime = timeFormat.format(calender.time)
 
+                        filePath.downloadUrl.addOnCompleteListener {
+                            rootRef.child(USERS_CHILD).child("Groups")
+                                .child(groupId).child(
+                                    MESSAGES_CHILD
+                                )
+                                .child(messagePushId).child("message")
+                                .setValue(it.result.toString()).addOnCompleteListener {
+
+                                }
+                        }
 
                         val messageImageBody = HashMap<String, Any>()
-                        messageImageBody.put("message", url)
-                        messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
+                        //
+                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
                         messageImageBody.put("type", checker)
                         messageImageBody.put("from", senderId)
-                        messageImageBody.put("to", receiverId)
                         messageImageBody.put("messageKey", messagePushId)
                         messageImageBody.put("date", currentDate)
                         messageImageBody.put("time", currentTime)
 
                         val messageBodyDetails = HashMap<String, Any>()
-                        messageBodyDetails.put("$messageSenderRef/$messagePushId", messageImageBody)
-                        messageBodyDetails.put(
-                            "$messageReceiverRef/$messagePushId",
-                            messageImageBody
-                        )
+                        messageBodyDetails.put(messagePushId, messageImageBody)
 
-                        rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
-                            if (!task.isSuccessful) {
-                                Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
-                            }
-                        }
 
+                        rootRef.child(USERS_CHILD).child("Groups").child(groupId)
+                            .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
+                        progressDialog.dismiss()
                     }
+                }.addOnFailureListener{
+                    progressDialog.dismiss()
+                    Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                }.addOnProgressListener {
+                    val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+                    progressDialog.show()
+                    progressDialog.setMessage("$progress % Uploading...")
                 }
-
 
             }
 
             else if (checker == "audio") {
-                fileUri = data?.data!!
+                fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Audio files")
 
-                val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
-                val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
 
-                val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
-                child(senderId).child(receiverId).push()
+                val userMessageKeyRef = rootRef.child(USERS_CHILD).child("Groups").child(MESSAGES_CHILD).
+                push()
 
                 val messagePushId = userMessageKeyRef.key.toString()
 
-                val filePath = storageRef.child("$messagePushId.mp3")
-                val uploadTask = filePath.putFile(fileUri!!)
+                val filePath = storageRef.child("$messagePushId.$checker")
 
-                uploadTask.continueWithTask(object :
-                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
-                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
-                        if (!task.isSuccessful) {
-                            throw task.exception!!
-                        }
-                        return filePath.downloadUrl
-                    }
-                }).addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        url = it.result.toString()
+                filePath.putFile(fileUri).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
 
                         val calender = Calendar.getInstance()
                         //get date and time
@@ -348,62 +332,60 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                         currentDate = dateFormat.format(calender.time)
                         currentTime = timeFormat.format(calender.time)
 
+                        filePath.downloadUrl.addOnCompleteListener {
+                            rootRef.child(USERS_CHILD).child("Groups")
+                                .child(groupId).child(
+                                    MESSAGES_CHILD
+                                )
+                                .child(messagePushId).child("message")
+                                .setValue(it.result.toString()).addOnCompleteListener {
+
+                                }
+                        }
 
                         val messageImageBody = HashMap<String, Any>()
-                        messageImageBody.put("message", url)
-                        messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
+                        //
+                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
                         messageImageBody.put("type", checker)
                         messageImageBody.put("from", senderId)
-                        messageImageBody.put("to", receiverId)
                         messageImageBody.put("messageKey", messagePushId)
                         messageImageBody.put("date", currentDate)
                         messageImageBody.put("time", currentTime)
 
                         val messageBodyDetails = HashMap<String, Any>()
-                        messageBodyDetails.put("$messageSenderRef/$messagePushId", messageImageBody)
-                        messageBodyDetails.put(
-                            "$messageReceiverRef/$messagePushId",
-                            messageImageBody
-                        )
+                        messageBodyDetails.put(messagePushId, messageImageBody)
 
-                        rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
-                            if (!task.isSuccessful) {
-                                Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
-                            }
-                        }
 
+                        rootRef.child(USERS_CHILD).child("Groups").child(groupId)
+                            .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
+                        progressDialog.dismiss()
                     }
+                }.addOnFailureListener{
+                    progressDialog.dismiss()
+                    Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                }.addOnProgressListener {
+                    val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+                    progressDialog.show()
+                    progressDialog.setMessage("$progress % Uploading...")
                 }
 
             }
 
             else if (checker =="image") {
-                fileUri = data?.data!!
+                fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
 
-                val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
-                val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
 
-                val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
-                child(senderId).child(receiverId).push()
+                val userMessageKeyRef = rootRef.child(USERS_CHILD).child("Groups").child(MESSAGES_CHILD).
+                push()
 
                 val messagePushId = userMessageKeyRef.key.toString()
 
-                val filePath = storageRef.child("$messagePushId.jpg")
-                val uploadTask = filePath.putFile(fileUri!!)
+                val filePath = storageRef.child("$messagePushId.$checker")
 
-                uploadTask.continueWithTask(object :
-                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
-                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
-                        if (!task.isSuccessful) {
-                            throw task.exception!!
-                        }
-                        return filePath.downloadUrl
-                    }
-                }).addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        url = it.result.toString()
+                filePath.putFile(fileUri).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
 
                         val calender = Calendar.getInstance()
                         //get date and time
@@ -413,34 +395,43 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                         currentDate = dateFormat.format(calender.time)
                         currentTime = timeFormat.format(calender.time)
 
+                        filePath.downloadUrl.addOnCompleteListener {
+                            rootRef.child(USERS_CHILD).child("Groups")
+                                .child(groupId).child(
+                                    MESSAGES_CHILD
+                                )
+                                .child(messagePushId).child("message")
+                                .setValue(it.result.toString()).addOnCompleteListener {
+
+                                }
+                        }
 
                         val messageImageBody = HashMap<String, Any>()
-                        messageImageBody.put("message", url)
-                        messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
+                        //
+                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
                         messageImageBody.put("type", checker)
                         messageImageBody.put("from", senderId)
-                        messageImageBody.put("to", receiverId)
                         messageImageBody.put("messageKey", messagePushId)
                         messageImageBody.put("date", currentDate)
                         messageImageBody.put("time", currentTime)
 
                         val messageBodyDetails = HashMap<String, Any>()
-                        messageBodyDetails.put("$messageSenderRef/$messagePushId", messageImageBody)
-                        messageBodyDetails.put(
-                            "$messageReceiverRef/$messagePushId",
-                            messageImageBody
-                        )
+                        messageBodyDetails.put(messagePushId, messageImageBody)
 
-                        rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
-                            if (!task.isSuccessful) {
-                                Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
-                            }
-                        }
 
+                        rootRef.child(USERS_CHILD).child("Groups").child(groupId)
+                            .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
+                        progressDialog.dismiss()
                     }
+                }.addOnFailureListener{
+                    progressDialog.dismiss()
+                    Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                }.addOnProgressListener {
+                    val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+                    progressDialog.show()
+                    progressDialog.setMessage("$progress % Uploading...")
                 }
-
             }
 
         }
@@ -452,40 +443,26 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
             val image = data?.extras!!["data"] as Bitmap?
 
-//           val width = image?.width
-//           val height = image?.height
-//
-//            val size: Int = (image?.rowBytes)!! * (image.height)
-//            val byteBuffer: ByteBuffer = ByteBuffer.allocate(size)
-//            image.copyPixelsToBuffer(byteBuffer)
-//            val byteArray = byteBuffer.array()
-////
-
             val stream = ByteArrayOutputStream()
             image!!.compress(Bitmap.CompressFormat.PNG, 100, stream)
 
             val b = stream.toByteArray()
 
-            val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
-            val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
 
-            val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
-            child(senderId).child(receiverId).push()
+            val userMessageKeyRef = rootRef.child(USERS_CHILD).child("Groups").child(MESSAGES_CHILD).
+            push()
 
             val messagePushId = userMessageKeyRef.key.toString()
 
             val filePath = storageRef.child("$messagePushId.jpg")
             val uploadTask = filePath.putBytes(b)
 
-            uploadTask.continueWithTask(object :
-                Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
-                override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
-                    if (!task.isSuccessful) {
-                        throw task.exception!!
-                    }
-                    return filePath.downloadUrl
+            uploadTask.continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    throw task.exception!!
                 }
-            }).addOnCompleteListener {
+                filePath.downloadUrl
+            }.addOnCompleteListener {
                 if (it.isSuccessful) {
                     url = it.result.toString()
 
@@ -503,24 +480,18 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     messageImageBody.put("name", "image $messagePushId")
                     messageImageBody.put("type", checker)
                     messageImageBody.put("from", senderId)
-                    messageImageBody.put("to", receiverId)
                     messageImageBody.put("messageKey", messagePushId)
                     messageImageBody.put("date", currentDate)
                     messageImageBody.put("time", currentTime)
 
                     val messageBodyDetails = HashMap<String, Any>()
-                    messageBodyDetails.put("$messageSenderRef/$messagePushId", messageImageBody)
-                    messageBodyDetails.put(
-                        "$messageReceiverRef/$messagePushId",
-                        messageImageBody
-                    )
+                    messageBodyDetails.put(messagePushId, messageImageBody)
 
-                    rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
-                        if (!task.isSuccessful) {
-                            Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
-                        }
-                    }
+
+                    rootRef.child(USERS_CHILD).child("Groups").child(groupId)
+                        .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
+                    progressDialog.dismiss()
 
                 }
             }
