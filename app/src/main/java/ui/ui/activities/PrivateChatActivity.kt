@@ -3,12 +3,13 @@ package ui.ui.activities
 import android.app.ActionBar
 import android.app.Dialog
 import android.app.ProgressDialog
-import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -41,8 +42,12 @@ import kotlinx.android.synthetic.main.video_player_dialog.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import models.PhotoModel
 import models.PrivateMessageModel
 import notifications.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -54,6 +59,7 @@ private const val RECEIVER_ID = "receiver id"
 private const val REQUEST_NUM = 1
 private const val TAG = "PrivateChatActivity"
 private const val VIDEO_URL = "video url"
+
 
 class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListener {
 
@@ -121,6 +127,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     private lateinit var addNoteAlertDialog: AlertDialog
     private lateinit var view: View
 
+    private lateinit var photoFile: File
+    private lateinit var photo: PhotoModel
+    private lateinit var photoUri: Uri
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityPrivateChatBinding =
@@ -164,18 +174,22 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             bottomSheetDialog.show(supportFragmentManager, "exampleBottomSheet")
         }
 
+        activityPrivateChatBinding.cameraButton.setOnClickListener {
+            takePhoto()
+        }
+
     }
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_NUM && resultCode == RESULT_OK && data!=null && data.data!=null) {
+        if (requestCode == REQUEST_NUM && resultCode == RESULT_OK  && checker!="captured image" && data != null && data.data != null) {
 
           getLoadingDialog()
 
-            fileUri = data.data!!
             //documents
-            if (checker!="image" && checker!="video" && checker!="audio" ) {
+            if (checker!="image" && checker!="video" && checker!="audio" && checker!="captured image" ) {
+                fileUri = data?.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Document files")
 
                 val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -188,7 +202,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                 val filePath = storageRef.child("$messagePushId.$checker")
 
-                filePath.putFile(fileUri).addOnCompleteListener(object :
+                filePath.putFile(fileUri!!).addOnCompleteListener(object :
                     OnCompleteListener<UploadTask.TaskSnapshot> {
                     override fun onComplete(task: Task<UploadTask.TaskSnapshot>) {
                         if (task.isSuccessful) {
@@ -216,7 +230,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 //                                .setValue(task.result.toString()).addOnCompleteListener {
 //                                    messageImageBody.put("message",it.result.toString())
 //                                }
-                            messageImageBody.put("name", fileUri.lastPathSegment.toString())
+                            messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
                             messageImageBody.put("type", checker)
                             messageImageBody.put("from", senderId)
                             messageImageBody.put("to", receiverId)
@@ -251,6 +265,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             else if (checker == "video") {
+                fileUri = data?.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Video files")
 
                 val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -262,7 +277,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.mp4")
-                val uploadTask = filePath.putFile(fileUri)
+                val uploadTask = filePath.putFile(fileUri!!)
 
                 uploadTask.continueWithTask(object :
                     Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
@@ -287,7 +302,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                         val messageImageBody = HashMap<String, Any>()
                         messageImageBody.put("message", url)
-                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
+                        messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
                         messageImageBody.put("type", checker)
                         messageImageBody.put("from", senderId)
                         messageImageBody.put("to", receiverId)
@@ -316,6 +331,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             else if (checker == "audio") {
+                fileUri = data?.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Audio files")
 
                 val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -327,7 +343,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.mp3")
-                val uploadTask = filePath.putFile(fileUri)
+                val uploadTask = filePath.putFile(fileUri!!)
 
                 uploadTask.continueWithTask(object :
                     Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
@@ -352,7 +368,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                         val messageImageBody = HashMap<String, Any>()
                         messageImageBody.put("message", url)
-                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
+                        messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
                         messageImageBody.put("type", checker)
                         messageImageBody.put("from", senderId)
                         messageImageBody.put("to", receiverId)
@@ -380,6 +396,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             else if (checker =="image") {
+                fileUri = data?.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
 
                 val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -391,7 +408,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.jpg")
-                val uploadTask = filePath.putFile(fileUri)
+                val uploadTask = filePath.putFile(fileUri!!)
 
                 uploadTask.continueWithTask(object :
                     Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
@@ -416,7 +433,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                         val messageImageBody = HashMap<String, Any>()
                         messageImageBody.put("message", url)
-                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
+                        messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
                         messageImageBody.put("type", checker)
                         messageImageBody.put("from", senderId)
                         messageImageBody.put("to", receiverId)
@@ -442,11 +459,95 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 }
 
             }
-            else{
-                Toast.makeText(this, "Choose a valid attachment", Toast.LENGTH_SHORT).show()
-            }
+
         }
-        progressDialog.dismiss()
+
+        else if (checker =="captured image" && requestCode == REQUEST_NUM && resultCode == RESULT_OK ) {
+
+            //getLoadingDialog()
+            val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
+
+            val image = data?.extras!!["data"] as Bitmap?
+
+//           val width = image?.width
+//           val height = image?.height
+//
+//            val size: Int = (image?.rowBytes)!! * (image.height)
+//            val byteBuffer: ByteBuffer = ByteBuffer.allocate(size)
+//            image.copyPixelsToBuffer(byteBuffer)
+//            val byteArray = byteBuffer.array()
+////
+
+            val stream = ByteArrayOutputStream()
+            image!!.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+            val b = stream.toByteArray()
+
+            val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
+            val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
+
+            val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
+            child(senderId).child(receiverId).push()
+
+            val messagePushId = userMessageKeyRef.key.toString()
+
+            val filePath = storageRef.child("$messagePushId.jpg")
+            val uploadTask = filePath.putBytes(b)
+
+            uploadTask.continueWithTask(object :
+                Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
+                override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
+                    if (!task.isSuccessful) {
+                        throw task.exception!!
+                    }
+                    return filePath.downloadUrl
+                }
+            }).addOnCompleteListener {
+                if (it.isSuccessful) {
+                    url = it.result.toString()
+
+                    val calender = Calendar.getInstance()
+                    //get date and time
+                    val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+                    val timeFormat = SimpleDateFormat("hh:mm a")
+
+                    currentDate = dateFormat.format(calender.time)
+                    currentTime = timeFormat.format(calender.time)
+
+
+                    val messageImageBody = HashMap<String, Any>()
+                    messageImageBody.put("message", url)
+                    messageImageBody.put("name", "image $messagePushId")
+                    messageImageBody.put("type", checker)
+                    messageImageBody.put("from", senderId)
+                    messageImageBody.put("to", receiverId)
+                    messageImageBody.put("messageKey", messagePushId)
+                    messageImageBody.put("date", currentDate)
+                    messageImageBody.put("time", currentTime)
+
+                    val messageBodyDetails = HashMap<String, Any>()
+                    messageBodyDetails.put("$messageSenderRef/$messagePushId", messageImageBody)
+                    messageBodyDetails.put(
+                        "$messageReceiverRef/$messagePushId",
+                        messageImageBody
+                    )
+
+                    rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
+                        if (!task.isSuccessful) {
+                            Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+
+                        }
+                    }
+
+                }
+            }
+
+        }
+
+        else{
+            Toast.makeText(this, "Choose a valid attachment", Toast.LENGTH_SHORT).show()
+        }
+//        progressDialog.dismiss()
     }
 
 
@@ -911,7 +1012,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 }
             }
 
-            else if (fromMessagesType == "image") {
+            else if (fromMessagesType == "image" || fromMessagesType == "captured image") {
 
                 holder.receiverMessageTextView.visibility = View.GONE
                 holder.senderMessageTextView.visibility = View.GONE
@@ -1402,16 +1503,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         checker = "image"
         val imagesIntent = Intent(Intent.ACTION_GET_CONTENT)
         imagesIntent.type = "image/*"
-        startActivityForResult(
-            Intent.createChooser(
-                imagesIntent,
-                "Choose an image"
-            ),
-            REQUEST_NUM
-        )
+        startActivityForResult(Intent.createChooser(imagesIntent, "Choose an image"), REQUEST_NUM)
     }
 
-    fun showImage(imageUrl:String) {
+    fun showImage(imageUrl: String) {
         val builder = Dialog(this)
         builder.requestWindowFeature(Window.FEATURE_NO_TITLE)
         builder.window?.setBackgroundDrawable(
@@ -1428,12 +1523,19 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
 
         builder.addContentView(
-            imageView, ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            imageView, ActionBar.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
         )
 
         builder.show()
     }
 
-
+    private fun takePhoto () {
+        checker = "captured image"
+        val captureImage = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+         startActivityForResult(captureImage, REQUEST_NUM)
+    }
 
 }
