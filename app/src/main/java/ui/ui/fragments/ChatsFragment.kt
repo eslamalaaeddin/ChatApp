@@ -12,6 +12,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.cardview.widget.CardView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -21,12 +23,14 @@ import com.example.whatsapp.Callback
 import models.ContactsModel
 
 import com.example.whatsapp.R
+import com.example.whatsapp.Utils.USERS_CHILD
 import models.UserStateModel
 import com.example.whatsapp.databinding.FragmentChatsBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.squareup.picasso.Picasso
+import models.GroupModel
 
 private const val TAG = "ChatsFragment"
 private const val CALLER_ID = "receiver id"
@@ -57,6 +61,9 @@ class ChatsFragment : Fragment() {
     private var stateList = mutableListOf<UserStateModel>()
 
     private lateinit var mySnapshot: DataSnapshot
+
+    private var groupsAdapter = GroupsAdapter(emptyList())
+    private var groupsList = mutableListOf<GroupModel>()
     override fun onAttach(context: Context) {
         super.onAttach(context)
         callback = context as Callback
@@ -74,6 +81,7 @@ class ChatsFragment : Fragment() {
         messagesReference = FirebaseDatabase.getInstance().reference.child("Messages")
         contactsReference = FirebaseDatabase.getInstance().reference.child("Contacts").child(currentUser.uid)
 
+        retrieveGroups()
 
     }
     override fun onCreateView(
@@ -93,7 +101,14 @@ class ChatsFragment : Fragment() {
             addItemDecoration( DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
             layoutManager = LinearLayoutManager(context)
         }
-        fragmentChatsBinding.fab.setOnClickListener {
+
+        fragmentChatsBinding.groupsRecyclerView.apply {
+            addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+            layoutManager = LinearLayoutManager(context)
+        }
+
+
+            fragmentChatsBinding.fab.setOnClickListener {
             sendUserToFindFriendsActivity()
         }
 
@@ -104,7 +119,7 @@ class ChatsFragment : Fragment() {
                 listFromFirebaseDb.clear()
                 for (phoneSnapshot in snapshot.children) {
                     val id = phoneSnapshot.child("uid").value.toString()
-                    if (id != currentUserId) {
+                    if (id != currentUserId && phoneSnapshot.key != "Groups") {
                         val name = phoneSnapshot.child("name").value.toString()
                         val image = phoneSnapshot.child("image").value.toString()
                         val status = phoneSnapshot.child("status").value.toString()
@@ -225,7 +240,6 @@ class ChatsFragment : Fragment() {
         }
 
     }
-
     private fun checkForReceivingCalls() {
         usersReference.child(currentUserId).child("Ringing").addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -249,4 +263,86 @@ class ChatsFragment : Fragment() {
         val findFriendsIntent = Intent(requireContext() , FindFriendsActivity::class.java)
         startActivity(findFriendsIntent)
     }
+
+    //////////////////////////////////////////////////////Groups logic/////////////////////////////////////////////////
+    private fun retrieveGroups() {
+        rootReference.child(USERS_CHILD).child("Groups").addValueEventListener(object :
+            ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                groupsList.clear()
+                for (group in snapshot.children) {
+
+                    val name = group.child("name").value.toString()
+                    val image = group.child("image").value.toString()
+                    val status = group.child("status").value.toString()
+                    val groupId = group.child("gid").value.toString()
+
+                    val currentGroup = GroupModel(name,image,status,groupId)
+
+                    groupsList.add(0, currentGroup)
+                }
+                groupsAdapter = GroupsAdapter(groupsList)
+                fragmentChatsBinding.groupsRecyclerView.adapter = groupsAdapter
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    //Adapter
+
+    inner class GroupsAdapter (private var list:List<GroupModel>) : RecyclerView.Adapter<GroupsAdapter.GroupsHolder>() {
+
+        inner class GroupsHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener, View.OnLongClickListener {
+            private val groupNameTextView : TextView = itemView.findViewById(R.id.group_name_text_view)
+            private val groupLastSeenTextView: TextView =  itemView.findViewById(R.id.group_status_text_view)
+            private val groupImageView : ImageView = itemView.findViewById(R.id.group_image_view)
+
+            init {
+                itemView.setOnClickListener(this)
+                itemView.setOnLongClickListener(this)
+            }
+
+            fun bind (group : GroupModel) {
+                groupNameTextView.text = group.name
+                groupLastSeenTextView.text = group.status
+
+                val imageUrl = group.image
+                if (imageUrl.isNotEmpty()) {
+                    Picasso.get()
+                        .load(imageUrl)
+                        .placeholder(R.drawable.ic_group)
+                        .into(groupImageView)
+                }
+            }
+
+            override fun onClick(item: View?) {
+//                val groupName = list[adapterPosition]
+//                //callback.onGroupClicked(groupName)
+            }
+
+            override fun onLongClick(item: View?): Boolean {
+                return true
+            }
+
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupsHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.group_item_layout,parent,false )
+
+            return GroupsHolder(view)
+        }
+
+        override fun getItemCount(): Int {
+            return list.size
+        }
+
+        override fun onBindViewHolder(holder: GroupsHolder, position: Int) {
+            val group = list[holder.adapterPosition]
+            holder.bind(group)
+        }
+    }
+
 }
