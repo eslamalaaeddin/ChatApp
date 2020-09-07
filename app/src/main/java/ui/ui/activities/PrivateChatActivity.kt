@@ -1,5 +1,6 @@
 package ui.ui.activities
 
+import android.annotation.SuppressLint
 import android.app.ActionBar
 import android.app.Dialog
 import android.app.ProgressDialog
@@ -10,6 +11,8 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -42,12 +45,9 @@ import kotlinx.android.synthetic.main.video_player_dialog.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import models.PhotoModel
 import models.PrivateMessageModel
 import notifications.*
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -127,9 +127,6 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     private lateinit var addNoteAlertDialog: AlertDialog
     private lateinit var view: View
 
-    private lateinit var photoFile: File
-    private lateinit var photo: PhotoModel
-    private lateinit var photoUri: Uri
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -177,6 +174,27 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         activityPrivateChatBinding.cameraButton.setOnClickListener {
             takePhoto()
         }
+
+        activityPrivateChatBinding.sendMessageEditText.addTextChangedListener(object : TextWatcher{
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun afterTextChanged(text: Editable?) {
+                if (text.toString().isEmpty()){
+                    activityPrivateChatBinding.sendMessageButton.visibility = View.INVISIBLE
+                    activityPrivateChatBinding.sendVoiceMessageButton.visibility = View.VISIBLE
+                    activityPrivateChatBinding.cameraButton.visibility = View.VISIBLE
+                }else{
+                    activityPrivateChatBinding.sendMessageButton.visibility = View.VISIBLE
+                    activityPrivateChatBinding.sendVoiceMessageButton.visibility = View.INVISIBLE
+                    activityPrivateChatBinding.cameraButton.visibility = View.GONE
+                }
+            }
+        })
 
     }
 
@@ -637,6 +655,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     }
 
 
+    @SuppressLint("SimpleDateFormat")
     private fun sendMessage() {
          currentMessage = activityPrivateChatBinding.sendMessageEditText.editableText.toString()
 
@@ -704,7 +723,6 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
             }
         })
         usersRef.child(receiverId).child(DEVICE_TOKEN_CHILD).addValueEventListener(object :
@@ -714,7 +732,6 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
             }
         })
     }
@@ -782,6 +799,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     private fun displayLastSeen(){
         rootRef.child("Users").child(receiverId).addValueEventListener(object : ValueEventListener {
+            @SuppressLint("SetTextI18n")
             override fun onDataChange(snapshot: DataSnapshot) {
 
                 val time = snapshot.child("state").child("time").value.toString()
@@ -805,6 +823,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         })
     }
 
+    @SuppressLint("SimpleDateFormat")
     private fun updateUserStatus(state: String) {
         var currentDate = ""
         var currentTime = ""
@@ -919,6 +938,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             //to get message date
+            @SuppressLint("SimpleDateFormat")
             override fun onLongClick(p0: View?): Boolean {
                var messageDate =messages[adapterPosition].date
                 val currentDate = SimpleDateFormat("MMM dd, yyyy").format(Calendar.getInstance().time)
@@ -1190,26 +1210,33 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             else if(fromMessagesType =="docx" || fromMessagesType=="pdf"){
+                holder.receiverMessageTextView.visibility = View.GONE
+                holder.senderMessageTextView.visibility = View.GONE
+                holder.senderMessagePlay.visibility = View.GONE
+                holder.receiverMessagePlay.visibility = View.GONE
                 if (fromUserId == messageSenderId) {
-                    holder.senderMessageImageView.visibility = View.VISIBLE
-                    holder.senderMessageImageView.setBackgroundResource(R.drawable.ic_file)
+                    holder.senderMessageTimeTextView.visibility = View.VISIBLE
+                    holder.senderMessageTimeTextView.text = myMessages.time
+                    holder.receiverMessageLayout.visibility = View.GONE
 
-//                    holder.itemView.setOnClickListener {
-//                        val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-//                        holder.itemView.context.startActivity(downloadIntent)
-//                        Log.i(TAG, "BBB onBindViewHolder: ${myMessages.message}")
-//                      //  Log.i(TAG, "BBB onBindViewHolder: ${Uri.parse(myMessages.message)}")
-//                    }
+
+                    holder.senderMessageImageView.visibility = View.VISIBLE
+                    holder.receiverMessageImageView.visibility = View.GONE
+
+                    holder.senderMessageImageView.setImageResource(R.drawable.ic_file)
+                    holder.receiverMessageImageView.visibility = View.GONE
 
                 }
                 else{
-                    holder.receiverMessageImageView.visibility = View.VISIBLE
-                    holder.receiverMessageImageView.setBackgroundResource(R.drawable.ic_file)
+                    holder.receiverMessageTimeTextView.visibility = View.VISIBLE
+                    holder.receiverMessageTimeTextView.text = myMessages.time
+                    holder.senderMessageLayout.visibility = View.GONE
 
-//                    holder.itemView.setOnClickListener {
-//                        val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-//                        holder.itemView.context.startActivity(downloadIntent)
-//                    }
+                    holder.receiverMessageImageView.visibility = View.VISIBLE
+                    holder.senderMessageImageView.visibility = View.GONE
+
+                    holder.receiverMessageImageView.setImageResource(R.drawable.ic_file)
+
                 }
             }
 
