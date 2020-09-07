@@ -1,20 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:gravity="center"
-    >
+    android:gravity="center">
 
-    <EditText
+
+
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/group_name_edit_text"
-        android:hint="Enter group name"
-        android:layout_margin="32dp"
+        android:orientation="horizontal"
+        android:layout_margin="16dp">
 
-        />
+
+        <com.mikhaellopez.circularimageview.CircularImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:id="@+id/user_image_view"
+            app:srcCompat="@drawable/ic_group"
+            android:layout_gravity="center"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="32dp"
+            app:civ_border_color="@color/colorPrimary"
+            app:civ_border_width="1dp"
+            android:visibility="visible"
+            android:cropToPadding="true"
+            />
+
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/group_name_edit_text"
+            android:hint="Enter group name"
+            android:layout_gravity="center"
+            android:background="@android:color/transparent"
+            />
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -30,7 +58,8 @@
             android:text="Cancel"
             android:textSize="18sp"
             android:layout_margin="16dp"
-            android:textColor="@android:color/black"
+            android:background="@drawable/stroked_button"
+            android:textColor="#292525"
             android:textAllCaps="false" />
 
         <Button
@@ -40,7 +69,9 @@
             android:text="Create"
             android:textSize="18sp"
             android:layout_margin="16dp"
-            android:textColor="@android:color/black"
+            android:background="@drawable/round_button"
+            android:backgroundTint="@android:color/holo_green_light"
+            android:textColor="#292525"
             android:textAllCaps="false" />
 
 
