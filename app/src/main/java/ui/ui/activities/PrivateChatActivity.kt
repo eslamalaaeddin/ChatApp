@@ -8,8 +8,10 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
@@ -30,15 +32,11 @@ import com.example.whatsapp.Utils.MESSAGES_CHILD
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityPrivateChatBinding
 import com.example.whatsapp.databinding.PrivateMessageLayoutBinding
-import com.google.android.gms.tasks.Continuation
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.UploadTask
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.video_player_dialog.view.*
@@ -48,13 +46,13 @@ import kotlinx.coroutines.launch
 import models.PrivateMessageModel
 import notifications.*
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
 
 private const val USER_ID = "user id"
-private const val USER_NAME = "user name"
-private const val USER_IMAGE = "user image"
 private const val RECEIVER_ID = "receiver id"
 private const val REQUEST_NUM = 1
 private const val TAG = "PrivateChatActivity"
@@ -105,7 +103,6 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     private lateinit var userImageView: ImageView
     private lateinit var userNameTextView: TextView
     private lateinit var lastSeenTextView: TextView
-    private lateinit var videoCallImageView: ImageView
 
     private lateinit var progressDialog: ProgressDialog
 
@@ -127,7 +124,11 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     private lateinit var addNoteAlertDialog: AlertDialog
     private lateinit var view: View
 
+    private var recorder:MediaRecorder? = null
+    private var fileName:String = ""
 
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityPrivateChatBinding =
@@ -196,9 +197,25 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
         })
 
+        fileName = Environment.getExternalStorageDirectory().absolutePath
+        fileName+= "/recorded_message.3gp"
+
+        activityPrivateChatBinding.sendVoiceMessageButton.setOnTouchListener { p0, motionEvent ->
+            if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
+                startRecording()
+                Toast.makeText(this, "Recording Starts", Toast.LENGTH_SHORT).show()
+            } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
+                stopRecording()
+                Toast.makeText(this, "Recording Stops", Toast.LENGTH_SHORT).show()
+                sendVoiceMessage()
+            }
+            true
+        }
+
     }
 
 
+    @SuppressLint("SimpleDateFormat")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_NUM && resultCode == RESULT_OK  && checker!="captured image" && data != null && data.data != null) {
@@ -207,7 +224,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
             //documents
             if (checker!="image" && checker!="video" && checker!="audio" && checker!="captured image" ) {
-                fileUri = data?.data!!
+                fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Document files")
 
                 val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -220,59 +237,50 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                 val filePath = storageRef.child("$messagePushId.$checker")
 
-                filePath.putFile(fileUri!!).addOnCompleteListener(object :
-                    OnCompleteListener<UploadTask.TaskSnapshot> {
-                    override fun onComplete(task: Task<UploadTask.TaskSnapshot>) {
-                        if (task.isSuccessful) {
+                filePath.putFile(fileUri).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
 
-                            val calender = Calendar.getInstance()
-                            //get date and time
-                            val dateFormat = SimpleDateFormat("MMM dd, yyyy")
-                            val timeFormat = SimpleDateFormat("hh:mm a")
+                        val calender = Calendar.getInstance()
+                        //get date and time
+                        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+                        val timeFormat = SimpleDateFormat("hh:mm a")
 
-                            currentDate = dateFormat.format(calender.time)
-                            currentTime = timeFormat.format(calender.time)
+                        currentDate = dateFormat.format(calender.time)
+                        currentTime = timeFormat.format(calender.time)
 
-                            filePath.downloadUrl.addOnCompleteListener {
-                                rootRef.child("Messages").child(senderId).child(receiverId)
-                                    .child(messagePushId).child("message")
-                                    .setValue(it.result.toString()).addOnCompleteListener {
+                        filePath.downloadUrl.addOnCompleteListener {
+                            rootRef.child("Messages").child(senderId).child(receiverId)
+                                .child(messagePushId).child("message")
+                                .setValue(it.result.toString()).addOnCompleteListener {
 
-                                    }
-                            }
-
-
-                            val messageImageBody = HashMap<String, Any>()
-//                            rootRef.child("Messages").child(senderId).child(receiverId)
-//                                .child(messagePushId).child("message")
-//                                .setValue(task.result.toString()).addOnCompleteListener {
-//                                    messageImageBody.put("message",it.result.toString())
-//                                }
-                            messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
-                            messageImageBody.put("type", checker)
-                            messageImageBody.put("from", senderId)
-                            messageImageBody.put("to", receiverId)
-                            messageImageBody.put("messageKey", messagePushId)
-                            messageImageBody.put("date", currentDate)
-                            messageImageBody.put("time", currentTime)
-
-                            val messageBodyDetails = HashMap<String, Any>()
-                            messageBodyDetails.put(
-                                "$messageSenderRef/$messagePushId",
-                                messageImageBody
-                            )
-                            messageBodyDetails.put(
-                                "$messageReceiverRef/$messagePushId",
-                                messageImageBody
-                            )
-
-
-
-                            rootRef.updateChildren(messageBodyDetails)
-                            progressDialog.dismiss()
+                                }
                         }
+
+
+                        val messageImageBody = HashMap<String, Any>()
+                        //                            rootRef.child("Messages").child(senderId).child(receiverId)
+                        //                                .child(messagePushId).child("message")
+                        //                                .setValue(task.result.toString()).addOnCompleteListener {
+                        //                                    messageImageBody.put("message",it.result.toString())
+                        //                                }
+                        messageImageBody["name"] = fileUri.lastPathSegment.toString()
+                        messageImageBody["type"] = checker
+                        messageImageBody["from"] = senderId
+                        messageImageBody["to"] = receiverId
+                        messageImageBody["messageKey"] = messagePushId
+                        messageImageBody["date"] = currentDate
+                        messageImageBody["time"] = currentTime
+
+                        val messageBodyDetails = HashMap<String, Any>()
+                        messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
+                        messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageImageBody
+
+
+
+                        rootRef.updateChildren(messageBodyDetails)
+                        progressDialog.dismiss()
                     }
-                }).addOnFailureListener{
+                }.addOnFailureListener{
                     progressDialog.dismiss()
                     Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
                 }.addOnProgressListener {
@@ -283,7 +291,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             else if (checker == "video") {
-                fileUri = data?.data!!
+                fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Video files")
 
                 val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -295,17 +303,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.mp4")
-                val uploadTask = filePath.putFile(fileUri!!)
+                val uploadTask = filePath.putFile(fileUri)
 
-                uploadTask.continueWithTask(object :
-                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
-                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
-                        if (!task.isSuccessful) {
-                            throw task.exception!!
-                        }
-                        return filePath.downloadUrl
+                uploadTask.continueWithTask { task ->
+                    if (!task.isSuccessful) {
+                        throw task.exception!!
                     }
-                }).addOnCompleteListener {
+                    filePath.downloadUrl
+                }.addOnCompleteListener {
                     if (it.isSuccessful) {
                         url = it.result.toString()
 
@@ -319,21 +324,18 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
 
                         val messageImageBody = HashMap<String, Any>()
-                        messageImageBody.put("message", url)
-                        messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
-                        messageImageBody.put("type", checker)
-                        messageImageBody.put("from", senderId)
-                        messageImageBody.put("to", receiverId)
-                        messageImageBody.put("messageKey", messagePushId)
-                        messageImageBody.put("date", currentDate)
-                        messageImageBody.put("time", currentTime)
+                        messageImageBody["message"] = url
+                        messageImageBody["name"] = fileUri.lastPathSegment.toString()
+                        messageImageBody["type"] = checker
+                        messageImageBody["from"] = senderId
+                        messageImageBody["to"] = receiverId
+                        messageImageBody["messageKey"] = messagePushId
+                        messageImageBody["date"] = currentDate
+                        messageImageBody["time"] = currentTime
 
                         val messageBodyDetails = HashMap<String, Any>()
-                        messageBodyDetails.put("$messageSenderRef/$messagePushId", messageImageBody)
-                        messageBodyDetails.put(
-                            "$messageReceiverRef/$messagePushId",
-                            messageImageBody
-                        )
+                        messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
+                        messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageImageBody
 
                         rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
                             if (!task.isSuccessful) {
@@ -349,7 +351,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             else if (checker == "audio") {
-                fileUri = data?.data!!
+                fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Audio files")
 
                 val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -361,17 +363,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.mp3")
-                val uploadTask = filePath.putFile(fileUri!!)
+                val uploadTask = filePath.putFile(fileUri)
 
-                uploadTask.continueWithTask(object :
-                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
-                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
-                        if (!task.isSuccessful) {
-                            throw task.exception!!
-                        }
-                        return filePath.downloadUrl
+                uploadTask.continueWithTask { task ->
+                    if (!task.isSuccessful) {
+                        throw task.exception!!
                     }
-                }).addOnCompleteListener {
+                    filePath.downloadUrl
+                }.addOnCompleteListener {
                     if (it.isSuccessful) {
                         url = it.result.toString()
 
@@ -385,21 +384,18 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
 
                         val messageImageBody = HashMap<String, Any>()
-                        messageImageBody.put("message", url)
-                        messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
-                        messageImageBody.put("type", checker)
-                        messageImageBody.put("from", senderId)
-                        messageImageBody.put("to", receiverId)
-                        messageImageBody.put("messageKey", messagePushId)
-                        messageImageBody.put("date", currentDate)
-                        messageImageBody.put("time", currentTime)
+                        messageImageBody["message"] = url
+                        messageImageBody["name"] = fileUri.lastPathSegment.toString()
+                        messageImageBody["type"] = checker
+                        messageImageBody["from"] = senderId
+                        messageImageBody["to"] = receiverId
+                        messageImageBody["messageKey"] = messagePushId
+                        messageImageBody["date"] = currentDate
+                        messageImageBody["time"] = currentTime
 
                         val messageBodyDetails = HashMap<String, Any>()
-                        messageBodyDetails.put("$messageSenderRef/$messagePushId", messageImageBody)
-                        messageBodyDetails.put(
-                            "$messageReceiverRef/$messagePushId",
-                            messageImageBody
-                        )
+                        messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
+                        messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageImageBody
 
                         rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
                             if (!task.isSuccessful) {
@@ -413,8 +409,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
             }
 
+
+
             else if (checker =="image") {
-                fileUri = data?.data!!
+                fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
 
                 val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -426,17 +424,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.jpg")
-                val uploadTask = filePath.putFile(fileUri!!)
+                val uploadTask = filePath.putFile(fileUri)
 
-                uploadTask.continueWithTask(object :
-                    Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
-                    override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
-                        if (!task.isSuccessful) {
-                            throw task.exception!!
-                        }
-                        return filePath.downloadUrl
+                uploadTask.continueWithTask { task ->
+                    if (!task.isSuccessful) {
+                        throw task.exception!!
                     }
-                }).addOnCompleteListener {
+                    filePath.downloadUrl
+                }.addOnCompleteListener {
                     if (it.isSuccessful) {
                         url = it.result.toString()
 
@@ -450,21 +445,18 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
 
                         val messageImageBody = HashMap<String, Any>()
-                        messageImageBody.put("message", url)
-                        messageImageBody.put("name", fileUri!!.lastPathSegment.toString())
-                        messageImageBody.put("type", checker)
-                        messageImageBody.put("from", senderId)
-                        messageImageBody.put("to", receiverId)
-                        messageImageBody.put("messageKey", messagePushId)
-                        messageImageBody.put("date", currentDate)
-                        messageImageBody.put("time", currentTime)
+                        messageImageBody["message"] = url
+                        messageImageBody["name"] = fileUri.lastPathSegment.toString()
+                        messageImageBody["type"] = checker
+                        messageImageBody["from"] = senderId
+                        messageImageBody["to"] = receiverId
+                        messageImageBody["messageKey"] = messagePushId
+                        messageImageBody["date"] = currentDate
+                        messageImageBody["time"] = currentTime
 
                         val messageBodyDetails = HashMap<String, Any>()
-                        messageBodyDetails.put("$messageSenderRef/$messagePushId", messageImageBody)
-                        messageBodyDetails.put(
-                            "$messageReceiverRef/$messagePushId",
-                            messageImageBody
-                        )
+                        messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
+                        messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageImageBody
 
                         rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
                             if (!task.isSuccessful) {
@@ -512,15 +504,12 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             val filePath = storageRef.child("$messagePushId.jpg")
             val uploadTask = filePath.putBytes(b)
 
-            uploadTask.continueWithTask(object :
-                Continuation<UploadTask.TaskSnapshot, Task<Uri>> {
-                override fun then(task: Task<UploadTask.TaskSnapshot>): Task<Uri> {
-                    if (!task.isSuccessful) {
-                        throw task.exception!!
-                    }
-                    return filePath.downloadUrl
+            uploadTask.continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    throw task.exception!!
                 }
-            }).addOnCompleteListener {
+                filePath.downloadUrl
+            }.addOnCompleteListener {
                 if (it.isSuccessful) {
                     url = it.result.toString()
 
@@ -534,21 +523,18 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
 
                     val messageImageBody = HashMap<String, Any>()
-                    messageImageBody.put("message", url)
-                    messageImageBody.put("name", "image $messagePushId")
-                    messageImageBody.put("type", checker)
-                    messageImageBody.put("from", senderId)
-                    messageImageBody.put("to", receiverId)
-                    messageImageBody.put("messageKey", messagePushId)
-                    messageImageBody.put("date", currentDate)
-                    messageImageBody.put("time", currentTime)
+                    messageImageBody["message"] = url
+                    messageImageBody["name"] = "image $messagePushId"
+                    messageImageBody["type"] = checker
+                    messageImageBody["from"] = senderId
+                    messageImageBody["to"] = receiverId
+                    messageImageBody["messageKey"] = messagePushId
+                    messageImageBody["date"] = currentDate
+                    messageImageBody["time"] = currentTime
 
                     val messageBodyDetails = HashMap<String, Any>()
-                    messageBodyDetails.put("$messageSenderRef/$messagePushId", messageImageBody)
-                    messageBodyDetails.put(
-                        "$messageReceiverRef/$messagePushId",
-                        messageImageBody
-                    )
+                    messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
+                    messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageImageBody
 
                     rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
                         if (!task.isSuccessful) {
@@ -677,21 +663,21 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
              currentTime = timeFormat.format(calender.time)
 
             val messageTextBody = HashMap<String, Any>()
-            messageTextBody.put("message", currentMessage)
-            messageTextBody.put("type", "text")
-            messageTextBody.put("from", senderId)
-            messageTextBody.put("to", receiverId)
-            messageTextBody.put("messageKey", messagePushId)
-            messageTextBody.put("date", currentDate)
-            messageTextBody.put("time", currentTime)
+            messageTextBody["message"] = currentMessage
+            messageTextBody["type"] = "text"
+            messageTextBody["from"] = senderId
+            messageTextBody["to"] = receiverId
+            messageTextBody["messageKey"] = messagePushId
+            messageTextBody["date"] = currentDate
+            messageTextBody["time"] = currentTime
 
             val messageBodyDetails = HashMap<String, Any>()
-            messageBodyDetails.put("$messageSenderRef/$messagePushId", messageTextBody)
-            messageBodyDetails.put("$messageReceiverRef/$messagePushId", messageTextBody)
+            messageBodyDetails["$messageSenderRef/$messagePushId"] = messageTextBody
+            messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageTextBody
 
             val map = HashMap<String, Any>()
-            map.put("to", receiverId)
-            map.put("from", senderId)
+            map["to"] = receiverId
+            map["from"] = senderId
 
             rootRef.child(USERS_CHILD).child(currentUserId).child("Chats").updateChildren(map).addOnCompleteListener {
                 if (it.isComplete) {
@@ -940,7 +926,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             //to get message date
             @SuppressLint("SimpleDateFormat")
             override fun onLongClick(p0: View?): Boolean {
-               var messageDate =messages[adapterPosition].date
+               val messageDate =messages[adapterPosition].date
                 val currentDate = SimpleDateFormat("MMM dd, yyyy").format(Calendar.getInstance().time)
                 if (messageDate == currentDate) {
                     Snackbar.make(p0!!, "Sent: today", Snackbar.LENGTH_LONG).show()
@@ -978,7 +964,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             val fromUserId = myMessages.from
             val fromMessagesType = myMessages.type
 
-            usersRef = rootRef.child(Utils.USERS_CHILD).child(fromUserId)
+            usersRef = rootRef.child(USERS_CHILD).child(fromUserId)
 
             //what appears to the receiver
             if (fromUserId == currentUserId) {
@@ -1563,6 +1549,90 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         checker = "captured image"
         val captureImage = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
          startActivityForResult(captureImage, REQUEST_NUM)
+    }
+
+    private fun startRecording() {
+        recorder = MediaRecorder().apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+            setOutputFile(fileName)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+
+            try {
+                prepare()
+            } catch (e: IOException) {
+                Log.e(TAG, "startRecording: prepare() failed" )
+            }
+
+            start()
+        }
+    }
+
+    private fun stopRecording() {
+        recorder?.apply {
+            stop()
+            release()
+        }
+        recorder = null
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun sendVoiceMessage() {
+        fileUri = Uri.fromFile(File(fileName))
+        val storageRef = FirebaseStorage.getInstance().reference.child("Recorded Messages")
+
+        val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
+        val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
+
+        val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
+        child(senderId).child(receiverId).push()
+
+        val messagePushId = userMessageKeyRef.key.toString()
+
+        val filePath = storageRef.child("$messagePushId.mp3")
+        val uploadTask = filePath.putFile(fileUri)
+
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                throw task.exception!!
+            }
+            filePath.downloadUrl
+        }.addOnCompleteListener {
+            if (it.isSuccessful) {
+                url = it.result.toString()
+
+                val calender = Calendar.getInstance()
+                //get date and time
+                val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+                val timeFormat = SimpleDateFormat("hh:mm a")
+
+                currentDate = dateFormat.format(calender.time)
+                currentTime = timeFormat.format(calender.time)
+
+
+                val messageImageBody = HashMap<String, Any>()
+                messageImageBody["message"] = url
+                messageImageBody["name"] = fileUri.lastPathSegment.toString()
+                messageImageBody["type"] = "audio"
+                messageImageBody["from"] = senderId
+                messageImageBody["to"] = receiverId
+                messageImageBody["messageKey"] = messagePushId
+                messageImageBody["date"] = currentDate
+                messageImageBody["time"] = currentTime
+
+                val messageBodyDetails = HashMap<String, Any>()
+                messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
+                messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageImageBody
+
+                rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+
+                    }
+                }
+
+            }
+        }
     }
 
 }

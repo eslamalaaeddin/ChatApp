@@ -8,9 +8,13 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -45,6 +49,8 @@ import kotlinx.coroutines.launch
 import models.PrivateMessageModel
 import notifications.*
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -113,7 +119,8 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
     private var url:String = ""
     private lateinit var fileUri:Uri
 
-
+    private var recorder:MediaRecorder? = null
+    private var fileName:String = ""
     private var backPressed = false
 
     private  var messagesAdapter = PrivateMessagesAdapter(emptyList())
@@ -125,6 +132,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
     private lateinit var view: View
 
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityGroupChatBinding =
@@ -171,6 +179,42 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
         activityGroupChatBinding.cameraButton.setOnClickListener {
             takePhoto()
+        }
+
+        activityGroupChatBinding.sendMessageEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun afterTextChanged(text: Editable?) {
+                if (text.toString().isEmpty()){
+                    activityGroupChatBinding.sendMessageButton.visibility = View.INVISIBLE
+                    activityGroupChatBinding.sendVoiceMessageButton.visibility = View.VISIBLE
+                    activityGroupChatBinding.cameraButton.visibility = View.VISIBLE
+                }else{
+                    activityGroupChatBinding.sendMessageButton.visibility = View.VISIBLE
+                    activityGroupChatBinding.sendVoiceMessageButton.visibility = View.INVISIBLE
+                    activityGroupChatBinding.cameraButton.visibility = View.GONE
+                }
+            }
+        })
+
+        fileName = Environment.getExternalStorageDirectory().absolutePath
+        fileName+= "/recorded_message.3gp"
+
+        activityGroupChatBinding.sendVoiceMessageButton.setOnTouchListener { p0, motionEvent ->
+            if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
+                startRecording()
+                Toast.makeText(this, "Recording Starts", Toast.LENGTH_SHORT).show()
+            } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
+                stopRecording()
+                Toast.makeText(this, "Recording Stops", Toast.LENGTH_SHORT).show()
+                sendVoiceMessage()
+            }
+            true
         }
 
     }
@@ -256,7 +300,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
                 val messagePushId = userMessageKeyRef.key.toString()
 
-                val filePath = storageRef.child("$messagePushId.$checker")
+                val filePath = storageRef.child("$messagePushId.mp4")
 
                 filePath.putFile(fileUri).addOnCompleteListener { task ->
                     if (task.isSuccessful) {
@@ -491,7 +535,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
                     rootRef.child(USERS_CHILD).child("Groups").child(groupId)
                         .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                    progressDialog.dismiss()
+                  //  progressDialog.dismiss()
 
                 }
             }
@@ -507,7 +551,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
     override fun onStart() {
         super.onStart()
-        rootRef.child(MESSAGES_CHILD).child(senderId).child(receiverId).addChildEventListener(
+        rootRef.child(USERS_CHILD).child("Groups").child(groupId).child(MESSAGES_CHILD).addChildEventListener(
             object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
 //                    messagesList.clear()
@@ -572,7 +616,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 if (imageUrl.isNotEmpty()) {
                     Picasso.get()
                         .load(imageUrl)
-                        .placeholder(R.drawable.ic_person)
+                        .placeholder(R.drawable.ic_group)
                         .into(userImageView)
                 }
 
@@ -1129,26 +1173,33 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
             }
 
             else if(fromMessagesType =="docx" || fromMessagesType=="pdf"){
+                holder.receiverMessageTextView.visibility = View.GONE
+                holder.senderMessageTextView.visibility = View.GONE
+                holder.senderMessagePlay.visibility = View.GONE
+                holder.receiverMessagePlay.visibility = View.GONE
                 if (fromUserId == messageSenderId) {
-                    holder.senderMessageImageView.visibility = View.VISIBLE
-                    holder.senderMessageImageView.setBackgroundResource(R.drawable.ic_file)
+                    holder.senderMessageTimeTextView.visibility = View.VISIBLE
+                    holder.senderMessageTimeTextView.text = myMessages.time
+                    holder.receiverMessageLayout.visibility = View.GONE
 
-//                    holder.itemView.setOnClickListener {
-//                        val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-//                        holder.itemView.context.startActivity(downloadIntent)
-//                        Log.i(TAG, "BBB onBindViewHolder: ${myMessages.message}")
-//                      //  Log.i(TAG, "BBB onBindViewHolder: ${Uri.parse(myMessages.message)}")
-//                    }
+
+                    holder.senderMessageImageView.visibility = View.VISIBLE
+                    holder.receiverMessageImageView.visibility = View.GONE
+
+                    holder.senderMessageImageView.setImageResource(R.drawable.ic_file)
+                    holder.receiverMessageImageView.visibility = View.GONE
 
                 }
                 else{
-                    holder.receiverMessageImageView.visibility = View.VISIBLE
-                    holder.receiverMessageImageView.setBackgroundResource(R.drawable.ic_file)
+                    holder.receiverMessageTimeTextView.visibility = View.VISIBLE
+                    holder.receiverMessageTimeTextView.text = myMessages.time
+                    holder.senderMessageLayout.visibility = View.GONE
 
-//                    holder.itemView.setOnClickListener {
-//                        val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-//                        holder.itemView.context.startActivity(downloadIntent)
-//                    }
+                    holder.receiverMessageImageView.visibility = View.VISIBLE
+                    holder.senderMessageImageView.visibility = View.GONE
+
+                    holder.receiverMessageImageView.setImageResource(R.drawable.ic_file)
+
                 }
             }
 
@@ -1475,6 +1526,90 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
         checker = "captured image"
         val captureImage = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         startActivityForResult(captureImage, REQUEST_NUM)
+    }
+
+    private fun startRecording() {
+        recorder = MediaRecorder().apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+            setOutputFile(fileName)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+
+            try {
+                prepare()
+            } catch (e: IOException) {
+                Log.e(TAG, "startRecording: prepare() failed" )
+            }
+
+            start()
+        }
+    }
+
+    private fun stopRecording() {
+        recorder?.apply {
+            stop()
+            release()
+        }
+        recorder = null
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun sendVoiceMessage() {
+        fileUri = Uri.fromFile(File(fileName))
+        val storageRef = FirebaseStorage.getInstance().reference.child("Recorded Messages")
+
+        val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
+        val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
+
+        val userMessageKeyRef = rootRef.child(MESSAGES_CHILD).
+        child(senderId).child(receiverId).push()
+
+        val messagePushId = userMessageKeyRef.key.toString()
+
+        val filePath = storageRef.child("$messagePushId.mp3")
+        val uploadTask = filePath.putFile(fileUri)
+
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                throw task.exception!!
+            }
+            filePath.downloadUrl
+        }.addOnCompleteListener {
+            if (it.isSuccessful) {
+                url = it.result.toString()
+
+                val calender = Calendar.getInstance()
+                //get date and time
+                val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+                val timeFormat = SimpleDateFormat("hh:mm a")
+
+                currentDate = dateFormat.format(calender.time)
+                currentTime = timeFormat.format(calender.time)
+
+
+                val messageImageBody = HashMap<String, Any>()
+                messageImageBody["message"] = url
+                messageImageBody["name"] = fileUri.lastPathSegment.toString()
+                messageImageBody["type"] = "audio"
+                messageImageBody["from"] = senderId
+                messageImageBody["to"] = receiverId
+                messageImageBody["messageKey"] = messagePushId
+                messageImageBody["date"] = currentDate
+                messageImageBody["time"] = currentTime
+
+                val messageBodyDetails = HashMap<String, Any>()
+                messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
+                messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageImageBody
+
+                rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+
+                    }
+                }
+
+            }
+        }
     }
 
 }

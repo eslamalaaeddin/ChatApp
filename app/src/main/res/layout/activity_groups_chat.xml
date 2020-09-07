@@ -1,9 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="ui.ui.activities.GroupsChatActivity">
+    >
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/default_chat_wallpaper"
+        tools:context="ui.ui.activities.GroupsChatActivity">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/main_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/actionBarSize"
+            style="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            android:background="@color/colorPrimary" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:id="@+id/private_chat_recycler_view"
+            android:background="@drawable/default_chat_wallpaper"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+
+            >
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:background="@drawable/round_background"
+                android:layout_margin="4dp"
+                >
+                <EditText
+                    android:layout_width="0dp"
+                    android:layout_weight="5"
+                    android:layout_height="match_parent"
+                    android:id="@+id/send_message_edit_text"
+                    android:textColorHint="#757474"
+                    android:paddingStart="8dp"
+                    android:background="@android:color/transparent"
+                    android:backgroundTint="@android:color/white"
+                    android:hint="Type a message..." />
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="24dp"
+                    android:id="@+id/attach_file_button"
+                    android:textColor="@android:color/white"
+                    android:backgroundTint="@color/white"
+                    android:layout_margin="4dp"
+                    app:borderWidth="0dp"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_file"
+                    />
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="24dp"
+                    android:id="@+id/camera_button"
+                    android:textColor="@android:color/white"
+                    android:backgroundTint="@color/white"
+                    android:layout_margin="4dp"
+                    app:borderWidth="0dp"
+                    app:srcCompat="@drawable/ic_camera"
+                    android:layout_gravity="center" />
+
+            </LinearLayout>
+
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_margin="4dp"
+                >
+                <com.mikhaellopez.circularimageview.CircularImageView
+                    android:id="@+id/send_message_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerInside"
+                    android:cropToPadding="true"
+                    app:srcCompat="@drawable/ic_send"
+                    app:civ_border_color="@color/text_input_box"
+                    app:civ_circle_color="@color/text_input_box"
+                    android:layout_gravity="center"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.mikhaellopez.circularimageview.CircularImageView
+                    android:id="@+id/send_voice_message_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerInside"
+                    android:cropToPadding="true"
+                    app:srcCompat="@drawable/ic_mic"
+                    app:civ_border_color="@color/text_input_box"
+                    app:civ_circle_color="@color/text_input_box"
+                    android:layout_gravity="center"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </FrameLayout>
+
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+</layout>
