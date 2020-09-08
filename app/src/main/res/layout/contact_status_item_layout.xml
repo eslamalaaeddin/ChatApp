@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="8dp"
+        >
+
+            <TextView
+                android:id="@+id/status_text_view"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="start"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:gravity="center"
+                tools:text="Hi"
+                android:background="@drawable/rounded_text_view"
+                android:textSize="8sp"
+                android:textColor="@color/white"
+                />
+
+
+
+        <TextView
+            android:id="@+id/status_count_text_view"
+            android:layout_width="21dp"
+            android:layout_height="21dp"
+            android:layout_gravity="start"
+            android:background="@drawable/small_rounded_text_view"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            app:layout_constraintCircle="@id/status_text_view"
+            app:layout_constraintCircleAngle="120"
+            app:layout_constraintCircleRadius="32dp"
+            tools:ignore="MissingConstraints"
+            tools:layout_editor_absoluteX="76dp"
+            tools:layout_editor_absoluteY="114dp" />
+
+
+        <TextView
+            android:id="@+id/contact_name_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            tools:text="Mahmoud Sanad"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/status_text_view"
+            app:layout_constraintTop_toTopOf="@+id/status_text_view" />
+
+        <TextView
+            android:id="@+id/status_time_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            tools:text="Tab to add status update"
+            app:layout_constraintBottom_toBottomOf="@+id/status_text_view"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/status_text_view"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
