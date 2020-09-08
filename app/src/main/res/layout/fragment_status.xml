@@ -1,16 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
     </data>
 
-    <TextView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Status"
-        android:textSize="36sp"
-        android:textColor="@android:color/black"
-        android:gravity="center" />
+        android:layout_height="match_parent">
+
+        <com.mikhaellopez.circularimageview.CircularImageView
+            android:id="@+id/status_image_view"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="start"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:cropToPadding="true"
+            app:civ_border_color="@android:color/transparent"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_person" />
+
+        <TextView
+            android:id="@+id/status_count_image_view"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="start"
+            android:background="@drawable/rounded_text_view"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            app:layout_constraintCircle="@id/status_image_view"
+            app:layout_constraintCircleAngle="120"
+            app:layout_constraintCircleRadius="24dp"
+            tools:ignore="MissingConstraints"
+            tools:layout_editor_absoluteX="76dp"
+            tools:layout_editor_absoluteY="114dp" />
+
+
+        <TextView
+            android:id="@+id/my_status_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text="My status"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/status_image_view"
+            app:layout_constraintTop_toTopOf="@+id/status_image_view" />
+
+        <TextView
+            android:id="@+id/tab_add_status_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="Tab to add status update"
+            app:layout_constraintBottom_toBottomOf="@+id/status_image_view"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/status_image_view"
+           />
+
+        <TextView
+            android:id="@+id/recent_updates_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:background="#DCDCDC"
+            android:padding="4dp"
+            android:paddingStart="16dp"
+            android:text="Recent updates"
+            android:textColor="#101010"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/status_image_view" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/recent_updates_text_view">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|bottom"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="#25D366"
+                app:borderWidth="0dp"
+                app:srcCompat="@drawable/ic_create" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/contacts_status_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
