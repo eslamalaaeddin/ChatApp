@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:orientation="horizontal"
+    android:padding="1dp"
+
+    >
+
+
+    <com.mikhaellopez.circularimageview.CircularImageView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:id="@+id/user_image_view"
+        app:srcCompat="@drawable/ic_person"
+        android:layout_gravity="start"
+        android:layout_marginStart="2dp"
+        android:layout_marginEnd="8dp"
+        android:cropToPadding="true"
+        app:civ_border_color="@android:color/transparent"
+
+        />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/user_name_text_view"
+                tools:text="Islam AlaaEddin"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                />
+
+
+
+        </LinearLayout>
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                >
+
+                <ImageView
+                    android:id="@+id/call_made_image_view"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_call_made"
+                    app:tint="#3BB640" />
+
+                <ImageView
+                    android:id="@+id/call_received_image_view"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_call_received"
+                    android:visibility="invisible"
+                    app:tint="#BD0211" />
+
+            </FrameLayout>
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/call_time_text_view"
+                tools:text="3 Aug 2020, 6:10 AM"
+                android:textSize="12sp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_gravity="center"
+                android:textColor="@android:color/black"
+                />
+
+        </LinearLayout>
+
+
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="8dp"
+        >
+
+    <ImageView
+        android:id="@+id/video_call_type_image_view"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        app:srcCompat="@drawable/ic_video"
+        app:tint="@color/text_input_box" />
+
+        <ImageView
+            android:id="@+id/_voice_call_type_image_view"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            app:srcCompat="@drawable/ic_call"
+            android:visibility="invisible"
+            app:tint="@color/text_input_box" />
+
+    </FrameLayout>
+
+
+
+
+</LinearLayout>

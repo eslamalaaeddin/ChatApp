@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context="activities.SettingsActivity">
+        tools:context="ui.ui.activities.SettingsActivity">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/main_toolbar"
@@ -29,6 +29,7 @@
                 android:layout_width="200dp"
                 android:layout_height="200dp"
                 android:id="@+id/user_image_view"
+                app:srcCompat="@drawable/ic_person"
                 android:layout_gravity="center"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"

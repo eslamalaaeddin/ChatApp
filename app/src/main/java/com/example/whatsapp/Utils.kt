@@ -8,10 +8,22 @@ object Utils {
     const val GROUPS_CHILD = "Groups"
     const val USERS_CHILD = "Users"
     const val CHAT_REQUESTS_CHILD = "Chat requests"
+    const val MESSAGES_CHILD = "Messages"
 
     const val NAME_CHILD = "name"
     const val IMAGE_CHILD = "image"
     const val STATUS_CHILD = "status"
     const val USER_ID_CHILD = "uid"
+    const val STATE_CHILD = "state"
+
+    const val DEVICE_TOKEN_CHILD = "device token"
+
+
+
+    const val BASE_URL = "https://fcm.googleapis.com/"
+    const val SERVER_KEY = "AAAAgHSEVb8:APA91bGoMUegjCz40u7Qp4YFt4nzatjtDKi3DJxLeH0ZBd6YmonNyyFQyiLim-iryZAoAnpB9Y9vI2R15KOLvL_zjyfs4UIcu-R678v0jEx1A8NWXor8C0W357nif7ohQnWcIuxrhUXZ"
+    const val CONTENT_TYPE = "application/json"
+
+    var senderId = ""
 
 }

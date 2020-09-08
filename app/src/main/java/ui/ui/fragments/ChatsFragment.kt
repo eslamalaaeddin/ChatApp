@@ -81,7 +81,8 @@ class ChatsFragment : Fragment() {
         messagesReference = FirebaseDatabase.getInstance().reference.child("Messages")
         contactsReference = FirebaseDatabase.getInstance().reference.child("Contacts").child(currentUser.uid)
 
-        retrieveGroups()
+
+        Log.i(TAG, "TTTT onCreate: ")
 
     }
     override fun onCreateView(
@@ -112,6 +113,14 @@ class ChatsFragment : Fragment() {
             sendUserToFindFriendsActivity()
         }
 
+
+    }
+
+
+
+    override fun onStart() {
+        super.onStart()
+        checkForReceivingCalls()
         usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
 
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -162,11 +171,8 @@ class ChatsFragment : Fragment() {
             }
 
         })
-    }
-
-    override fun onStart() {
-        super.onStart()
-        checkForReceivingCalls()
+        retrieveGroups()
+        Log.i(TAG, "TTTT onStart: ")
     }
 
     // to return contacts from firebase db
@@ -319,8 +325,8 @@ class ChatsFragment : Fragment() {
             }
 
             override fun onClick(item: View?) {
-//                val groupName = list[adapterPosition]
-//                //callback.onGroupClicked(groupName)
+                val group = list[adapterPosition]
+                callback.onGroupClicked(group)
             }
 
             override fun onLongClick(item: View?): Boolean {

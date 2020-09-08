@@ -1,4 +1,4 @@
-package com.example.whatsapp;
+package ui.ui.activities;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -6,14 +6,15 @@ import android.content.DialogInterface;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.whatsapp.databinding.ActivityChatBinding;
+import com.example.whatsapp.OpenTokConfig;
+import com.example.whatsapp.R;
+import com.example.whatsapp.WebServiceCoordinator;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.OpentokError;
@@ -31,14 +32,14 @@ import pub.devrel.easypermissions.AppSettingsDialog;
 import pub.devrel.easypermissions.EasyPermissions;
 
 
-public class ChatActivity extends AppCompatActivity
+public class VideoChatActivity extends AppCompatActivity
                             implements EasyPermissions.PermissionCallbacks,
-                                        WebServiceCoordinator.Listener,
+        WebServiceCoordinator.Listener,
                                         Session.SessionListener,
                                         PublisherKit.PublisherListener,
                                         SubscriberKit.SubscriberListener{
 
-    private static final String LOG_TAG = ChatActivity.class.getSimpleName();
+    private static final String LOG_TAG = VideoChatActivity.class.getSimpleName();
     private static final int RC_SETTINGS_SCREEN_PERM = 123;
     private static final int RC_VIDEO_APP_PERM = 124;
 
@@ -55,14 +56,13 @@ public class ChatActivity extends AppCompatActivity
 
     private FloatingActionButton fab;
 
-    private ActivityChatBinding activityChatBinding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         Log.d(LOG_TAG, "onCreate");
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
+        setContentView(R.layout.activity_chat_video);
 
 
 
@@ -311,7 +311,7 @@ public class ChatActivity extends AppCompatActivity
                 .setMessage(errorMessage)
                 .setPositiveButton("ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        ChatActivity.this.finish();
+                        VideoChatActivity.this.finish();
                     }
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)

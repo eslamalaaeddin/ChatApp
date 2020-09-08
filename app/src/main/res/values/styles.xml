@@ -17,4 +17,11 @@
         <item name="boxStrokeColor">@color/text_input_box</item>
     </style>
 
+    <style name="AppModalStyle"
+        parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/round_background</item>
+    </style>
+
+
+
 </resources>

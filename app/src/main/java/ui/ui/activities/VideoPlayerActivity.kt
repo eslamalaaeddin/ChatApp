@@ -1,6 +1,7 @@
 package ui.ui.activities
 
 import android.os.Bundle
+import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import android.widget.MediaController
@@ -15,7 +16,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //hide status bar
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
         this.window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
         activityVideoPlayerBinding = DataBindingUtil.setContentView(
@@ -24,12 +25,19 @@ class VideoPlayerActivity : AppCompatActivity() {
         )
 
         val videoUrl = intent.getStringExtra(VIDEO_URL)
+        if (videoUrl?.contains(".mp4")!!) {
+            activityVideoPlayerBinding.imageView.visibility = View.GONE
+        }
+        else{
+            activityVideoPlayerBinding.imageView.visibility = View.VISIBLE
+        }
         activityVideoPlayerBinding.videoView.setVideoPath(videoUrl)
         activityVideoPlayerBinding.videoView.start()
 
         val mediaController = MediaController(this)
         activityVideoPlayerBinding.videoView.setMediaController(mediaController)
         mediaController.setAnchorView(activityVideoPlayerBinding.videoView)
+
 
     }
 }

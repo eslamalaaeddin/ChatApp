@@ -4,6 +4,12 @@
     <item android:title="Establish video chat"
         android:id="@+id/establish_video_chat"
         app:showAsAction="always"
-        android:icon="@drawable/ic_film"
+        android:icon="@drawable/ic_video_call"
+        />
+
+    <item android:title="Establish Audio chat"
+        android:id="@+id/establish_audio_chat"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_call"
         />
 </menu>

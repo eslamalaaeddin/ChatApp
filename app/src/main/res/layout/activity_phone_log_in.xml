@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        tools:context="activities.PhoneLogInActivity">
+        tools:context="ui.ui.activities.PhoneLogInActivity">
 
         <EditText
             android:id="@+id/phone_number_edit_text"

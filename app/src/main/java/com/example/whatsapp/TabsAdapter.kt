@@ -3,9 +3,9 @@ package com.example.whatsapp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
-import fragments.CallsFragment
-import fragments.ChatsFragment
-import fragments.StatusFragment
+import ui.ui.fragments.CallsFragment
+import ui.ui.fragments.ChatsFragment
+import ui.ui.fragments.StatusFragment
 
 class TabsAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
 
@@ -15,9 +15,7 @@ class TabsAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
         when(position) {
             0 -> return ChatsFragment()
             1 -> return StatusFragment()
-            2 -> return CallsFragment()
-
-            else -> return Fragment()
+            else -> return CallsFragment()
         }
 
     }
@@ -28,9 +26,7 @@ class TabsAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
         when(position) {
             0 -> return "CHATS"
             1 -> return "STATUS"
-            2 -> return "CALLS"
-
-            else -> return null
+            else-> return "CALLS"
         }
     }
 }

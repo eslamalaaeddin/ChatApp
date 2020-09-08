@@ -10,7 +10,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ChatActivity">
+        tools:context="ui.ui.activities.VideoChatActivity">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/cancel_chat_button"

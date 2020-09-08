@@ -1,6 +1,6 @@
-package fragments
+package ui.ui.fragments
 
-import activities.ProfileActivity
+import ui.ui.activities.ProfileActivity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -9,13 +9,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.whatsapp.ContactsModel
+import models.ContactsModel
 import com.example.whatsapp.R
+import com.example.whatsapp.Utils
 import com.example.whatsapp.databinding.FragmentRequestsBinding
 import com.firebase.ui.database.FirebaseRecyclerAdapter
 import com.firebase.ui.database.FirebaseRecyclerOptions
@@ -34,7 +35,7 @@ class RequestsFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var currentUser: FirebaseUser
     private lateinit var usersReference: DatabaseReference
-    private lateinit var contactsAdapter: FirebaseRecyclerAdapter<ContactsModel,ContactsViewHolder>
+    private lateinit var contactsAdapter: FirebaseRecyclerAdapter<ContactsModel, ContactsViewHolder>
 
     private  var usersIdsList =  mutableListOf<String>()
 
@@ -42,8 +43,8 @@ class RequestsFragment : Fragment() {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
         currentUser = auth.currentUser!!
-        usersReference = FirebaseDatabase.getInstance().reference.child("Users")
-        contactsReference = FirebaseDatabase.getInstance().reference.child("Chat requests").child(currentUser.uid)
+        usersReference = FirebaseDatabase.getInstance().reference.child(Utils.USERS_CHILD)
+        contactsReference = FirebaseDatabase.getInstance().reference.child(Utils.CHAT_REQUESTS_CHILD).child(currentUser.uid)
     }
 
     override fun onCreateView(
@@ -55,7 +56,6 @@ class RequestsFragment : Fragment() {
         return fragmentRequestsBinding.root
     }
 
-
     override fun onStart() {
         super.onStart()
 
@@ -66,15 +66,13 @@ class RequestsFragment : Fragment() {
         contactsAdapter = object :
             FirebaseRecyclerAdapter<ContactsModel, ContactsViewHolder>(options) {
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactsViewHolder {
-                val cardView =
+                val view =
                     LayoutInflater.from(parent.context).inflate(R.layout.user_item_layout
                         , parent
-                        , false) as CardView
+                        , false)
 
-                return ContactsViewHolder(cardView)
+                return ContactsViewHolder(view)
             }
-
-
 
             override fun onBindViewHolder(holder: ContactsViewHolder, position: Int, model: ContactsModel) {
                 val userIds = getRef(position).key.toString()
@@ -82,7 +80,7 @@ class RequestsFragment : Fragment() {
                 usersReference.child(userIds).addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         holder.bind(snapshot)
-                        usersIdsList.add(snapshot.child("uid").value.toString())
+                        usersIdsList.add(snapshot.child(Utils.USER_ID_CHILD).value.toString())
                     }
 
                     override fun onCancelled(error: DatabaseError) {
@@ -90,13 +88,14 @@ class RequestsFragment : Fragment() {
                     }
                 })
             }
-
         }
 
-
         //attaching recyclerView to the adapter
-        fragmentRequestsBinding.requestsRecyclerView.adapter = contactsAdapter
-        fragmentRequestsBinding.requestsRecyclerView.layoutManager = LinearLayoutManager(context)
+        fragmentRequestsBinding.requestsRecyclerView.apply {
+            adapter = contactsAdapter
+            layoutManager = LinearLayoutManager(context)
+            addItemDecoration( DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+        }
 
         contactsAdapter.startListening()
 
@@ -106,19 +105,19 @@ class RequestsFragment : Fragment() {
 
     inner class ContactsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
         private val userNameTextView : TextView = itemView.findViewById(R.id.user_name_text_view)
-        private val userStatusTextView : TextView = itemView.findViewById(R.id.user_status_text_view)
+      //  private val userStatusTextView : TextView = itemView.findViewById(R.id.user_status_text_view)
         private val userImageView : ImageView = itemView.findViewById(R.id.user_image_view)
 
         fun bind(snapshot: DataSnapshot) {
 
-            userNameTextView.text = snapshot.child("name").value.toString()
-            userStatusTextView.text =  snapshot.child("status").value.toString()
+            userNameTextView.text = snapshot.child(Utils.NAME_CHILD).value.toString()
+          //  userStatusTextView.text =  snapshot.child(Utils.STATUS_CHILD).value.toString()
 
-            val imageUrl = snapshot.child("image").value.toString()
+            val imageUrl = snapshot.child(Utils.IMAGE_CHILD).value.toString()
             if (imageUrl.isNotEmpty()) {
                 Picasso.get()
                     .load(imageUrl)
-                    .placeholder(R.drawable.dummy_avatar)
+                    .placeholder(R.drawable.ic_person)
                     .into(userImageView)
             }
         }

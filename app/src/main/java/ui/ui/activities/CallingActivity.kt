@@ -1,4 +1,4 @@
-package activities
+package ui.ui.activities
 
 import android.content.Intent
 import android.media.MediaPlayer

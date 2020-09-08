@@ -9,4 +9,5 @@
     <dimen name="publisher_right_margin">16dp</dimen>
     <dimen name="publisher_bottom_margin">16dp</dimen>
     <dimen name="publisher_padding">2dp</dimen>
+    <dimen name="button_radius_large">16</dimen>
 </resources>

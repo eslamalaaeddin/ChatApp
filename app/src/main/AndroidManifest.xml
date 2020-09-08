@@ -3,7 +3,7 @@
     package="com.example.whatsapp">
 
     <permission
-        android:name="activities.PrivateChatActivity.PRIVATE"
+        android:name="ui.ui.activities.PrivateChatActivity.PRIVATE"
         android:protectionLevel="signature" />
 
     <uses-permission android:name="android.permission.INTERNET" /> <!-- for image cropping -->
@@ -11,6 +11,15 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="activities.PrivateChatActivity.PRIVATE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
         android:allowBackup="true"
@@ -19,22 +28,36 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="activities.VisibleActivity"></activity>
-        <activity android:name="activities.VideoChatActivity" />
-        <activity android:name="activities.CallingActivity" />
+        <activity android:name="ui.ui.activities.GroupsChatActivity"></activity>
+        <activity android:name=".Demo">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+
+        </activity>
+        <activity android:name="ui.ui.activities.VoiceCallActivity" />
+        <activity android:name="ui.ui.activities.VideoPlayerActivity" />
         <activity
-            android:name="activities.PrivateChatActivity"
-            android:parentActivityName="activities.MainActivity" />
-        <activity android:name="activities.ProfileActivity" />
+            android:name="ui.ui.activities.VideoChatActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" />
+        <activity android:name="ui.ui.activities.VisibleActivity" />
+        <activity android:name="ui.ui.activities.CallingActivity" />
         <activity
-            android:name="activities.FindFriendsActivity"
-            android:parentActivityName="activities.MainActivity" />
-        <activity android:name="activities.PhoneLogInActivity" />
-        <activity android:name="activities.GroupChatActivity" />
-        <activity android:name="activities.SettingsActivity" />
-        <activity android:name="activities.RegisterActivity" />
-        <activity android:name="activities.LogInActivity" />
-        <activity android:name="activities.MainActivity">
+            android:name="ui.ui.activities.PrivateChatActivity"
+            android:parentActivityName="ui.ui.activities.MainActivity" />
+        <activity android:name="ui.ui.activities.ProfileActivity" />
+        <activity
+            android:name="ui.ui.activities.FindFriendsActivity"
+            android:parentActivityName="ui.ui.activities.MainActivity" />
+        <activity android:name="ui.ui.activities.PhoneLogInActivity" />
+        <activity android:name="ui.ui.activities.GroupChatActivity" />
+        <activity android:name="ui.ui.activities.SettingsActivity" />
+        <activity android:name="ui.ui.activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -57,13 +80,21 @@
         <receiver
             android:name="notifications.NotificationReceiver"
             android:exported="false"
-            android:permission="activities.PrivateChatActivity.PRIVATE"
-
-            >
-            <intent-filter  android:priority="-999">
+            android:permission="activities.PrivateChatActivity.PRIVATE">
+            <intent-filter android:priority="-999">
                 <action android:name="activities.PrivateChatActivity.SHOW_NOTIFICATION" />
             </intent-filter>
         </receiver>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.implicitintent.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/files" />
+        </provider>
     </application>
 
 </manifest>

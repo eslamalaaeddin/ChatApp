@@ -1,4 +1,4 @@
-package activities
+package ui.ui.activities
 
 import android.content.Intent
 import android.graphics.Color
@@ -17,13 +17,12 @@ import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.STATE_CHILD
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityMainBinding
-import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.google.firebase.iid.FirebaseInstanceId
-import fragments.GroupsFragment
 import kotlinx.android.synthetic.main.create_group_dialog.view.*
+import models.GroupModel
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -31,7 +30,7 @@ import kotlin.collections.HashMap
 private const val USER_ID = "user id"
 private const val USER_NAME = "user name"
 private const val USER_IMAGE = "user image"
-private const val GROUP_NAME = "group name"
+private const val GROUP_ID = "group id"
 private const val PHONE_NUMBER = "phone number"
 class MainActivity : AppCompatActivity() , Callback {
 
@@ -114,7 +113,7 @@ class MainActivity : AppCompatActivity() , Callback {
             updateUserStatus("offline")
         }
     }
-    
+
 
     private fun sendUserToPhoneLogInActivity() {
         val loginIntent = Intent(this , PhoneLogInActivity::class.java)
@@ -187,7 +186,8 @@ class MainActivity : AppCompatActivity() , Callback {
             val groupName = dialogView.group_name_edit_text.editableText.toString()
 
             if (groupName.isNotEmpty()) {
-                createNewGroup(groupName)
+                //Should be take from user input
+                createNewGroup(GroupModel(groupName,"","Hello I am $groupName",""))
                 groupDialog.dismiss()
             }
 
@@ -204,11 +204,19 @@ class MainActivity : AppCompatActivity() , Callback {
 
     }
 
-    private fun createNewGroup(groupName:String){
-        rootRef.child("Groups").child(groupName).setValue("")
+    private fun createNewGroup(group:GroupModel){
+
+        val gid = UUID.randomUUID().toString()
+        val groupMap = HashMap<String, Any>()
+        groupMap.put("name", group.name)
+        groupMap.put("status", group.status)
+        groupMap.put("image", group.image)
+        groupMap.put("gid", gid)
+
+        rootRef.child("Users").child("Groups").child(gid).updateChildren(groupMap)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Toast.makeText(this, "$groupName created successfully", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "${group.name} created successfully", Toast.LENGTH_SHORT).show()
                 }
 
                 else{
@@ -226,6 +234,7 @@ class MainActivity : AppCompatActivity() , Callback {
         when (item.itemId) {
 
                 R.id.find_friends_item -> sendUserToFindFriendsActivity()
+//                R.id.create_new_group -> showNewGroupDialog()
                 R.id.create_new_group -> showNewGroupDialog()
                 R.id.settings_item -> sendUserToSettingsActivity()
                 R.id.log_out_item -> {
@@ -238,14 +247,14 @@ class MainActivity : AppCompatActivity() , Callback {
 
 
 
-    private fun sendUserToGroupChatActivity(groupName: String) {
-        val groupChatIntent = Intent(this , GroupChatActivity::class.java)
-        groupChatIntent.putExtra(GROUP_NAME,groupName)
+    private fun sendUserToGroupChatActivity(group: GroupModel) {
+        val groupChatIntent = Intent(this , GroupsChatActivity::class.java)
+        groupChatIntent.putExtra(GROUP_ID,group.gid)
         startActivity(groupChatIntent)
     }
 
-    override fun onGroupClicked(groupName: String) {
-        sendUserToGroupChatActivity(groupName)
+    override fun onGroupClicked(group: GroupModel) {
+        sendUserToGroupChatActivity(group)
     }
 
     override fun onUserChatClicked(userName: String, userId: String, userImage:String) {

@@ -1,4 +1,4 @@
-package fragments
+package ui.ui.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,15 +7,14 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.whatsapp.R
 
-class CallsFragment : Fragment() {
+class StatusFragment : Fragment() {
     private lateinit var generalView: View
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        generalView = View.inflate(context , R.layout.fragment_calls,null)
+        generalView = View.inflate(context , R.layout.fragment_status , null)
         return generalView
     }
 }

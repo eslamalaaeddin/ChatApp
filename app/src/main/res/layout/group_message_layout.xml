@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="start"
+            android:layout_marginTop="56dp"
+            android:layout_marginStart="8dp"
+            android:id="@+id/receiver_message_general_layout"
+            android:background="@drawable/receiver_messages_background"
+            >
+
+            <TextView
+                android:id="@+id/receiver_name_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:gravity="center|top"
+                android:layout_gravity="start"
+                tools:text="Fawzy Elfawwaz"
+                android:padding="2dp"
+                android:textSize="14sp"
+                android:textColor="@android:color/holo_red_light" />
+
+
+
+            <TextView
+                android:id="@+id/receiver_message_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:gravity="center|top"
+                android:layout_gravity="start"
+                tools:text="."
+                android:padding="2dp"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+
+            <!-- Receiver -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="end"
+                android:id="@+id/receiver_message_layout"
+                android:background="@drawable/receiver_messages_background">
+
+
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:id="@+id/receiver_message_Frame_view"
+                        android:layout_width="104dp"
+                        android:layout_height="104dp"
+                        android:layout_gravity="start"
+                        >
+                        <ImageView
+                            android:id="@+id/receiver_message_image_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="104dp"
+                            android:layout_gravity="start"
+                            android:layout_margin="4dp"
+                            android:scaleType="centerCrop"
+
+                            />
+
+                        <ImageView
+                            android:id="@+id/receiver_message_play_view"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_gravity="center"
+                            android:layout_margin="8dp"
+                            android:scaleType="centerCrop"
+                            app:srcCompat="@drawable/ic_play_arrow"
+                            />
+
+                    </FrameLayout>
+
+
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="bottom|end"
+                        android:layout_gravity="bottom|end"
+                        android:paddingEnd="2dp"
+                        android:paddingBottom="4dp"
+                        tools:text="5:02 AM"
+                        android:textSize="12sp"
+                        android:id="@+id/receiver_time_sent_text_view" />
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Sender -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/sender_messages_background"
+            android:id="@+id/sender_message_layout">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:id="@+id/sender_message_general_layout"
+                >
+
+                <TextView
+                    android:id="@+id/sender_name_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:gravity="center|top"
+                    android:layout_gravity="start"
+                    android:text="@string/dummy_text"
+                    android:visibility="invisible"
+                    android:textSize="1sp"
+                    android:textColor="@android:color/holo_red_light" />
+
+            <TextView
+                android:id="@+id/sender_message_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                tools:text="."
+                android:textSize="14sp"
+                android:padding="2dp"
+                android:textColor="@android:color/black"
+                android:layout_marginStart="4dp"
+                android:gravity="center"
+                android:layout_gravity="start" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:id="@+id/sender_message_Frame_view"
+                    android:layout_width="104dp"
+                    android:layout_height="104dp"
+                    android:layout_gravity="start"
+                    >
+                    <ImageView
+                        android:id="@+id/sender_message_image_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="104dp"
+                        android:layout_gravity="start"
+                        android:scaleType="centerCrop"
+                        android:layout_margin="4dp"
+                        />
+
+                    <ImageView
+                        android:id="@+id/sender_message_play_image_view"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_gravity="center"
+                        android:scaleType="centerCrop"
+                        app:srcCompat="@drawable/ic_play_arrow"
+                        android:layout_margin="8dp"
+
+                        />
+
+
+
+                </FrameLayout>
+
+            </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="bottom|end"
+                    android:paddingEnd="2dp"
+                    android:layout_gravity="bottom|end"
+                    android:paddingBottom="4dp"
+                    tools:text="5:02 AM"
+                    android:textSize="12sp"
+                    android:id="@+id/sender_time_sent_text_view" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+    </FrameLayout>
+</layout>

@@ -13,14 +13,24 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context="activities.FindFriendsActivity">
-
-
-
-        <androidx.recyclerview.widget.RecyclerView
+        tools:context="ui.ui.activities.FindFriendsActivity">
+        
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/chats_recycler_view" />
+            android:orientation="vertical">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/chats_recycler_view" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/groups_recycler_view" />
+
+        </LinearLayout>
 
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -32,7 +42,6 @@
             app:borderWidth="0dp"
             android:backgroundTint="#25D366"
             android:layout_margin="16dp" />
-
 
     </FrameLayout>
 </layout>

@@ -8,6 +8,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
@@ -202,12 +203,11 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
         activityPrivateChatBinding.sendVoiceMessageButton.setOnTouchListener { p0, motionEvent ->
             if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
-                startRecording()
-                Toast.makeText(this, "Recording Starts", Toast.LENGTH_SHORT).show()
+                soundOnStartVoiceMessage()
+
             } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
-                stopRecording()
-                Toast.makeText(this, "Recording Stops", Toast.LENGTH_SHORT).show()
-                sendVoiceMessage()
+                soundOnReleaseVoiceMessage()
+
             }
             true
         }
@@ -893,6 +893,13 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             val receiverMessagePlay : ImageView = itemView.findViewById(R.id.receiver_message_play_view)
 
 
+            val receiverMessageGeneralLayout : LinearLayout = itemView.findViewById(R.id.receiver_message_general_layout)
+            val receiverNameTextView : TextView = itemView.findViewById(R.id.receiver_name_text_view)
+
+            val senderMessageGeneralLayout : LinearLayout = itemView.findViewById(R.id.sender_message_general_layout)
+            val senderNameTextView : TextView = itemView.findViewById(R.id.sender_name_text_view)
+
+
 
 
             init {
@@ -912,6 +919,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 param.setMargins(4, 0, 0, 0)
                 receiverMessageLayout.layoutParams = param
             }
+
+
 
             fun resetMargins () {
                 val param = receiverMessageLayout.layoutParams as ViewGroup.MarginLayoutParams
@@ -959,10 +968,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
              messageSenderId = auth.currentUser?.uid.toString()
 
-            val myMessages = messages[position]
+            val currentMessage = messages[position]
 
-            val fromUserId = myMessages.from
-            val fromMessagesType = myMessages.type
+            val fromUserId = currentMessage.from
+            val fromMessagesType = currentMessage.type
 
             usersRef = rootRef.child(USERS_CHILD).child(fromUserId)
 
@@ -987,8 +996,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTextView.setBackgroundResource(R.drawable.sender_messages_background)
-                    holder.senderMessageTextView.text = myMessages.message
-                    holder.senderMessageTimeTextView.text = myMessages.time
+                    holder.senderMessageTextView.text = currentMessage.message
+                    holder.senderMessageTimeTextView.text = currentMessage.time
                     holder.senderMessageTextView.visibility = View.VISIBLE
                     holder.senderMessageLayout.visibility = View.VISIBLE
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
@@ -997,6 +1006,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     holder.receiverMessageTextView.visibility = View.GONE
                     holder.receiverMessageLayout.visibility = View.GONE
                     holder.receiverMessageTimeTextView.visibility = View.GONE
+                    holder.receiverMessageGeneralLayout.visibility = View.GONE
+
+
 
 
                 }
@@ -1005,15 +1017,22 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     holder.senderMessageTextView.visibility = View.GONE
                     holder.senderMessageLayout.visibility = View.GONE
                     holder.senderMessageTimeTextView.visibility = View.GONE
+                    holder.senderMessageGeneralLayout.visibility = View.GONE
+                    holder.senderNameTextView.visibility = View.GONE
 
 
                     holder.receiverMessageTextView.visibility = View.VISIBLE
                     holder.receiverMessageLayout.visibility = View.VISIBLE
                     holder.receiverMessageTimeTextView.visibility = View.VISIBLE
+                    holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
 
                     holder.receiverMessageTextView.setBackgroundResource(R.drawable.receiver_messages_background)
-                    holder.receiverMessageTextView.text = myMessages.message
-                    holder.receiverMessageTimeTextView.text = myMessages.time
+                    holder.receiverMessageTextView.text = currentMessage.message
+                    holder.receiverMessageTimeTextView.text = currentMessage.time
+
+
+
+
 
                 }
             }
@@ -1025,38 +1044,45 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 holder.senderMessagePlay.visibility = View.GONE
                 holder.receiverMessagePlay.visibility = View.GONE
 
+
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
-                    holder.senderMessageTimeTextView.text = myMessages.time
+                    holder.senderMessageTimeTextView.text = currentMessage.time
                     holder.receiverMessageLayout.visibility = View.GONE
-
+                    holder.receiverMessageGeneralLayout.visibility = View.GONE
 
                     holder.senderMessageImageView.visibility = View.VISIBLE
                     holder.receiverMessageImageView.visibility = View.GONE
                     Picasso.get()
-                        .load(myMessages.message)
+                        .load(currentMessage.message)
                         .into(holder.senderMessageImageView)
 
                     holder.senderMessageImageView.setOnClickListener {
-                        showImage(myMessages.message)
+                        showSentImage(currentMessage.message)
                     }
 
-            }
+                }
 
                 else{
 
                     holder.receiverMessageTimeTextView.visibility = View.VISIBLE
-                    holder.receiverMessageTimeTextView.text = myMessages.time
+                    holder.receiverMessageTimeTextView.text = currentMessage.time
                     holder.senderMessageLayout.visibility = View.GONE
+                    holder.senderMessageGeneralLayout.visibility = View.GONE
+                    holder.senderNameTextView.visibility = View.GONE
 
                     holder.receiverMessageImageView.visibility = View.VISIBLE
                     holder.senderMessageImageView.visibility = View.GONE
+                    holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
+
+
+
                     Picasso.get()
-                        .load(myMessages.message)
+                        .load(currentMessage.message)
                         .into(holder.receiverMessageImageView)
 
                     holder.receiverMessageImageView.setOnClickListener {
-                        showImage(myMessages.message)
+                        showSentImage(currentMessage.message)
                     }
                 }
             }
@@ -1066,24 +1092,27 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 holder.receiverMessageTextView.visibility = View.GONE
                 holder.senderMessageTextView.visibility = View.GONE
 
+
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
-                    holder.senderMessageTimeTextView.text = myMessages.time
+                    holder.senderMessageTimeTextView.text = currentMessage.time
                     holder.receiverMessageLayout.visibility = View.GONE
 
 
                     holder.senderMessageImageView.visibility = View.VISIBLE
                     holder.receiverMessageImageView.visibility = View.GONE
 
-                 //   holder.senderMessageImageView.setImageResource(R.drawable.ic_video)
+
+                    //   holder.senderMessageImageView.setImageResource(R.drawable.ic_video)
                     holder.receiverMessageImageView.visibility = View.GONE
+                    holder.receiverMessageGeneralLayout.visibility = View.GONE
 
                     //Chosen frame interval
                     val interval: Long = 1* 1000
                     val options: RequestOptions = RequestOptions().frame(interval)
 
                     Glide.with(this@PrivateChatActivity)
-                        .asBitmap().load(myMessages.message).apply(options).into(holder.senderMessageImageView)
+                        .asBitmap().load(currentMessage.message).apply(options).into(holder.senderMessageImageView)
 
                     holder.senderMessageImageView.setOnClickListener {
 
@@ -1091,10 +1120,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                             this@PrivateChatActivity,
                             VideoPlayerActivity::class.java
                         )
-                        videoIntent.putExtra(VIDEO_URL, myMessages.message)
+                        videoIntent.putExtra(VIDEO_URL, currentMessage.message)
                         startActivity(videoIntent)
 
-                       // showVideoPlayerDialog(myMessages.message)
+                        // showVideoPlayerDialog(myMessages.message)
 
 
                     }
@@ -1104,20 +1133,25 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 else{
 
                     holder.receiverMessageTimeTextView.visibility = View.VISIBLE
-                    holder.receiverMessageTimeTextView.text = myMessages.time
+                    holder.receiverMessageTimeTextView.text = currentMessage.time
                     holder.senderMessageLayout.visibility = View.GONE
+                    holder.senderMessageGeneralLayout.visibility = View.GONE
+                    holder.senderNameTextView.visibility = View.GONE
 
                     holder.receiverMessageImageView.visibility = View.VISIBLE
                     holder.senderMessageImageView.visibility = View.GONE
-                   //
-                  //  holder.receiverMessageImageView.setImageResource(R.drawable.ic_video)
+
+                    holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
+
+                    //
+                    //  holder.receiverMessageImageView.setImageResource(R.drawable.ic_video)
 
 
                     val interval: Long = 1* 1000
                     val options: RequestOptions = RequestOptions().frame(interval)
 
                     Glide.with(this@PrivateChatActivity)
-                        .asBitmap().load(myMessages.message).apply(options).into(holder.receiverMessageImageView)
+                        .asBitmap().load(currentMessage.message).apply(options).into(holder.receiverMessageImageView)
 
 
 
@@ -1126,7 +1160,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                             this@PrivateChatActivity,
                             VideoPlayerActivity::class.java
                         )
-                        videoIntent.putExtra(VIDEO_URL, myMessages.message)
+                        videoIntent.putExtra(VIDEO_URL, currentMessage.message)
                         startActivity(videoIntent)
 
                         //showVideoPlayerDialog(myMessages.message)
@@ -1142,9 +1176,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 holder.senderMessagePlay.visibility = View.GONE
                 holder.receiverMessagePlay.visibility = View.GONE
 
+
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
-                    holder.senderMessageTimeTextView.text = myMessages.time
+                    holder.senderMessageTimeTextView.text = currentMessage.time
                     holder.receiverMessageLayout.visibility = View.GONE
 
 
@@ -1154,13 +1189,16 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     holder.senderMessageImageView.setImageResource(R.drawable.ic_audio)
                     holder.receiverMessageImageView.visibility = View.GONE
 
+                    holder.receiverMessageGeneralLayout.visibility = View.GONE
+
+
                     holder.senderMessageImageView.setOnClickListener {
 
                         val videoIntent = Intent(
                             this@PrivateChatActivity,
                             VideoPlayerActivity::class.java
                         )
-                        videoIntent.putExtra(VIDEO_URL, myMessages.message)
+                        videoIntent.putExtra(VIDEO_URL, currentMessage.message)
                         startActivity(videoIntent)
 
                         // showVideoPlayerDialog(myMessages.message)
@@ -1173,11 +1211,16 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 else{
 
                     holder.receiverMessageTimeTextView.visibility = View.VISIBLE
-                    holder.receiverMessageTimeTextView.text = myMessages.time
+                    holder.receiverMessageTimeTextView.text = currentMessage.time
                     holder.senderMessageLayout.visibility = View.GONE
 
                     holder.receiverMessageImageView.visibility = View.VISIBLE
                     holder.senderMessageImageView.visibility = View.GONE
+                    holder.senderMessageGeneralLayout.visibility = View.GONE
+                    holder.senderNameTextView.visibility = View.GONE
+
+                    holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
+
 
                     holder.receiverMessageImageView.setImageResource(R.drawable.ic_audio)
 
@@ -1186,7 +1229,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                             this@PrivateChatActivity,
                             VideoPlayerActivity::class.java
                         )
-                        videoIntent.putExtra(VIDEO_URL, myMessages.message)
+                        videoIntent.putExtra(VIDEO_URL, currentMessage.message)
                         startActivity(videoIntent)
 
                         //showVideoPlayerDialog(myMessages.message)
@@ -1200,9 +1243,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 holder.senderMessageTextView.visibility = View.GONE
                 holder.senderMessagePlay.visibility = View.GONE
                 holder.receiverMessagePlay.visibility = View.GONE
+
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
-                    holder.senderMessageTimeTextView.text = myMessages.time
+                    holder.senderMessageTimeTextView.text = currentMessage.time
                     holder.receiverMessageLayout.visibility = View.GONE
 
 
@@ -1212,14 +1256,23 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     holder.senderMessageImageView.setImageResource(R.drawable.ic_file)
                     holder.receiverMessageImageView.visibility = View.GONE
 
+                    holder.receiverMessageGeneralLayout.visibility = View.GONE
+
+
+
                 }
                 else{
                     holder.receiverMessageTimeTextView.visibility = View.VISIBLE
-                    holder.receiverMessageTimeTextView.text = myMessages.time
+                    holder.receiverMessageTimeTextView.text = currentMessage.time
                     holder.senderMessageLayout.visibility = View.GONE
+                    holder.senderMessageGeneralLayout.visibility = View.GONE
+                    holder.senderNameTextView.visibility = View.GONE
 
                     holder.receiverMessageImageView.visibility = View.VISIBLE
                     holder.senderMessageImageView.visibility = View.GONE
+
+                    holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
+
 
                     holder.receiverMessageImageView.setImageResource(R.drawable.ic_file)
 
@@ -1394,7 +1447,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         when (item.itemId) {
             R.id.establish_video_chat -> makeVideoCall()
 
-//            R.id.establish_audio_chat -> makeAudioCall ()
+            R.id.establish_audio_chat -> makeAudioCall ()
 
         }
         return super.onOptionsItemSelected(item)
@@ -1404,18 +1457,86 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     }
 
+    @SuppressLint("SimpleDateFormat")
     private fun makeVideoCall () {
-        val callingIntent = Intent(this, VideoChatActivity::class.java)
-        callingIntent.putExtra(RECEIVER_ID, receiverId)
-        startActivity(callingIntent)
-        pushVideoChatNotificationRequest()
+//        val callingIntent = Intent(this, VideoChatActivity::class.java)
+//        callingIntent.putExtra(RECEIVER_ID, receiverId)
+//        startActivity(callingIntent)
+//        pushVideoChatNotificationRequest()
+        val callKeyRef = rootRef.child(USERS_CHILD).
+        child(senderId).child("Calls").push()
+
+        val messagePushId = callKeyRef.key.toString()
+        val calender = Calendar.getInstance()
+        //get date and time
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+        val timeFormat = SimpleDateFormat("hh:mm a")
+
+        currentDate = dateFormat.format(calender.time)
+        currentTime = timeFormat.format(calender.time)
+
+        val callMap = HashMap<String, Any>()
+        callMap["toid"] = receiverId
+        callMap["time"] = currentTime
+        callMap["date"] = currentDate
+        callMap["type"] = "video"
+        callMap["caller"] = senderId
+
+        rootRef.child("Users").child(senderId).child("Calls").child(messagePushId).updateChildren(callMap)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    rootRef.child("Users").child(receiverId).child("Calls").child(messagePushId).updateChildren(callMap)
+                        .addOnCompleteListener {
+
+                        }
+                }
+
+                else{
+                    Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+
     }
 
+    @SuppressLint("SimpleDateFormat")
     private fun makeAudioCall () {
-        val callingIntent = Intent(this, VoiceCallActivity::class.java)
-        callingIntent.putExtra(RECEIVER_ID, receiverId)
-        startActivity(callingIntent)
+//        val callingIntent = Intent(this, VoiceCallActivity::class.java)
+//        callingIntent.putExtra(RECEIVER_ID, receiverId)
+//        startActivity(callingIntent)
         //pushVideoChatNotificationRequest()
+        val callKeyRef = rootRef.child(USERS_CHILD).
+        child(senderId).child("Calls").push()
+
+        val messagePushId = callKeyRef.key.toString()
+
+        val calender = Calendar.getInstance()
+        //get date and time
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+        val timeFormat = SimpleDateFormat("hh:mm a")
+
+        currentDate = dateFormat.format(calender.time)
+        currentTime = timeFormat.format(calender.time)
+
+        val callMap = HashMap<String, Any>()
+        callMap["toid"] = receiverId
+        callMap["time"] = currentTime
+        callMap["date"] = currentDate
+        callMap["type"] = "audio"
+        callMap["caller"] = senderId
+
+        rootRef.child("Users").child(senderId).child("Calls").child(messagePushId).updateChildren(callMap)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    rootRef.child("Users").child(receiverId).child("Calls").child(messagePushId).updateChildren(callMap)
+                        .addOnCompleteListener {
+
+                        }
+                }
+
+                else{
+                    Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+                }
+            }
     }
 
     private fun showAudioPlayerDialog(url: String) {
@@ -1519,7 +1640,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         startActivityForResult(Intent.createChooser(imagesIntent, "Choose an image"), REQUEST_NUM)
     }
 
-    fun showImage(imageUrl: String) {
+    fun showSentImage(imageUrl: String) {
         val builder = Dialog(this)
         builder.requestWindowFeature(Window.FEATURE_NO_TITLE)
         builder.window?.setBackgroundDrawable(
@@ -1632,6 +1753,24 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 }
 
             }
+        }
+    }
+
+    private fun soundOnStartVoiceMessage() {
+        val mediaPlayer: MediaPlayer? = MediaPlayer.create(this, R.raw.whatsapp_voice_message_start)
+        mediaPlayer?.start()
+        // no need to call prepare(); create() does that for you
+        mediaPlayer?.setOnCompletionListener {
+            startRecording()
+        }
+    }
+
+    private fun soundOnReleaseVoiceMessage() {
+        val mediaPlayer: MediaPlayer? = MediaPlayer.create(this, R.raw.whatsapp_voice_message_release)
+        stopRecording()
+        mediaPlayer?.start() // no need to call prepare(); create() does that for you
+        mediaPlayer?.setOnCompletionListener {
+            sendVoiceMessage()
         }
     }
 

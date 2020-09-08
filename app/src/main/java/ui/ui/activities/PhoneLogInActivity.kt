@@ -1,4 +1,4 @@
-package activities
+package ui.ui.activities
 
 import android.app.ProgressDialog
 import android.content.Intent

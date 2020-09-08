@@ -1,4 +1,4 @@
-package activities
+package ui.ui.activities
 
 import android.Manifest
 import android.content.Intent
@@ -12,15 +12,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.whatsapp.ChatActivity
-import com.example.whatsapp.OpenTokConfig
 import com.example.whatsapp.R
-import com.example.whatsapp.WebServiceCoordinator
 import com.example.whatsapp.databinding.ActivityFindFriendsBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -50,7 +48,7 @@ class FindFriendsActivity : AppCompatActivity() {
     private var distinctContactList : List<PhoneContactModel> = listOf()
 
     private val contactsFromFirebaseDb : MutableList<ContactsModel> = mutableListOf()
-
+    val uniqueIds = mutableListOf<String>()
     val listFromFirebaseDb = mutableListOf<ContactsModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,18 +68,10 @@ class FindFriendsActivity : AppCompatActivity() {
 
 
         activityFindFriendsBinding.findFriendsRecyclerView.layoutManager = LinearLayoutManager(this@FindFriendsActivity)
-//        phoneContactsAdapter = ContactAdapter(distinctContactList)
-//                   activityFindFriendsBinding.findFriendsRecyclerView.adapter = phoneContactsAdapter
-//                   activityFindFriendsBinding.findFriendsRecyclerView.addItemDecoration(
-//                       DividerItemDecoration(
-//                           this@FindFriendsActivity,
-//                           DividerItemDecoration.VERTICAL
-//                       ))
-//        activityFindFriendsBinding.findFriendsRecyclerView.adapter = phoneContactsAdapter
            usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
 
                override fun onDataChange(snapshot: DataSnapshot) {
-
+                    listFromFirebaseDb.clear()
                    for (phoneSnapshot in snapshot.children) {
                        if (phoneSnapshot.hasChild("phoneNumber")) {
                            val currentPhoneNumber =
@@ -107,16 +97,15 @@ class FindFriendsActivity : AppCompatActivity() {
                                            )
                                        )
                                        Log.i(TAG, "QQQQ onDataChange: $name   $currentPhoneNumber")
+
+
+
                                    }
                                }
                            }
 
                        }
                    }
-
-                   //Distiting the list
-                   //apdj'pasodjpasojdposjf'osjfposdjfopjspofs
-                   //
 
                    phoneContactsAdapter = ContactAdapterFromFirebase(listFromFirebaseDb)
                    activityFindFriendsBinding.findFriendsRecyclerView.adapter = phoneContactsAdapter
@@ -135,7 +124,11 @@ class FindFriendsActivity : AppCompatActivity() {
 
            })
 
+
+
         }
+
+
 
     private fun setUpToolbar() {
         setSupportActionBar(activityFindFriendsBinding.mainToolbar)

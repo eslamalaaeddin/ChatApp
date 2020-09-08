@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <!-- Receiver -->
+    <LinearLayout
+        android:id="@+id/receiver_message_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="56dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/receiver_messages_background"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toStartOf="@+id/guideline2"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+
+        <TextView
+            android:id="@+id/receiver_message_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:padding="8dp"
+            android:textColor="@android:color/black"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="." />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/receiver_message_Frame_view"
+                android:layout_width="104dp"
+                android:layout_height="104dp"
+                android:layout_gravity="start">
+
+                <ImageView
+                    android:id="@+id/receiver_message_image_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="104dp"
+                    android:layout_gravity="start"
+                    android:layout_margin="4dp"
+                    android:scaleType="centerCrop"
+
+                    />
+
+                <ImageView
+                    android:id="@+id/receiver_message_play_view"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"
+                    android:scaleType="centerCrop"
+                    app:srcCompat="@drawable/ic_play_arrow" />
+
+            </FrameLayout>
+
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/receiver_time_sent_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_weight="1"
+            android:gravity="bottom|end"
+            android:paddingEnd="14dp"
+            android:paddingBottom="4dp"
+            android:textSize="12sp"
+            tools:text="5:02 AM" />
+
+
+    </LinearLayout>
+
+
+    <!-- Sender -->
+    <LinearLayout
+        android:id="@+id/sender_message_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/sender_messages_background"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/sender_message_Frame_view"
+                android:layout_width="104dp"
+                android:layout_height="104dp"
+                android:layout_gravity="start">
+
+                <ImageView
+                    android:id="@+id/sender_message_image_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="104dp"
+                    android:layout_gravity="start"
+                    android:layout_margin="4dp"
+                    android:scaleType="centerCrop" />
+
+                <ImageView
+                    android:id="@+id/sender_message_play_image_view"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"
+                    android:scaleType="centerCrop"
+                    app:srcCompat="@drawable/ic_play_arrow" />
+
+
+            </FrameLayout>
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="205dp" />
+
+    <TextView
+        android:id="@+id/sender_message_text"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_gravity="start"
+        android:background="@drawable/sender_messages_background"
+        android:gravity="center"
+        android:padding="8dp"
+        android:textColor="@android:color/black"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/sender_time_sent_text_view"
+        app:layout_constraintEnd_toStartOf="@+id/sender_message_layout"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toTopOf="@+id/sender_message_layout"
+        tools:text="ssafsdaffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" />
+
+    <TextView
+        android:id="@+id/sender_time_sent_text_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginTop="32dp"
+        android:layout_weight="1"
+        android:background="@drawable/sender_messages_background"
+        android:gravity="bottom|end"
+        android:paddingEnd="14dp"
+        android:paddingBottom="4dp"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/sender_message_layout"
+        app:layout_constraintEnd_toEndOf="@+id/sender_message_layout"
+        app:layout_constraintStart_toStartOf="@+id/sender_message_layout"
+        app:layout_constraintTop_toBottomOf="@+id/sender_message_layout"
+        tools:text="5:02 AM" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

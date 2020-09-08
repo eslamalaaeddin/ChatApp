@@ -22,26 +22,34 @@ import kotlin.random.Random
 private const val USER_ID = "user id"
 private const val CHANNEL_ID = "my_channel"
 private const val TAG = "MyFirebaseMessagingServ"
+private const val DISMISS_ID = "dismiss id"
+
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
+
+
+
         //video notification
         if (message.data["message"] == "I Want to make a video chat with you") {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationID = Random.nextInt()
+
+
             //accept inent
             val acceptVideoChatIntent = Intent(this, VideoChatActivity::class.java)
             acceptVideoChatIntent.putExtra(USER_ID,message.data["uid"])
 
             //dismiss intent
-            val dismissVideoChatIntent = Intent(this, PrivateChatActivity::class.java)
+            val dismissVideoChatIntent = Intent(this, NotificationReceiver::class.java)
             dismissVideoChatIntent.apply {
-                putExtra(USER_ID,message.data["uid"])
+                putExtra(DISMISS_ID,notificationID)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
 
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val notificationID = Random.nextInt()
+
 
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 createNotificationChannel(notificationManager)
@@ -51,8 +59,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             dismissVideoChatIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             val acceptPendingIntent =
                 PendingIntent.getActivity(this, 0, acceptVideoChatIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
             val dismissPendingIntent =
-                PendingIntent.getActivity(this, 0, dismissVideoChatIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+                PendingIntent.getBroadcast(this, 0, dismissVideoChatIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
             val notification = NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(message.data["title"])
                 .setContentText(message.data["message"])
