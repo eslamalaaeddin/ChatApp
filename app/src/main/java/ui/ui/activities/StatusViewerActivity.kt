@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.view.MotionEvent
 import android.view.Window
 import android.view.WindowManager
 import android.widget.Toast
@@ -33,8 +34,13 @@ class StatusViewerActivity : AppCompatActivity() {
     private lateinit var rootReference: DatabaseReference
     private var statusList = mutableListOf<StatusModel>()
     private var bannerPagerAdapter: BannerPagerAdapter? = null
+
+    private lateinit var handler : Handler
+    private lateinit var updateRunnable :Runnable
+
     //private lateinit var bannerArray: TypedArray
     private var numberOfBannerImage = 0
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -53,13 +59,24 @@ class StatusViewerActivity : AppCompatActivity() {
 
         retrieveStatuses()
 
+        statusViewerBinding.viewPager.setOnTouchListener { p0, motionEvent ->
+            if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
+                Toast.makeText(this, "Stop Swiping", Toast.LENGTH_SHORT).show()
+
+            } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
+                Toast.makeText(this, "Resume Swiping", Toast.LENGTH_SHORT).show()
+
+            }
+            true
+        }
+
 
     }
 
 
     private fun autoSwipeBanner() {
-        val handler = Handler()
-        val updateRunnable = Runnable {
+         handler = Handler()
+         updateRunnable = Runnable {
             var currentPage: Int = statusViewerBinding.viewPager.currentItem
             if (currentPage == numberOfBannerImage - 1) {
                 currentPage = -1
@@ -81,7 +98,7 @@ class StatusViewerActivity : AppCompatActivity() {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     statusList.clear()
                     for (status in snapshot.children) {
-
+                        val by = status.child("by").value.toString()
                         val text = status.child("text").value.toString()
                         val color = status.child("color").value.toString()
                         val viewersId = status.child("viewersid").value.toString()
@@ -91,6 +108,7 @@ class StatusViewerActivity : AppCompatActivity() {
                         val time = status.child("time").value.toString()
 
                         val currentStatus = StatusModel(
+                            by,
                             text,
                             color,
                             viewersId,
