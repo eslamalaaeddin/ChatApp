@@ -10,6 +10,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:id="@+id/status_viewer_frame_layout"
         tools:context="ui.ui.activities.StatusViewerActivity">
 
         <androidx.viewpager.widget.ViewPager
@@ -18,14 +19,27 @@
             android:id="@+id/view_pager"
             />
 
+
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Reply"
+            android:id="@+id/reply_text_view"
             android:textSize="24sp"
             android:gravity="center"
+            android:layout_margin="4dp"
             android:textColor="@color/white"
             android:layout_gravity="bottom"/>
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:id="@+id/seen_by_image_view"
+            android:layout_gravity="bottom|center"
+            android:layout_margin="4dp"
+            app:srcCompat="@drawable/ic_eye"
+            />
 
 
     </FrameLayout>
