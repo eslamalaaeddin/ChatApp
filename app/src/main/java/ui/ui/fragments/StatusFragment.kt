@@ -1,6 +1,7 @@
 package ui.ui.fragments
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
@@ -17,6 +18,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.whatsapp.Callback
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
 import com.example.whatsapp.databinding.FragmentStatusBinding
@@ -30,6 +32,7 @@ import ui.ui.activities.StatusActivity
 import ui.ui.activities.StatusViewerActivity
 
 private const val TAG = "StatusFragment"
+private const val STATUS_IDENTIFIER = "STATUS_IDENTIFIER"
 class StatusFragment : Fragment() {
     private lateinit var fragmentStatusBinding : FragmentStatusBinding
     private lateinit var contactsReference: DatabaseReference
@@ -42,6 +45,14 @@ class StatusFragment : Fragment() {
     private var othersStatusList = mutableListOf<StatusModel>()
     private var contactsNames = mutableListOf<String>()
     private var contactsStatusAdapter = ContactsStatusAdapter(emptyList())
+
+    private lateinit var callback: Callback
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        callback = context as Callback
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -232,7 +243,8 @@ class StatusFragment : Fragment() {
 
 
             fragmentStatusBinding.statusTextView.setOnClickListener {
-                startActivity(Intent(context,StatusViewerActivity::class.java))
+//                startActivity(Intent(context,StatusViewerActivity::class.java))
+                callback.onStatusClicked(status.by)
             }
         }
         //empty
@@ -288,6 +300,7 @@ class StatusFragment : Fragment() {
             override fun onClick(item: View?) {
 //                val group = list[adapterPosition]
 //                callback.onGroupClicked(group)
+                callback.onStatusClicked(othersStatusList[adapterPosition].by)
             }
 
             override fun onLongClick(item: View?): Boolean {
