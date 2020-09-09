@@ -10,4 +10,7 @@ interface Callback {
     //for chat fragment clicks
     fun onUserChatClicked(userName:String, userId:String ,userImage:String)
 
+    //for status  clicks
+    fun onStatusClicked(id:String)
+
 }
