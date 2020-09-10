@@ -25,9 +25,8 @@ import com.example.whatsapp.databinding.FragmentStatusBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
-import com.squareup.picasso.Picasso
-import models.CallModel
 import models.StatusModel
+import org.otwebrtc.ContextUtils.getApplicationContext
 import ui.ui.activities.StatusActivity
 import ui.ui.activities.StatusViewerActivity
 
@@ -45,6 +44,8 @@ class StatusFragment : Fragment() {
     private var othersStatusList = mutableListOf<StatusModel>()
     private var contactsNames = mutableListOf<String>()
     private var contactsStatusAdapter = ContactsStatusAdapter(emptyList())
+
+    private lateinit var dummyView:View
 
     private lateinit var callback: Callback
 
@@ -87,17 +88,20 @@ class StatusFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        dummyView = view
         fragmentStatusBinding.fab.setOnClickListener {
             startActivity(Intent(context, StatusActivity::class.java))
         }
 
         fragmentStatusBinding.contactsStatusRecyclerView.apply {
-            addItemDecoration( DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+            addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
             layoutManager = LinearLayoutManager(context)
         }
 
+
+
     }
+
 
     private fun retrieveMyStatuses() {
         rootReference.child(Utils.USERS_CHILD).child(currentUserId).child("Status").addValueEventListener(
@@ -126,7 +130,7 @@ class StatusFragment : Fragment() {
                             time
                         )
 
-                        statusList.add( currentStatus)
+                        statusList.add(currentStatus)
                     }
                     checkStatusesSize()
                 }
@@ -145,7 +149,8 @@ class StatusFragment : Fragment() {
                 for (child in snapshot.children) {
                     if (child.hasChild("Status")) {
 
-                        rootReference.child(Utils.USERS_CHILD).child(child.key.toString()).child("Status")
+                        rootReference.child(Utils.USERS_CHILD).child(child.key.toString())
+                            .child("Status")
                             .addValueEventListener(object : ValueEventListener {
                                 override fun onDataChange(snapshot: DataSnapshot) {
                                     for (snap in snapshot.children) {
@@ -187,12 +192,16 @@ class StatusFragment : Fragment() {
                                                                 time
                                                             )
 
-                                                            othersStatusList.add(0, currentStatus)
+                                                            othersStatusList.add(currentStatus)
                                                         }
-                                                        contactsStatusAdapter =
-                                                            ContactsStatusAdapter(othersStatusList)
-                                                        fragmentStatusBinding.contactsStatusRecyclerView.adapter =
-                                                            contactsStatusAdapter
+//                                                        contactsStatusAdapter =
+//                                                            ContactsStatusAdapter(othersStatusList)
+//                                                        fragmentStatusBinding.contactsStatusRecyclerView.adapter =
+//                                                            contactsStatusAdapter
+
+                                                        showOthersStatuses(othersStatusList)
+
+
                                                     }
 
                                                     override fun onCancelled(error: DatabaseError) {
@@ -206,6 +215,7 @@ class StatusFragment : Fragment() {
                                         }
                                     }
                                 }
+
                                 override fun onCancelled(error: DatabaseError) {
                                 }
                             })
@@ -243,7 +253,6 @@ class StatusFragment : Fragment() {
 
 
             fragmentStatusBinding.statusTextView.setOnClickListener {
-//                startActivity(Intent(context,StatusViewerActivity::class.java))
                 callback.onStatusClicked(status.by)
             }
         }
@@ -259,7 +268,75 @@ class StatusFragment : Fragment() {
         }
     }
 
-    inner class ContactsStatusAdapter (private var list:List<StatusModel>) : RecyclerView.Adapter<ContactsStatusAdapter.ContactsStatusHolder>() {
+
+
+    private fun showOthersStatuses(othersStatusesList: List<StatusModel>) {
+        //if there is only single status
+        if(othersStatusesList.size == 1) {
+            showSingleStatus(othersStatusesList[0])
+        }
+    }
+
+    @SuppressLint("SetTextI18n", "UseCompatLoadingForDrawables", "InflateParams")
+    private fun showSingleStatus(status:StatusModel) {
+
+       val viewInflater = context?.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
+       val view = viewInflater.inflate(R.layout.dummy, null)
+
+       val statusTextView : TextView = view.findViewById(R.id.status_text_view)
+       val statusImageView : ImageView = view.findViewById(R.id.status_image_view)
+       val statusDateTextView : TextView = view.findViewById(R.id.tab_add_status_text_view)
+       val statusCreatorTextView : TextView = view.findViewById(R.id.my_status_text_view)
+       val statusCountTextView : TextView = view.findViewById(R.id.status_count_text_view)
+
+        statusImageView.visibility = View.INVISIBLE
+        statusTextView.visibility = View.VISIBLE
+        statusTextView.text = status.text
+
+        val color = Color.parseColor("#${Integer.toHexString(status.color.toInt())}")
+
+        val drawable = resources.getDrawable(R.drawable.circle)
+        drawable.mutate().setColorFilter(color, PorterDuff.Mode.SRC_IN)
+        statusTextView.background = drawable
+
+        statusDateTextView.text = "${status.date} ${status.time}"
+
+
+        //to get the status creator name
+        rootReference.child(Utils.USERS_CHILD).child(status.by).
+        child("name").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                statusCreatorTextView.text = snapshot.value.toString()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+        })
+
+        statusCountTextView.visibility = View.INVISIBLE
+
+
+        val insertPoint = dummyView.findViewById<View>(R.id.others_statuses_holder_frame_layout) as ViewGroup
+        insertPoint.addView(
+            view, 0, ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.FILL_PARENT,
+                ViewGroup.LayoutParams.FILL_PARENT
+            )
+        )
+
+        view.setOnClickListener {
+            val userStatusIntent = Intent(context, StatusViewerActivity::class.java)
+            userStatusIntent.putExtra(STATUS_IDENTIFIER,status.by)
+            startActivity(userStatusIntent)
+        }
+    }
+
+
+
+
+
+    inner class ContactsStatusAdapter(private var list: List<StatusModel>) : RecyclerView.Adapter<ContactsStatusAdapter.ContactsStatusHolder>() {
 
         inner class ContactsStatusHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener, View.OnLongClickListener {
             private val statusTextView : TextView = itemView.findViewById(R.id.status_text_view)
@@ -274,7 +351,7 @@ class StatusFragment : Fragment() {
             }
 
             @SuppressLint("SetTextI18n", "UseCompatLoadingForDrawables")
-            fun bind (statusModel: StatusModel) {
+            fun bind(statusModel: StatusModel) {
 
                 val color = Color.parseColor("#${Integer.toHexString(statusModel.color.toInt())}")
                 val drawable = resources.getDrawable(R.drawable.circle)
@@ -285,7 +362,7 @@ class StatusFragment : Fragment() {
                 statusCountTextView.visibility = View.INVISIBLE
 
                 rootReference.child(Utils.USERS_CHILD).child(statusModel.by).
-                child("name").addValueEventListener(object : ValueEventListener{
+                child("name").addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         contactNameTextView.text = snapshot.value.toString()
                     }
@@ -298,9 +375,8 @@ class StatusFragment : Fragment() {
             }
 
             override fun onClick(item: View?) {
-//                val group = list[adapterPosition]
-//                callback.onGroupClicked(group)
                 callback.onStatusClicked(othersStatusList[adapterPosition].by)
+
             }
 
             override fun onLongClick(item: View?): Boolean {
@@ -310,7 +386,11 @@ class StatusFragment : Fragment() {
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactsStatusHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.contact_status_item_layout,parent,false )
+            val view = LayoutInflater.from(parent.context).inflate(
+                R.layout.contact_status_item_layout,
+                parent,
+                false
+            )
 
             return ContactsStatusHolder(view)
         }
