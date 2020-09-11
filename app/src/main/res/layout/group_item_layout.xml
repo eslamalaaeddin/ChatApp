@@ -17,13 +17,14 @@
 
 
     <com.mikhaellopez.circularimageview.CircularImageView
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:id="@+id/group_image_view"
         app:srcCompat="@drawable/ic_group"
         android:layout_gravity="start"
         android:layout_marginStart="2dp"
         android:layout_marginEnd="8dp"
+        app:civ_border_color="@android:color/transparent"
         android:cropToPadding="true"
         />
 

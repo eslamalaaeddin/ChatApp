@@ -2,7 +2,6 @@ package ui.ui.fragments
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.telecom.Call
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,16 +14,13 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.whatsapp.R
-import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.FragmentCallsBinding
-import com.example.whatsapp.databinding.FragmentChatsBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.squareup.picasso.Picasso
 import models.CallModel
-import models.GroupModel
 
 class CallsFragment : Fragment() {
     private lateinit var fragmentCallsBinding : FragmentCallsBinding

@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
@@ -21,12 +22,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.whatsapp.Callback
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
+import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.FragmentStatusBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import models.StatusModel
-import org.otwebrtc.ContextUtils.getApplicationContext
 import ui.ui.activities.StatusActivity
 import ui.ui.activities.StatusViewerActivity
 
@@ -42,12 +43,16 @@ class StatusFragment : Fragment() {
     private lateinit var rootReference: DatabaseReference
     private var statusList = mutableListOf<StatusModel>()
     private var othersStatusList = mutableListOf<StatusModel>()
+    private var usersHaveStatusIds = mutableListOf<String>()
     private var contactsNames = mutableListOf<String>()
     private var contactsStatusAdapter = ContactsStatusAdapter(emptyList())
-
+    private lateinit var insertPoint:LinearLayout
+    var globalIndex = 0
     private lateinit var dummyView:View
 
     private lateinit var callback: Callback
+
+    private  var prevBy:String = ""
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -66,6 +71,8 @@ class StatusFragment : Fragment() {
         contactsReference = FirebaseDatabase.getInstance().reference.child("Contacts").child(
             currentUser.uid
         )
+
+
 
     }
 
@@ -89,6 +96,9 @@ class StatusFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         dummyView = view
+
+         insertPoint = view.findViewById(R.id.others_statuses_holder_linear_layout)
+
         fragmentStatusBinding.fab.setOnClickListener {
             startActivity(Intent(context, StatusActivity::class.java))
         }
@@ -98,7 +108,10 @@ class StatusFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
         }
 
-
+        fragmentStatusBinding.showOthersFab.setOnClickListener {
+            showSingleStatus(usersHaveStatusIds.distinct())
+            usersHaveStatusIds.clear()
+        }
 
     }
 
@@ -141,10 +154,15 @@ class StatusFragment : Fragment() {
             })
     }
 
+
     private fun retrieveOthersStatuses() {
         rootReference.child(Utils.USERS_CHILD).
         addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+
+//                if (usersHaveStatusIds.isNotEmpty()) {
+//                    showSingleStatus(usersHaveStatusIds)
+//                }
 
                 for (child in snapshot.children) {
                     if (child.hasChild("Status")) {
@@ -181,6 +199,9 @@ class StatusFragment : Fragment() {
                                                             val time =
                                                                 status.child("time").value.toString()
 
+                                                            usersHaveStatusIds.add(by)
+                                                            Log.i(TAG, "ISLAM onDataChange: $by")
+
                                                             val currentStatus = StatusModel(
                                                                 by,
                                                                 text,
@@ -193,13 +214,16 @@ class StatusFragment : Fragment() {
                                                             )
 
                                                             othersStatusList.add(currentStatus)
+
                                                         }
 //                                                        contactsStatusAdapter =
 //                                                            ContactsStatusAdapter(othersStatusList)
 //                                                        fragmentStatusBinding.contactsStatusRecyclerView.adapter =
 //                                                            contactsStatusAdapter
 
-                                                        showOthersStatuses(othersStatusList)
+                                                        // showOthersStatuses(othersStatusList)
+
+
 
 
                                                     }
@@ -269,70 +293,102 @@ class StatusFragment : Fragment() {
     }
 
 
+    private fun showSingleStatus(ids: List<String>) {
 
-    private fun showOthersStatuses(othersStatusesList: List<StatusModel>) {
-        //if there is only single status
-        if(othersStatusesList.size == 1) {
-            showSingleStatus(othersStatusesList[0])
+        val viewInflater =
+            context?.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
+
+
+        for ( id in ids) {
+            val view = viewInflater.inflate(R.layout.dummy, null)
+            rootReference.child(USERS_CHILD).child(id).child("Status").addValueEventListener(object :
+                ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (snapshot in snapshot.children) {
+                        val by =
+                            snapshot.child("by").value.toString()
+                        val text =
+                            snapshot.child("text").value.toString()
+                        val color =
+                            snapshot.child("color").value.toString()
+                        val viewersId =
+                            snapshot.child("viewersid").value.toString()
+                        val viewsCount =
+                            snapshot.child("viewscount").value.toString()
+                        val statusId =
+                            snapshot.child("statusid").value.toString()
+                        val date =
+                            snapshot.child("date").value.toString()
+                        val time =
+                            snapshot.child("time").value.toString()
+
+                        Log.i(TAG, "onDataChange: $id")
+
+
+                        val statusTextView: TextView = view.findViewById(R.id.status_text_view)
+                        val statusImageView: ImageView = view.findViewById(R.id.status_image_view)
+                        val statusDateTextView: TextView =
+                            view.findViewById(R.id.tab_add_status_text_view)
+                        val statusCreatorTextView: TextView =
+                            view.findViewById(R.id.my_status_text_view)
+                        val statusCountTextView: TextView =
+                            view.findViewById(R.id.status_count_text_view)
+
+                        statusImageView.visibility = View.INVISIBLE
+                        statusTextView.visibility = View.VISIBLE
+                        statusTextView.text = text
+
+                        val statusColor = Color.parseColor("#${Integer.toHexString(color.toInt())}")
+
+                        val drawable = resources.getDrawable(R.drawable.circle)
+                        drawable.mutate().setColorFilter(statusColor, PorterDuff.Mode.SRC_IN)
+                        statusTextView.background = drawable
+
+                        statusDateTextView.text = "$date $time"
+
+
+                        //to get the status creator name
+                        rootReference.child(Utils.USERS_CHILD).child(by).child("name")
+                            .addValueEventListener(object : ValueEventListener {
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    statusCreatorTextView.text = snapshot.value.toString()
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                }
+                            })
+
+
+                        rootReference.child(USERS_CHILD).child(id).child("Status").addValueEventListener(object : ValueEventListener{
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                statusCountTextView.text = snapshot.childrenCount.toString()
+                            }
+
+                            override fun onCancelled(error: DatabaseError) {
+
+                            }
+                        })
+
+
+                        view.setOnClickListener {
+                            val userStatusIntent = Intent(context, StatusViewerActivity::class.java)
+                            userStatusIntent.putExtra(STATUS_IDENTIFIER, by)
+                            startActivity(userStatusIntent)
+                        }
+
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
+            insertPoint.addView(view)
         }
+
+
+
     }
-
-    @SuppressLint("SetTextI18n", "UseCompatLoadingForDrawables", "InflateParams")
-    private fun showSingleStatus(status:StatusModel) {
-
-       val viewInflater = context?.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-
-       val view = viewInflater.inflate(R.layout.dummy, null)
-
-       val statusTextView : TextView = view.findViewById(R.id.status_text_view)
-       val statusImageView : ImageView = view.findViewById(R.id.status_image_view)
-       val statusDateTextView : TextView = view.findViewById(R.id.tab_add_status_text_view)
-       val statusCreatorTextView : TextView = view.findViewById(R.id.my_status_text_view)
-       val statusCountTextView : TextView = view.findViewById(R.id.status_count_text_view)
-
-        statusImageView.visibility = View.INVISIBLE
-        statusTextView.visibility = View.VISIBLE
-        statusTextView.text = status.text
-
-        val color = Color.parseColor("#${Integer.toHexString(status.color.toInt())}")
-
-        val drawable = resources.getDrawable(R.drawable.circle)
-        drawable.mutate().setColorFilter(color, PorterDuff.Mode.SRC_IN)
-        statusTextView.background = drawable
-
-        statusDateTextView.text = "${status.date} ${status.time}"
-
-
-        //to get the status creator name
-        rootReference.child(Utils.USERS_CHILD).child(status.by).
-        child("name").addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                statusCreatorTextView.text = snapshot.value.toString()
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-            }
-        })
-
-        statusCountTextView.visibility = View.INVISIBLE
-
-
-        val insertPoint = dummyView.findViewById<View>(R.id.others_statuses_holder_frame_layout) as ViewGroup
-        insertPoint.addView(
-            view, 0, ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.FILL_PARENT,
-                ViewGroup.LayoutParams.FILL_PARENT
-            )
-        )
-
-        view.setOnClickListener {
-            val userStatusIntent = Intent(context, StatusViewerActivity::class.java)
-            userStatusIntent.putExtra(STATUS_IDENTIFIER,status.by)
-            startActivity(userStatusIntent)
-        }
-    }
-
-
 
 
 

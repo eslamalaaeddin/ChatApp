@@ -53,7 +53,7 @@ class SettingsActivity : AppCompatActivity() {
 
         //when clicking the image view
 
-        activitySettingsBinding.userImageView.setOnClickListener {
+        activitySettingsBinding.pickPhotoImageView.setOnClickListener {
             val imageIntent = Intent()
             imageIntent.action = Intent.ACTION_GET_CONTENT
             imageIntent.type = "image/*"
@@ -161,13 +161,14 @@ class SettingsActivity : AppCompatActivity() {
                         val userName = snapshot.child("name").value.toString()
                         val userStatus = snapshot.child("status").value.toString()
                         val userImageUrl = snapshot.child("image").value.toString()
+                        val userPhoneNumber = snapshot.child("phoneNumber").value.toString()
 
                         Picasso.get()
                             .load(userImageUrl)
                             .placeholder(R.drawable.ic_person)
                             .into(activitySettingsBinding.userImageView)
 
-                        fillEditTexts(userName, userStatus)
+                        fillEditTexts(userName, userStatus,userPhoneNumber)
                     } else {
                         Toast.makeText(
                             this@SettingsActivity,
@@ -178,15 +179,15 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
                 }
             })
     }
 
 
-    private fun fillEditTexts(userName: String, userStatus: String) {
+    private fun fillEditTexts(userName: String, userStatus: String,userPhoneNumber:String) {
         activitySettingsBinding.userNameEditText.setText(userName)
         activitySettingsBinding.userStatusEditText.setText(userStatus)
+        activitySettingsBinding.phoneNumberEditText.setText(userPhoneNumber)
     }
 
     private fun sendUserToMainActivity() {

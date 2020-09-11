@@ -10,4 +10,17 @@
     <string name="setting">Settings</string>
     <string name="cancel">Cancel</string>
     <string name="dummy_text">.....................................................................................................................................................................................................................</string>
+
+
+    <integer-array name="banner_img_array">
+        <item>@drawable/wall_one</item>
+        <item>@drawable/wall_two</item>
+        <item>@drawable/wall_three</item>
+        <item>@drawable/wall_four</item>
+
+    </integer-array>
+
+
+
+
 </resources>

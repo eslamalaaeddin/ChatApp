@@ -5,6 +5,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:textColorHint">@color/white</item>
     </style>
 
 
@@ -12,6 +13,8 @@
     <style name="editTextStyle" parent="@android:style/TextAppearance">
         <item name="android:textColor">@color/colorPrimaryDark</item>
     </style>
+
+
 
     <style name="InputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
         <item name="boxStrokeColor">@color/text_input_box</item>

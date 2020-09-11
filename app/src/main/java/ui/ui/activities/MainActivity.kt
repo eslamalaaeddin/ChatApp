@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.PorterDuff
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -32,6 +33,8 @@ private const val USER_NAME = "user name"
 private const val USER_IMAGE = "user image"
 private const val GROUP_ID = "group id"
 private const val PHONE_NUMBER = "phone number"
+private const val TAG = "MainActivity"
+private const val STATUS_IDENTIFIER = "STATUS_IDENTIFIER"
 class MainActivity : AppCompatActivity() , Callback {
 
     private lateinit var tabsAdapter: TabsAdapter
@@ -83,12 +86,14 @@ class MainActivity : AppCompatActivity() , Callback {
          currentUserId = currentUser?.uid.toString()
 
         rootRef = FirebaseDatabase.getInstance().reference
-
+        Log.i(TAG, "onCreate: MAIN")
 
     }
 
     override fun onStart() {
         super.onStart()
+        Log.i(TAG, "onStart: MAIN")
+       // activityMainBinding.mainViewPager.currentItem = 0
         if(currentUser == null) {
             sendUserToPhoneLogInActivity()
         }
@@ -171,6 +176,9 @@ class MainActivity : AppCompatActivity() , Callback {
         activityMainBinding.mainViewPager.adapter = tabsAdapter
         //link the ViewPager and TabLayout together so that changes in one are automatically reflected in the other.
         activityMainBinding.mainTabLayout.setupWithViewPager(activityMainBinding.mainViewPager)
+
+        activityMainBinding.mainTabLayout.getTabAt(3)?.setIcon(R.drawable.ic_camera_tab)
+
     }
 
 
@@ -263,6 +271,12 @@ class MainActivity : AppCompatActivity() , Callback {
         privateChatIntent?.putExtra(USER_ID,userId)
         privateChatIntent?.putExtra(USER_IMAGE,userImage)
         startActivity(privateChatIntent)
+    }
+
+    override fun onStatusClicked(id: String) {
+        val userStatusIntent = Intent(this,StatusViewerActivity::class.java)
+        userStatusIntent.putExtra(STATUS_IDENTIFIER,id)
+        startActivity(userStatusIntent)
     }
 
     private fun updateUserStatus (state :String) {

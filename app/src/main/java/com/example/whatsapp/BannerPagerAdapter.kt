@@ -1,46 +1,44 @@
 package com.example.whatsapp
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.TypedArray
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.os.Build
+import android.view.*
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.viewpager.widget.PagerAdapter
+import kotlinx.android.synthetic.main.banner_fragment_layout.view.*
+import models.StatusModel
 
-
-/**
- * Created by ajay singh dewari on 11/5/17.
- */
-class BannerPagerAdapter(private val mContext: Context, var bannerArray: TypedArray) :
-
-    PagerAdapter() {
+class BannerPagerAdapter(private val context: Context, var bannerArray: MutableList<StatusModel>) : PagerAdapter() {
 
     override fun isViewFromObject(view: View, `object`: Any): Boolean {
         return view === `object`
     }
 
     override fun getCount(): Int {
-        return bannerArray.length()
+        return bannerArray.size
     }
 
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     override fun instantiateItem(container: ViewGroup, position: Int): Any {
-//        return super.instantiateItem(container, position);
-        val inflater = LayoutInflater.from(mContext)
+        val inflater = LayoutInflater.from(context)
         val bannerLayout =
-            inflater.inflate(R.layout.banner_fragment_layout, container, false) as ImageView
-        //        bannerLayout.setBackgroundResource(bannerArray.getResourceId(position, 0));
-        bannerLayout.setImageResource(bannerArray.getResourceId(position, 0))
-        bannerLayout.setOnClickListener {
-            Toast.makeText(
-                mContext,
-                "swipe clicked$position",
-                Toast.LENGTH_LONG
-            ).show()
-        }
+            inflater.inflate(R.layout.banner_fragment_layout, container, false) as TextView
+        bannerLayout.text_view.text = bannerArray[position].text
+
+        val color = Color.parseColor("#${Integer.toHexString(bannerArray[position].color.toInt())}")
+
+
+        bannerLayout.text_view.text = bannerArray[position].text
+        bannerLayout.text_view.setBackgroundColor(color)
+
         container.addView(bannerLayout)
         return bannerLayout
     }

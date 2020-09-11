@@ -23,6 +23,8 @@
             android:background="@drawable/receiver_messages_background"
             >
 
+
+
             <TextView
                 android:id="@+id/receiver_name_text_view"
                 android:layout_width="wrap_content"
@@ -67,15 +69,15 @@
 
                     <FrameLayout
                         android:id="@+id/receiver_message_Frame_view"
-                        android:layout_width="104dp"
-                        android:layout_height="104dp"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
                         android:layout_gravity="start"
                         >
                         <ImageView
                             android:id="@+id/receiver_message_image_view"
-                            android:layout_width="match_parent"
-                            android:layout_height="104dp"
-                            android:layout_gravity="start"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_gravity="center"
                             android:layout_margin="4dp"
                             android:scaleType="centerCrop"
 
@@ -124,6 +126,45 @@
             android:background="@drawable/sender_messages_background"
             android:id="@+id/sender_message_layout">
 
+            <FrameLayout
+                android:id="@+id/video_frame_layout"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                >
+
+                <VideoView
+                    android:id="@+id/video_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginEnd="0dp"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginBottom="0dp"
+                    android:visibility="gone"
+                    />
+
+                <ImageView
+                    android:id="@+id/audio_image_view"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginEnd="0dp"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginBottom="0dp"
+                    android:background="@drawable/ic_audio"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:scaleType="fitCenter"
+                    />
+            </FrameLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -163,17 +204,17 @@
 
                 <FrameLayout
                     android:id="@+id/sender_message_Frame_view"
-                    android:layout_width="104dp"
-                    android:layout_height="104dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
                     android:layout_gravity="start"
                     >
                     <ImageView
                         android:id="@+id/sender_message_image_view"
-                        android:layout_width="match_parent"
-                        android:layout_height="104dp"
-                        android:layout_gravity="start"
-                        android:scaleType="centerCrop"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_gravity="center"
                         android:layout_margin="4dp"
+                        android:scaleType="centerCrop"
                         />
 
                     <ImageView

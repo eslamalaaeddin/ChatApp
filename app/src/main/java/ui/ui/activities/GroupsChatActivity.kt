@@ -163,12 +163,10 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
             pushNotification()
         }
 
-//        messagesAdapter = PrivateMessagesAdapter(messagesList)
-//        activityPrivateChatBinding.privateChatRecyclerView.adapter = messagesAdapter
         val linearLayout = LinearLayoutManager(this)
-        //  linearLayout.reverseLayout = true
+        linearLayout.stackFromEnd = true
         activityGroupChatBinding.privateChatRecyclerView.layoutManager = linearLayout
-        activityGroupChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount - 1)
+       // activityGroupChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount - 1)
 
         activityGroupChatBinding.attachFileButton.setOnClickListener {
             bottomSheetDialog = BottomSheetDialog()
@@ -559,11 +557,9 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                         activityGroupChatBinding.privateChatRecyclerView.adapter = messagesAdapter
                         messagesAdapter.notifyDataSetChanged()
                         //to scroll to the bottom of recycler view
-                        if (messagesList.isNotEmpty()) {
-                            activityGroupChatBinding.privateChatRecyclerView.smoothScrollToPosition(
-                                messagesList.size - 1
-                            )
-                        }
+//                        if (messagesList.isNotEmpty()) {
+//                            activityGroupChatBinding.privateChatRecyclerView.smoothScrollToPosition(3)
+//                        }
                     }
                 }
 
@@ -846,9 +842,10 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
             val receiverNameTextView : TextView = itemView.findViewById(R.id.receiver_name_text_view)
 
             val senderMessageGeneralLayout : LinearLayout = itemView.findViewById(R.id.sender_message_general_layout)
+
             val senderNameTextView : TextView = itemView.findViewById(R.id.sender_name_text_view)
 
-
+            val senderVideoFrameLayout : FrameLayout = itemView.findViewById(R.id.video_frame_layout)
 
 
             init {
@@ -939,6 +936,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 holder.receiverMessagePlay.visibility = View.GONE
                 holder.receiverMessageFrame.visibility = View.GONE
                 holder.senderMessageFrame.visibility = View.GONE
+                holder.senderVideoFrameLayout.visibility = View.GONE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTextView.setBackgroundResource(R.drawable.sender_messages_background)
@@ -1000,7 +998,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 holder.senderMessageTextView.visibility = View.GONE
                 holder.senderMessagePlay.visibility = View.GONE
                 holder.receiverMessagePlay.visibility = View.GONE
-
+                holder.senderVideoFrameLayout.visibility = View.GONE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
@@ -1058,7 +1056,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
                 holder.receiverMessageTextView.visibility = View.GONE
                 holder.senderMessageTextView.visibility = View.GONE
-
+                holder.senderVideoFrameLayout.visibility = View.GONE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
@@ -1091,8 +1089,9 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                         videoIntent.putExtra(VIDEO_URL, currentMessage.message)
                         startActivity(videoIntent)
 
-                        // showVideoPlayerDialog(myMessages.message)
 
+//                         showVideoPlayerDialog(myMessages.message)
+//
 
                     }
 
@@ -1152,6 +1151,9 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 holder.senderMessageTextView.visibility = View.GONE
                 holder.senderMessagePlay.visibility = View.GONE
                 holder.receiverMessagePlay.visibility = View.GONE
+
+//                holder.senderVideoFrameLayout.visibility = View.VISIBLE
+
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
@@ -1229,6 +1231,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 holder.senderMessageTextView.visibility = View.GONE
                 holder.senderMessagePlay.visibility = View.GONE
                 holder.receiverMessagePlay.visibility = View.GONE
+                holder.senderVideoFrameLayout.visibility = View.GONE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE

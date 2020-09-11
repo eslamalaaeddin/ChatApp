@@ -10,4 +10,10 @@
     <dimen name="publisher_bottom_margin">16dp</dimen>
     <dimen name="publisher_padding">2dp</dimen>
     <dimen name="button_radius_large">16</dimen>
+
+    <dimen name="standard_1.5">1.5dp</dimen>
+    <dimen name="standard_5">5dp</dimen>
+    <dimen name="standard_8">8dp</dimen>
+    <dimen name="standard_10">10dp</dimen>
+    <dimen name="standard_50">50dp</dimen>
 </resources>

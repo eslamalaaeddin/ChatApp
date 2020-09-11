@@ -6,7 +6,9 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.MotionEvent
+import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import android.widget.Toast
@@ -16,6 +18,7 @@ import androidx.viewpager.widget.ViewPager
 import com.example.whatsapp.BannerPagerAdapter
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
+import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityStatusViewerBinding
 import com.example.whatsapp.databinding.FragmentStatusBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -23,7 +26,8 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import models.StatusModel
 import java.util.*
-
+private const val STATUS_IDENTIFIER = "STATUS_IDENTIFIER"
+private const val TAG = "StatusViewerActivity"
 class StatusViewerActivity : AppCompatActivity() {
     private lateinit var statusViewerBinding: ActivityStatusViewerBinding
     private lateinit var contactsReference: DatabaseReference
@@ -37,6 +41,9 @@ class StatusViewerActivity : AppCompatActivity() {
 
     private lateinit var handler : Handler
     private lateinit var updateRunnable :Runnable
+
+    private var statusUserIdFromIntent = ""
+    private var generalPosition = ""
 
     //private lateinit var bannerArray: TypedArray
     private var numberOfBannerImage = 0
@@ -57,14 +64,34 @@ class StatusViewerActivity : AppCompatActivity() {
         usersReference = FirebaseDatabase.getInstance().reference.child("Users")
         contactsReference = FirebaseDatabase.getInstance().reference.child("Contacts").child(currentUser.uid)
 
-        retrieveStatuses()
+         statusUserIdFromIntent = intent.getStringExtra(STATUS_IDENTIFIER).toString()
+        Log.i(TAG, "onCreate: $statusUserIdFromIntent")
+        //show my status and count
+        if (currentUserId == statusUserIdFromIntent) {
+            statusViewerBinding.seenByImageView.visibility = View.VISIBLE
+            statusViewerBinding.replyTextView.visibility = View.GONE
+            statusViewerBinding.seenByImageView.setOnClickListener {
+                Toast.makeText(this, "Viewed by", Toast.LENGTH_SHORT).show()
+            }
+        }
+        //show others status
+        else{
+            statusViewerBinding.seenByImageView.visibility = View.GONE
+            statusViewerBinding.replyTextView.visibility = View.VISIBLE
+            statusViewerBinding.replyTextView.setOnClickListener {
+                Toast.makeText(this, "Reply", Toast.LENGTH_SHORT).show()
+            }
+
+        }
+
+        retrieveStatuses(statusUserIdFromIntent)
 
         statusViewerBinding.viewPager.setOnTouchListener { p0, motionEvent ->
             if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
-                Toast.makeText(this, "Stop Swiping", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this, "Stop Swiping", Toast.LENGTH_SHORT).show()
 
             } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
-                Toast.makeText(this, "Resume Swiping", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this, "Resume Swiping", Toast.LENGTH_SHORT).show()
 
             }
             true
@@ -78,8 +105,10 @@ class StatusViewerActivity : AppCompatActivity() {
          handler = Handler()
          updateRunnable = Runnable {
             var currentPage: Int = statusViewerBinding.viewPager.currentItem
+             //has finished scrolling?
             if (currentPage == numberOfBannerImage - 1) {
                 currentPage = -1
+                finish()
             }
             statusViewerBinding.viewPager.setCurrentItem(currentPage + 1, true)
         }
@@ -91,8 +120,8 @@ class StatusViewerActivity : AppCompatActivity() {
         }, 1500, 1500)
     }
 
-    private fun retrieveStatuses() {
-        rootReference.child(Utils.USERS_CHILD).child(currentUserId).child("Status").addValueEventListener(
+    private fun retrieveStatuses(userId:String) {
+        rootReference.child(Utils.USERS_CHILD).child(userId).child("Status").addValueEventListener(
             object :
                 ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -118,7 +147,7 @@ class StatusViewerActivity : AppCompatActivity() {
                             time
                         )
 
-                        statusList.add( currentStatus)
+                        statusList.add(0, currentStatus)
                     }
 
 
@@ -132,21 +161,42 @@ class StatusViewerActivity : AppCompatActivity() {
 
 
                     autoSwipeBanner()
-                    statusViewerBinding.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+                    statusViewerBinding.viewPager.addOnPageChangeListener(object :
+                        ViewPager.OnPageChangeListener {
                         @SuppressLint("ResourceType")
-                        override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+                        override fun onPageScrolled(
+                            position: Int,
+                            positionOffset: Float,
+                            positionOffsetPixels: Int
+                        ) {
+                            if (position <= statusList.size) {
+                                //position is what the user saw
+                                Log.i(TAG, "JJJJ onPageScrolled: $position")
+                                generalPosition = (position + 1).toString()
+                            }
                         }
+
                         override fun onPageSelected(position: Int) {
                         }
 
-                        override fun onPageScrollStateChanged(state: Int) {}
+                        override fun onPageScrollStateChanged(state: Int) {
+                            Log.i(TAG, "JJJJ onPageScrollStateChanged Scrolled")
+                        }
                     })
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(this@StatusViewerActivity, error.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@StatusViewerActivity, error.message, Toast.LENGTH_SHORT)
+                        .show()
                 }
             })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        usersReference.child(USERS_CHILD).
+        child(statusUserIdFromIntent).child("Status").
+        child("viewscount").setValue(generalPosition)
     }
 
 }

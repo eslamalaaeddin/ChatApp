@@ -4,7 +4,23 @@
     <color name="colorPrimaryDark">#005048</color>
     <color name="colorAccent">#F4511E</color>
 
+    <color name="dark_orange">#C1E53935</color>
+    <color name="purple">#C18E24AA</color>
+    <color name="light_yellow">#C1FFB300</color>
+    <color name="light_blue">#C1039BE5</color>
+    <color name="light_green">#C17CB342</color>
+    <color name="dark_green">#C100897B</color>
+    <color name="light_orange">#C1511E</color>
+    <color name="dark_yellow">#C1FB8C00</color>
+    <color name="green">#2CCC33</color>
+
+    <color name="light_gray">#DCA6A6A6</color>
+    <color name="blue">#0681ED</color>
+
+
+
     <color name="text_input_box">#008576</color>
 
     <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 </resources>

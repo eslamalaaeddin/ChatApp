@@ -9,36 +9,59 @@
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/general"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.mikhaellopez.circularimageview.CircularImageView
-            android:id="@+id/status_image_view"
+        <FrameLayout
+            android:id="@+id/frame_image_view"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:layout_gravity="start"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:cropToPadding="true"
-            app:civ_border_color="@android:color/transparent"
-
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_person" />
+
+            >
+
+            <com.mikhaellopez.circularimageview.CircularImageView
+                android:id="@+id/status_image_view"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:cropToPadding="true"
+                app:civ_border_color="@android:color/transparent"
+                app:srcCompat="@drawable/ic_person" />
+
+            <TextView
+                android:id="@+id/status_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_text_view"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="8sp"
+                android:visibility="invisible"
+                tools:text="dlas;hdasasdasd" />
+
+        </FrameLayout>
+
 
         <TextView
-            android:id="@+id/status_count_image_view"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:id="@+id/status_count_text_view"
+            android:layout_width="21dp"
+            android:layout_height="21dp"
             android:layout_gravity="start"
-            android:background="@drawable/rounded_text_view"
+            android:background="@drawable/small_rounded_text_view"
             android:gravity="center"
             android:text="+"
             android:textColor="@android:color/white"
-            android:textSize="16sp"
-            app:layout_constraintCircle="@id/status_image_view"
+            android:textSize="14sp"
+            app:layout_constraintCircle="@id/frame_image_view"
             app:layout_constraintCircleAngle="120"
-            app:layout_constraintCircleRadius="24dp"
+            app:layout_constraintCircleRadius="32dp"
             tools:ignore="MissingConstraints"
             tools:layout_editor_absoluteX="76dp"
             tools:layout_editor_absoluteY="114dp" />
@@ -54,8 +77,8 @@
             android:textColor="#000000"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/status_image_view"
-            app:layout_constraintTop_toTopOf="@+id/status_image_view" />
+            app:layout_constraintStart_toEndOf="@+id/frame_image_view"
+            app:layout_constraintTop_toTopOf="@+id/frame_image_view" />
 
         <TextView
             android:id="@+id/tab_add_status_text_view"
@@ -65,50 +88,76 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:text="Tab to add status update"
-            app:layout_constraintBottom_toBottomOf="@+id/status_image_view"
+            app:layout_constraintBottom_toBottomOf="@+id/frame_image_view"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/status_image_view"
-           />
+            app:layout_constraintStart_toEndOf="@+id/frame_image_view" />
 
         <TextView
             android:id="@+id/recent_updates_text_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:background="#DCDCDC"
+            android:layout_marginTop="16dp"
+            android:background="#E8E8E8"
             android:padding="4dp"
             android:paddingStart="16dp"
             android:text="Recent updates"
             android:textColor="#101010"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/status_image_view" />
+            app:layout_constraintTop_toBottomOf="@+id/frame_image_view" />
 
         <FrameLayout
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/recent_updates_text_view">
+
+
+                <LinearLayout
+                    android:id="@+id/others_statuses_holder_linear_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:orientation="vertical">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/contacts_status_recycler_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:visibility="gone" />
+
+
+                </LinearLayout>
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end|bottom"
+                android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
+
                 android:backgroundTint="#25D366"
                 app:borderWidth="0dp"
                 app:srcCompat="@drawable/ic_create" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/contacts_status_recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/show_others_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:foregroundGravity="center"
+                android:layout_gravity="end|bottom"
+                app:fabCustomSize="40dp"
+                android:layout_marginEnd="26dp"
+                android:layout_marginBottom="80dp"
+                android:backgroundTint="@color/colorAccent"
+                app:borderWidth="0dp"
+                android:tint="@color/white"
+                app:srcCompat="@drawable/ic_group" />
+
         </FrameLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

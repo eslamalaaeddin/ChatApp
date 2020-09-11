@@ -161,10 +161,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             pushNotification()
         }
 
-//        messagesAdapter = PrivateMessagesAdapter(messagesList)
-//        activityPrivateChatBinding.privateChatRecyclerView.adapter = messagesAdapter
         val linearLayout = LinearLayoutManager(this)
-      //  linearLayout.reverseLayout = true
+        linearLayout.stackFromEnd = true
         activityPrivateChatBinding.privateChatRecyclerView.layoutManager = linearLayout
         activityPrivateChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount - 1)
 
@@ -258,11 +256,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
 
                         val messageImageBody = HashMap<String, Any>()
-                        //                            rootRef.child("Messages").child(senderId).child(receiverId)
-                        //                                .child(messagePushId).child("message")
-                        //                                .setValue(task.result.toString()).addOnCompleteListener {
-                        //                                    messageImageBody.put("message",it.result.toString())
-                        //                                }
+
                         messageImageBody["name"] = fileUri.lastPathSegment.toString()
                         messageImageBody["type"] = checker
                         messageImageBody["from"] = senderId
@@ -270,6 +264,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                         messageImageBody["messageKey"] = messagePushId
                         messageImageBody["date"] = currentDate
                         messageImageBody["time"] = currentTime
+                        messageImageBody["seen"] = "no"
 
                         val messageBodyDetails = HashMap<String, Any>()
                         messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
@@ -332,7 +327,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                         messageImageBody["messageKey"] = messagePushId
                         messageImageBody["date"] = currentDate
                         messageImageBody["time"] = currentTime
-
+                        messageImageBody["seen"] = "no"
                         val messageBodyDetails = HashMap<String, Any>()
                         messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
                         messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageImageBody
@@ -392,6 +387,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                         messageImageBody["messageKey"] = messagePushId
                         messageImageBody["date"] = currentDate
                         messageImageBody["time"] = currentTime
+                        messageImageBody["seen"] = "no"
 
                         val messageBodyDetails = HashMap<String, Any>()
                         messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
@@ -453,7 +449,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                         messageImageBody["messageKey"] = messagePushId
                         messageImageBody["date"] = currentDate
                         messageImageBody["time"] = currentTime
-
+                        messageImageBody["seen"] = "no"
                         val messageBodyDetails = HashMap<String, Any>()
                         messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
                         messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageImageBody
@@ -531,7 +527,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     messageImageBody["messageKey"] = messagePushId
                     messageImageBody["date"] = currentDate
                     messageImageBody["time"] = currentTime
-
+                    messageImageBody["seen"] = "no"
                     val messageBodyDetails = HashMap<String, Any>()
                     messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
                     messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageImageBody
@@ -557,10 +553,13 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     override fun onStart() {
         super.onStart()
+
+
+
         rootRef.child(MESSAGES_CHILD).child(senderId).child(receiverId).addChildEventListener(
             object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-//                    messagesList.clear()
+
                     val ourMessages = snapshot.getValue(PrivateMessageModel::class.java)
                     if (ourMessages != null) {
                         messagesList.add(ourMessages)
@@ -574,6 +573,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                             )
                         }
                     }
+
                 }
 
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
@@ -670,6 +670,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             messageTextBody["messageKey"] = messagePushId
             messageTextBody["date"] = currentDate
             messageTextBody["time"] = currentTime
+            messageTextBody["seen"] = "no"
 
             val messageBodyDetails = HashMap<String, Any>()
             messageBodyDetails["$messageSenderRef/$messagePushId"] = messageTextBody
@@ -847,6 +848,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         super.onStop()
         if (backPressed){
             updateUserStatus("online")
+            backPressed = false
         }
         else{
               updateUserStatus("offline")
@@ -859,6 +861,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         super.onDestroy()
         if (backPressed){
             updateUserStatus("online")
+            backPressed = false
         }
         else{
             updateUserStatus("offline")
@@ -1185,6 +1188,13 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                     holder.senderMessageImageView.visibility = View.VISIBLE
                     holder.receiverMessageImageView.visibility = View.GONE
+
+
+                    holder.receiverNameTextView.visibility = View.GONE
+
+
+
+
 
                     holder.senderMessageImageView.setImageResource(R.drawable.ic_audio)
                     holder.receiverMessageImageView.visibility = View.GONE

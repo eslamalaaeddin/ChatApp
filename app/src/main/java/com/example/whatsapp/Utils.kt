@@ -26,4 +26,17 @@ object Utils {
 
     var senderId = ""
 
+
+
+    val COLORS = arrayOf(R.color.dark_orange,
+        R.color.purple,
+        R.color.light_yellow,
+        R.color.light_blue,
+        R.color.light_green,
+        R.color.dark_green,
+        R.color.light_orange,
+        R.color.dark_yellow)
+
+    const val PRIMARY_COLOR = R.color.colorPrimary
+
 }

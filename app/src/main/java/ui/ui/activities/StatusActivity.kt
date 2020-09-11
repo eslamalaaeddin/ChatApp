@@ -97,8 +97,9 @@ class StatusActivity : AppCompatActivity() {
             val statusText  = statusBinding.statusEditText.editableText.toString()
 
             val statusMap = HashMap<String, Any>()
+            statusMap["by"] = currentUserId
             statusMap["text"] = statusText
-            statusMap["statuscolor"] = statusColor.toString()
+            statusMap["color"] = statusColor.toString()
             statusMap["viewersid"] = "01021823908"
             statusMap["viewscount"] = "15"
             statusMap["statusid"] = statusKey

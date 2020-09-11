@@ -28,15 +28,19 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="ui.ui.activities.GroupsChatActivity"></activity>
+        <activity android:name="ui.ui.activities.StatusViewerActivity" />
+        <activity
+            android:name="ui.ui.activities.StatusActivity"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustResize" />
+        <activity android:name="ui.ui.activities.GroupsChatActivity" />
         <activity android:name=".Demo">
 
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
+<!--             <intent-filter>-->
+<!--             <action android:name="android.intent.action.MAIN" />-->
 
 
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-            <!-- </intent-filter> -->
+<!--             <category android:name="android.intent.category.LAUNCHER" />-->
+<!--             </intent-filter>-->
 
         </activity>
         <activity android:name="ui.ui.activities.VoiceCallActivity" />
@@ -55,8 +59,7 @@
             android:name="ui.ui.activities.FindFriendsActivity"
             android:parentActivityName="ui.ui.activities.MainActivity" />
         <activity android:name="ui.ui.activities.PhoneLogInActivity" />
-        <activity android:name="ui.ui.activities.GroupChatActivity" />
-        <activity android:name="ui.ui.activities.SettingsActivity" />
+        <activity android:name="ui.ui.activities.SettingsActivity" android:parentActivityName="ui.ui.activities.MainActivity"/>
         <activity android:name="ui.ui.activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

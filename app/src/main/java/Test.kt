@@ -3,12 +3,8 @@ import java.util.*
 
 fun main () {
 
-  val array = arrayOf("1","2","3")
 
-    println(array)
-
-
-
+    println( java.lang.Integer.toHexString(-1040479232))
 
 
 }

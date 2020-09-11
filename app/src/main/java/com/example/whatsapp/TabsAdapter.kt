@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import ui.ui.fragments.CallsFragment
+import ui.ui.fragments.CameraFragment
 import ui.ui.fragments.ChatsFragment
 import ui.ui.fragments.StatusFragment
 
@@ -16,6 +17,7 @@ class TabsAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
             0 -> return ChatsFragment()
             1 -> return StatusFragment()
             else -> return CallsFragment()
+//            else -> return CameraFragment()
         }
 
     }
@@ -26,7 +28,8 @@ class TabsAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
         when(position) {
             0 -> return "CHATS"
             1 -> return "STATUS"
-            else-> return "CALLS"
+            else -> return "CALLS"
+//            else -> return null
         }
     }
 }

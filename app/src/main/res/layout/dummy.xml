@@ -2,183 +2,98 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/inserted_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
-
-    <!-- Receiver -->
-    <LinearLayout
-        android:id="@+id/receiver_message_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+    <FrameLayout
+        android:id="@+id/frame_image_view"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:layout_gravity="start"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="56dp"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/receiver_messages_background"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toStartOf="@+id/guideline2"
-        app:layout_constraintHorizontal_bias="0.0"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
 
+        >
 
-        <TextView
-            android:id="@+id/receiver_message_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:padding="8dp"
-            android:textColor="@android:color/black"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            tools:text="." />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <FrameLayout
-                android:id="@+id/receiver_message_Frame_view"
-                android:layout_width="104dp"
-                android:layout_height="104dp"
-                android:layout_gravity="start">
-
-                <ImageView
-                    android:id="@+id/receiver_message_image_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="104dp"
-                    android:layout_gravity="start"
-                    android:layout_margin="4dp"
-                    android:scaleType="centerCrop"
-
-                    />
-
-                <ImageView
-                    android:id="@+id/receiver_message_play_view"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_gravity="center"
-                    android:layout_margin="8dp"
-                    android:scaleType="centerCrop"
-                    app:srcCompat="@drawable/ic_play_arrow" />
-
-            </FrameLayout>
-
-
-        </LinearLayout>
+        <com.mikhaellopez.circularimageview.CircularImageView
+            android:id="@+id/status_image_view"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:cropToPadding="true"
+            app:civ_border_color="@android:color/transparent"
+            app:srcCompat="@drawable/ic_person" />
 
         <TextView
-            android:id="@+id/receiver_time_sent_text_view"
+            android:id="@+id/status_text_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_weight="1"
-            android:gravity="bottom|end"
-            android:paddingEnd="14dp"
-            android:paddingBottom="4dp"
-            android:textSize="12sp"
-            tools:text="5:02 AM" />
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:background="@drawable/rounded_text_view"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="8sp"
+            android:visibility="invisible"
+            tools:text="dlas;hdasasdasd" />
 
+    </FrameLayout>
 
-    </LinearLayout>
-
-
-    <!-- Sender -->
-    <LinearLayout
-        android:id="@+id/sender_message_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="4dp"
-        android:background="@drawable/sender_messages_background"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <FrameLayout
-                android:id="@+id/sender_message_Frame_view"
-                android:layout_width="104dp"
-                android:layout_height="104dp"
-                android:layout_gravity="start">
-
-                <ImageView
-                    android:id="@+id/sender_message_image_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="104dp"
-                    android:layout_gravity="start"
-                    android:layout_margin="4dp"
-                    android:scaleType="centerCrop" />
-
-                <ImageView
-                    android:id="@+id/sender_message_play_image_view"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_gravity="center"
-                    android:layout_margin="8dp"
-                    android:scaleType="centerCrop"
-                    app:srcCompat="@drawable/ic_play_arrow" />
-
-
-            </FrameLayout>
-
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="205dp" />
 
     <TextView
-        android:id="@+id/sender_message_text"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:id="@+id/status_count_text_view"
+        android:layout_width="21dp"
+        android:layout_height="21dp"
         android:layout_gravity="start"
-        android:background="@drawable/sender_messages_background"
+        android:background="@drawable/small_rounded_text_view"
         android:gravity="center"
-        android:padding="8dp"
-        android:textColor="@android:color/black"
+        tools:text="+"
+        android:textColor="@android:color/white"
         android:textSize="14sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/sender_time_sent_text_view"
-        app:layout_constraintEnd_toStartOf="@+id/sender_message_layout"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toTopOf="@+id/sender_message_layout"
-        tools:text="ssafsdaffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" />
+        app:layout_constraintCircle="@id/frame_image_view"
+        app:layout_constraintCircleAngle="120"
+        app:layout_constraintCircleRadius="32dp"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="76dp"
+        tools:layout_editor_absoluteY="114dp" />
+
 
     <TextView
-        android:id="@+id/sender_time_sent_text_view"
+        android:id="@+id/my_status_text_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginTop="32dp"
-        android:layout_weight="1"
-        android:background="@drawable/sender_messages_background"
-        android:gravity="bottom|end"
-        android:paddingEnd="14dp"
-        android:paddingBottom="4dp"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="@+id/sender_message_layout"
-        app:layout_constraintEnd_toEndOf="@+id/sender_message_layout"
-        app:layout_constraintStart_toStartOf="@+id/sender_message_layout"
-        app:layout_constraintTop_toBottomOf="@+id/sender_message_layout"
-        tools:text="5:02 AM" />
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        tools:text="My status"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/frame_image_view"
+        app:layout_constraintTop_toTopOf="@+id/frame_image_view" />
 
+    <TextView
+        android:id="@+id/tab_add_status_text_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        tools:text="Tab to add status update"
+        app:layout_constraintBottom_toBottomOf="@+id/frame_image_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/frame_image_view" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="#DCBCBCBC"
+        app:layout_constraintEnd_toEndOf="@+id/tab_add_status_text_view"
+        app:layout_constraintStart_toStartOf="@+id/tab_add_status_text_view"
+        app:layout_constraintTop_toBottomOf="@+id/tab_add_status_text_view" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
