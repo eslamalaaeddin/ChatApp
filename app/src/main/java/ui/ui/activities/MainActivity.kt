@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import com.example.whatsapp.Callback
 import com.example.whatsapp.R
@@ -235,6 +236,36 @@ class MainActivity : AppCompatActivity() , Callback {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
+
+        val privateChatSearchItem = menu?.findItem(R.id.action_search_private)
+        val groupsChatSearchItem = menu?.findItem(R.id.action_search_group)
+
+        val privateChatSearchView = privateChatSearchItem?.actionView as SearchView
+        val groupsChatSearchView = groupsChatSearchItem?.actionView as SearchView
+
+        privateChatSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+               return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                Utils.privateChatsAdapter?.filter?.filter(newText)
+                return true
+            }
+        })
+
+        groupsChatSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                Utils.groupsChatAdapter?.filter?.filter(newText)
+                return true
+            }
+        })
+
+
         return true
     }
 
