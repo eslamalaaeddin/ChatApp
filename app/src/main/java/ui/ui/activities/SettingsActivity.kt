@@ -126,14 +126,15 @@ class SettingsActivity : AppCompatActivity() {
     private fun updateSettings() {
         val userName = activitySettingsBinding.userNameEditText.editableText.toString()
         val userStatus = activitySettingsBinding.userStatusEditText.editableText.toString()
+        val userPhoneNumber = activitySettingsBinding.phoneNumberEditText.editableText.toString()
 
-        if (userName.isNotEmpty() && userStatus.isNotEmpty()) {
+        if (userName.isNotEmpty() && userStatus.isNotEmpty()&& userPhoneNumber.isNotEmpty()) {
             currentUser = auth.currentUser!!
             val userMap = HashMap<String, Any>()
             userMap.put("uid", currentUser.uid)
             userMap.put("name", userName)
             userMap.put("status", userStatus)
-            userMap.put("phoneNumber", phoneNumber)
+            userMap.put("phoneNumber", userPhoneNumber)
 
             rootRef.child("Users").child(currentUser.uid).updateChildren(userMap)
 

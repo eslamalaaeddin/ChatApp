@@ -1,4 +1,7 @@
 package com.example.whatsapp
+
+import ui.ui.fragments.ChatsFragment
+
 /*
     This util class is for string constants,
     and repeated functions and declarations
@@ -25,6 +28,9 @@ object Utils {
     const val CONTENT_TYPE = "application/json"
 
     var senderId = ""
+
+    var privateChatsAdapter : ChatsFragment.ContactAdapterFromFirebase? = null
+    var groupsChatAdapter : ChatsFragment.GroupsAdapter? = null
 
 
 

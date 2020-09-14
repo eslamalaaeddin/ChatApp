@@ -13,4 +13,7 @@ interface Callback {
     //for status  clicks
     fun onStatusClicked(id:String)
 
+    //for call clicks
+    fun onCallClicked(callerId:String)
+
 }

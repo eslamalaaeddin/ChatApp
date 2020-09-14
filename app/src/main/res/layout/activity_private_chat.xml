@@ -8,49 +8,180 @@
 
     </data>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="@drawable/default_chat_wallpaper"
-        tools:context="ui.ui.activities.PrivateChatActivity">
+        android:background="@drawable/default_chat_wallpaper">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/main_toolbar"
+        <LinearLayout
+            android:id="@+id/linearLayout2"
             android:layout_width="match_parent"
-            android:layout_height="?android:attr/actionBarSize"
-            style="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            android:background="@color/colorPrimary" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:id="@+id/private_chat_recycler_view"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="52dp"
             android:background="@drawable/default_chat_wallpaper"
-            />
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:context="ui.ui.activities.PrivateChatActivity">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/main_toolbar"
+                style="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                android:layout_width="match_parent"
+                android:layout_height="?android:attr/actionBarSize"
+                android:background="@color/colorPrimary" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/private_chat_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginBottom="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/default_chat_wallpaper"
+
+                />
+
+            <TextView
+                android:id="@+id/block_info_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/round_background"
+                android:backgroundTint="@color/light_blue"
+                android:padding="6dp"
+                android:text="You blocked this contact, tab to unblock"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+        </LinearLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayout"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:orientation="horizontal"
+            android:layout_height="128dp"
+            android:layout_gravity="bottom"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+            app:layout_constraintVertical_bias="1.0">
 
-            >
+            <LinearLayout
+                android:id="@+id/reply_message_layout"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/bottom_sheet_round"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/linearLayout"
+                app:layout_constraintStart_toStartOf="@+id/linearLayout"
+                app:layout_constraintTop_toTopOf="parent">
+
+
+                <ImageView
+                    android:id="@+id/decoration_image_view"
+                    android:layout_width="4dp"
+                    android:layout_height="64dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/round_background"
+                    android:backgroundTint="@color/dark_green" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_gravity="top"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="4dp"
+                        android:id="@+id/reply_to_textView"
+                        android:text="You"
+                        android:textColor="@color/colorPrimary" />
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="4dp"
+                        android:gravity="center"
+
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="21dp"
+                            android:layout_height="21dp"
+                            android:layout_gravity="center"
+                            android:layout_marginEnd="2dp"
+                            android:id="@+id/reply_message_type_image_view"
+                            android:src="@drawable/ic_image"
+                            app:tint="@color/light_gray" />
+
+                        <TextView
+                            android:id="@+id/reply_message_name_text_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="start|center"
+                            android:text="I love my college"
+                            android:textColor="@color/grey" />
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+                <FrameLayout
+                    android:layout_width="72dp"
+                    android:layout_height="64dp"
+                    android:layout_margin="8dp"
+                    android:background="@color/black">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:id="@+id/reply_message_image"
+                        android:src="@drawable/wall_three" />
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_gravity="end"
+                        android:id="@+id/cancel_replying_image_view"
+                        android:src="@drawable/ic_cancel" />
+
+
+                </FrameLayout>
+
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/linearLayout"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
+                android:layout_height="48dp"
+                android:layout_gravity="bottom"
                 android:layout_margin="4dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:background="@drawable/round_background"
+
                 android:orientation="horizontal"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/frameLayout2"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="1.0">
 
                 <EditText
                     android:id="@+id/send_message_edit_text"
@@ -90,33 +221,18 @@
 
             <FrameLayout
                 android:id="@+id/frameLayout2"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="end|center"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end|bottom"
                 android:layout_margin="4dp"
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="4dp"
-                android:layout_marginBottom="4dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/linearLayout"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <!--                <com.mikhaellopez.circularimageview.CircularImageView-->
-                <!--                    android:id="@+id/d"-->
-                <!--                    android:layout_width="96dp"-->
-                <!--                    android:layout_height="96dp"-->
-                <!--                    android:scaleType="centerInside"-->
-                <!--                    android:cropToPadding="true"-->
-                <!--                    app:srcCompat="@drawable/ic_send"-->
-                <!--                    app:civ_border_color="@color/text_input_box"-->
-                <!--                    app:civ_circle_color="@color/text_input_box"-->
-                <!--                    android:layout_gravity="center"-->
-                <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
-                <!--                    app:layout_constraintStart_toStartOf="parent"-->
-                <!--                    app:layout_constraintTop_toTopOf="parent" />-->
-
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="1.0">
 
                 <com.mikhaellopez.circularimageview.CircularImageView
                     android:id="@+id/send_message_button"
@@ -139,6 +255,7 @@
                     android:layout_gravity="center"
                     android:cropToPadding="true"
                     android:scaleType="centerInside"
+                    android:tint="@color/white"
                     app:civ_border_color="@color/text_input_box"
                     app:civ_circle_color="@color/text_input_box"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -148,8 +265,9 @@
             </FrameLayout>
 
 
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 </layout>

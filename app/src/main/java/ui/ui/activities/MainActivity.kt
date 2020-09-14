@@ -310,6 +310,12 @@ class MainActivity : AppCompatActivity() , Callback {
         startActivity(userStatusIntent)
     }
 
+    override fun onCallClicked(callerId: String) {
+        privateChatIntent = Intent(this, PrivateChatActivity::class.java)
+        privateChatIntent?.putExtra(USER_ID,callerId)
+        startActivity(privateChatIntent)
+    }
+
     private fun updateUserStatus (state :String) {
         var currentDate = ""
         var currentTime = ""

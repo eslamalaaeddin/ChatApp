@@ -4,7 +4,10 @@ import java.util.*
 fun main () {
 
 
-    println( java.lang.Integer.toHexString(-1040479232))
+   val list = mutableListOf<Int>(1,2,3,4,5,6,7,8,9,10)
 
+    list.removeAt(2)
+
+    println(list)
 
 }

@@ -30,6 +30,7 @@ import com.google.firebase.database.*
 import models.StatusModel
 import ui.ui.activities.StatusActivity
 import ui.ui.activities.StatusViewerActivity
+import java.util.*
 
 private const val TAG = "StatusFragment"
 private const val STATUS_IDENTIFIER = "STATUS_IDENTIFIER"
@@ -103,18 +104,50 @@ class StatusFragment : Fragment() {
             startActivity(Intent(context, StatusActivity::class.java))
         }
 
-        fragmentStatusBinding.contactsStatusRecyclerView.apply {
-            addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-            layoutManager = LinearLayoutManager(context)
-        }
-
         fragmentStatusBinding.showOthersFab.setOnClickListener {
+//            insertPoint.removeAllViews()
             showSingleStatus(usersHaveStatusIds.distinct())
             usersHaveStatusIds.clear()
         }
 
+        checkForStatusTime()
+
     }
 
+
+    private fun checkForStatusTime() {
+
+        rootReference.child(Utils.USERS_CHILD).child(currentUserId).addValueEventListener(object :
+            ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.hasChild("Status")) {
+                    rootReference.child(Utils.USERS_CHILD).child(currentUserId).child("Status")
+                        .addValueEventListener(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                for (status in snapshot.children) {
+                                    val statusCreationTime =
+                                        status.child("timestamp").value.toString().toLong()
+                                          if (Date().time - statusCreationTime >= 86400) {
+                                              rootReference.child(Utils.USERS_CHILD).child(currentUserId).
+                                              child("Status")
+                                                  .child(status.key.toString()).removeValue()
+                                          }
+                                    Log.i(TAG, "Timestamp: $statusCreationTime")
+                                }
+                                }
+
+
+
+                            override fun onCancelled(error: DatabaseError) {
+                            }
+                        })
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+        })
+    }
 
     private fun retrieveMyStatuses() {
         rootReference.child(Utils.USERS_CHILD).child(currentUserId).child("Status").addValueEventListener(

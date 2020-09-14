@@ -68,7 +68,7 @@ class StatusViewerActivity : AppCompatActivity() {
         Log.i(TAG, "onCreate: $statusUserIdFromIntent")
         //show my status and count
         if (currentUserId == statusUserIdFromIntent) {
-            statusViewerBinding.seenByImageView.visibility = View.VISIBLE
+            statusViewerBinding.seenByImageView.visibility = View.GONE
             statusViewerBinding.replyTextView.visibility = View.GONE
             statusViewerBinding.seenByImageView.setOnClickListener {
                 Toast.makeText(this, "Viewed by", Toast.LENGTH_SHORT).show()
@@ -77,7 +77,7 @@ class StatusViewerActivity : AppCompatActivity() {
         //show others status
         else{
             statusViewerBinding.seenByImageView.visibility = View.GONE
-            statusViewerBinding.replyTextView.visibility = View.VISIBLE
+            statusViewerBinding.replyTextView.visibility = View.GONE
             statusViewerBinding.replyTextView.setOnClickListener {
                 Toast.makeText(this, "Reply", Toast.LENGTH_SHORT).show()
             }
@@ -107,8 +107,8 @@ class StatusViewerActivity : AppCompatActivity() {
             var currentPage: Int = statusViewerBinding.viewPager.currentItem
              //has finished scrolling?
             if (currentPage == numberOfBannerImage - 1) {
-                currentPage = -1
                 finish()
+                //currentPage = -1
             }
             statusViewerBinding.viewPager.setCurrentItem(currentPage + 1, true)
         }
@@ -192,11 +192,6 @@ class StatusViewerActivity : AppCompatActivity() {
             })
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        usersReference.child(USERS_CHILD).
-        child(statusUserIdFromIntent).child("Status").
-        child("viewscount").setValue(generalPosition)
-    }
+
 
 }

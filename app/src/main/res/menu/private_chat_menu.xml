@@ -12,4 +12,13 @@
         app:showAsAction="always"
         android:icon="@drawable/ic_call"
         />
+
+    <item android:id="@+id/clear_chat"
+        android:title="Clear chat"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/private_chat_block_user"
+        android:title="Block"
+        app:showAsAction="never"/>
+
 </menu>

@@ -14,41 +14,53 @@
         android:orientation="horizontal">
 
         <com.mikhaellopez.circularimageview.CircularImageView
-            android:id="@+id/user_image_view"
+            android:id="@+id/user_image_view_custom"
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:layout_marginStart="4dp"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="4dp"
             android:cropToPadding="true"
             app:civ_border_color="@color/colorPrimary"
             app:civ_border_width="1dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/up_button_custom"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/user_name_text_view"
+            android:id="@+id/user_name_text_view_custom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="4dp"
-
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="16dp"
             android:textColor="#FFFFFF"
-            app:layout_constraintStart_toEndOf="@+id/user_image_view"
-            app:layout_constraintTop_toTopOf="@+id/user_image_view"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@+id/user_image_view_custom"
+            app:layout_constraintStart_toEndOf="@+id/user_image_view_custom"
+            app:layout_constraintTop_toTopOf="@+id/user_image_view_custom"
             tools:text="Mahmoud Sanad" />
 
         <TextView
-            android:id="@+id/user_last_seen"
+            android:id="@+id/user_last_seen_custom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp"
             android:text="Last seen: 8:17"
             android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            app:layout_constraintBottom_toBottomOf="@+id/user_image_view"
-            app:layout_constraintStart_toStartOf="@+id/user_name_text_view"
-            app:layout_constraintTop_toBottomOf="@+id/user_name_text_view" />
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="@+id/user_image_view_custom"
+            app:layout_constraintStart_toStartOf="@+id/user_name_text_view_custom"
+            app:layout_constraintTop_toBottomOf="@+id/user_name_text_view_custom" />
+
+        <ImageView
+            android:id="@+id/up_button_custom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_baseline_arrow_back_24" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

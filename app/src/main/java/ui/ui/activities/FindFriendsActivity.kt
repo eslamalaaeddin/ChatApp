@@ -7,17 +7,17 @@ import android.graphics.PorterDuff
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
+import android.view.*
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.whatsapp.R
+import com.example.whatsapp.Utils
+import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityFindFriendsBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -41,13 +41,11 @@ class FindFriendsActivity : AppCompatActivity() {
 
     private lateinit var currentUser: FirebaseUser
 
-    private  var phoneContactsAdapter =  ContactAdapterFromFirebase(emptyList())
+    private  var phoneContactsAdapter =  ContactAdapterFromFirebase(mutableListOf())
 
     private val contactList : MutableList<PhoneContactModel> = mutableListOf()
     private var distinctContactList : List<PhoneContactModel> = listOf()
 
-    private val contactsFromFirebaseDb : MutableList<ContactsModel> = mutableListOf()
-    val uniqueIds = mutableListOf<String>()
     val listFromFirebaseDb = mutableListOf<ContactsModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,69 +62,91 @@ class FindFriendsActivity : AppCompatActivity() {
 
         requestPermissions()
 
-
-
         activityFindFriendsBinding.findFriendsRecyclerView.layoutManager = LinearLayoutManager(this@FindFriendsActivity)
-           usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
+        usersReference.addValueEventListener(object : ValueEventListener {
 
-               override fun onDataChange(snapshot: DataSnapshot) {
-                    listFromFirebaseDb.clear()
-                   for (phoneSnapshot in snapshot.children) {
-                       if (phoneSnapshot.hasChild("phoneNumber")) {
-                           val currentPhoneNumber =
-                               phoneSnapshot.child("phoneNumber").value.toString()
-                           if (phoneSnapshot.child("phoneNumber").value != null) {
-                               for ((i, item) in distinctContactList.withIndex()) {
-                                   if (item.number == currentPhoneNumber || currentPhoneNumber.contains(
-                                           item.number
-                                       )
-                                   ) {
-                                       val name = phoneSnapshot.child("name").value.toString()
-                                       val image = phoneSnapshot.child("image").value.toString()
-                                       val status = phoneSnapshot.child("status").value.toString()
-                                       val id = phoneSnapshot.child("uid").value.toString()
+            override fun onDataChange(snapshot: DataSnapshot) {
+                listFromFirebaseDb.clear()
+                for (phoneSnapshot in snapshot.children) {
+                    if (phoneSnapshot.hasChild("phoneNumber")) {
+                        val currentPhoneNumber =
+                            phoneSnapshot.child("phoneNumber").value.toString()
+                        if (phoneSnapshot.child("phoneNumber").value != null) {
+                            for ((i, item) in distinctContactList.withIndex()) {
+                                if (item.number == currentPhoneNumber || currentPhoneNumber.contains(
+                                        item.number
+                                    )
+                                ) {
+                                    val name = phoneSnapshot.child("name").value.toString()
+                                    val image = phoneSnapshot.child("image").value.toString()
+                                    val status = phoneSnapshot.child("status").value.toString()
+                                    val id = phoneSnapshot.child("uid").value.toString()
 
-                                       listFromFirebaseDb.add(
-                                           ContactsModel(
-                                               name,
-                                               image,
-                                               status,
-                                               id,
-                                               currentPhoneNumber
-                                           )
-                                       )
-                                       Log.i(TAG, "QQQQ onDataChange: $name   $currentPhoneNumber")
-
-
-
-                                   }
-                               }
-                           }
-
-                       }
-                   }
-
-                   phoneContactsAdapter = ContactAdapterFromFirebase(listFromFirebaseDb)
-                   activityFindFriendsBinding.findFriendsRecyclerView.adapter = phoneContactsAdapter
-                   activityFindFriendsBinding.findFriendsRecyclerView.addItemDecoration(
-                       DividerItemDecoration(
-                           this@FindFriendsActivity,
-                           DividerItemDecoration.VERTICAL
-                       )
-                   )
-
-               }
-
-               override fun onCancelled(error: DatabaseError) {
-
-               }
-
-           })
+                                    listFromFirebaseDb.add(
+                                        ContactsModel(
+                                            name,
+                                            image,
+                                            status,
+                                            id,
+                                            currentPhoneNumber
+                                        )
+                                    )
+                                    Log.i(TAG, "QQQQ onDataChange: $name   $currentPhoneNumber")
 
 
 
+                                }
+                            }
+                        }
+
+                    }
+                }
+
+                phoneContactsAdapter = ContactAdapterFromFirebase(listFromFirebaseDb)
+                activityFindFriendsBinding.findFriendsRecyclerView.adapter = phoneContactsAdapter
+
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+
+        })
+
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.find_friends_activity_menu,menu)
+        val searchItem = menu?.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as SearchView
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                phoneContactsAdapter.filter.filter(newText)
+                return true
+            }
+        })
+
+
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.open_contacts -> openContacts()
         }
+        return super.onOptionsItemSelected(item)
+    }
 
+    private fun openContacts() {
+        val contactIntent =
+            Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+            startActivity(contactIntent)
+    }
 
 
     private fun setUpToolbar() {
@@ -175,67 +195,19 @@ class FindFriendsActivity : AppCompatActivity() {
         contacts?.close()
     }
 
-    // to return contacts from phone db
-
-    inner class ContactAdapter(items: List<PhoneContactModel>)
-        : RecyclerView.Adapter<ContactAdapter.ViewHolder>(){
-
-        private var list = items
-
-        override fun getItemCount(): Int {
-            return list.size
-        }
-
-        override fun onBindViewHolder(holder: ContactAdapter.ViewHolder, position: Int) {
-          holder.bind()
-
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactAdapter.ViewHolder {
-            return ViewHolder(
-                LayoutInflater.from(parent.context).inflate(
-                    R.layout.friend_item_layout,
-                    parent,
-                    false
-                )
-            )
-        }
-
-
-        inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),View.OnClickListener{
-            val nameTextView : TextView = itemView.findViewById(R.id.user_name_text_view)
-            val numberTextView :TextView = itemView.findViewById(R.id.user_status_text_view)
-            val userImageView : ImageView = itemView.findViewById(R.id.user_image_view)
-
-            init {
-                itemView.setOnClickListener(this)
-            }
-
-            fun bind() {
-                nameTextView.text = list[adapterPosition].name
-                numberTextView.text = list[adapterPosition].number
-//                if (list[adapterPosition].image.isNotEmpty()) {
-//                    Picasso.get()
-//                        .load(list[adapterPosition].image)
-//                        .placeholder(R.drawable.dummy_avatar)
-//                        .into(userImageView)
-//                }
-            }
-
-            override fun onClick(itemView: View?) {
-//                val userId =list[adapterPosition].uid
-//                val profileIntent = Intent(this@FindFriendsActivity, PrivateChatActivity::class.java)
-//                profileIntent.putExtra(USER_ID,userId)
-//                startActivity(profileIntent)
-            }
-        }
-    }
 
     // to return contacts from firebase db
-    inner class ContactAdapterFromFirebase(items: List<ContactsModel>)
-        : RecyclerView.Adapter<ContactAdapterFromFirebase.MyViewHolder>(){
+    inner class ContactAdapterFromFirebase(items: MutableList<ContactsModel>)
+        : RecyclerView.Adapter<ContactAdapterFromFirebase.MyViewHolder>() , Filterable{
 
         private var list = items
+
+
+        val contactsListFull = mutableListOf<ContactsModel>()
+
+        init {
+            contactsListFull.addAll(list)
+        }
 
         override fun getItemCount(): Int {
             return list.size
@@ -245,7 +217,29 @@ class FindFriendsActivity : AppCompatActivity() {
             holder: ContactAdapterFromFirebase.MyViewHolder,
             position: Int
         ) {
-            holder.bind()
+            if (position>0 && list[position].phoneNumber == list[position-1].phoneNumber) {
+                holder.itemView.visibility = View.GONE
+            }
+            else{
+                holder.bind()
+            }
+
+
+
+                usersReference.child(currentUser.uid)
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val currentPhoneNumber = snapshot.child("phoneNumber").value.toString()
+                        Log.i(TAG, "HHHHHHHHHHHHHHHHHHHHHHHHHHHH: $currentPhoneNumber")
+                        if (list[position].phoneNumber == currentPhoneNumber) {
+                            holder.itemView.visibility = View.GONE
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                    }
+                })
+
 
         }
 
@@ -261,15 +255,23 @@ class FindFriendsActivity : AppCompatActivity() {
 
 
         inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),View.OnClickListener{
-            val nameTextView : TextView = itemView.findViewById(R.id.user_name_text_view)
-            val numberTextView :TextView = itemView.findViewById(R.id.user_status_text_view)
-            val userImageView : ImageView = itemView.findViewById(R.id.user_image_view)
+            private val nameTextView : TextView = itemView.findViewById(R.id.user_name_text_view)
+            private val numberTextView :TextView = itemView.findViewById(R.id.user_status_text_view)
+            private val userImageView : ImageView = itemView.findViewById(R.id.user_image_view)
+            private val messagesCountTextView : TextView = itemView.findViewById(R.id.messages_count_text_view)
+            private val messageCheckedImageView : ImageView = itemView.findViewById(R.id.message_checked_image_view)
+
+
 
             init {
                 itemView.setOnClickListener(this)
             }
 
             fun bind() {
+
+                messageCheckedImageView.visibility = View.GONE
+                messagesCountTextView.visibility = View.GONE
+
                 nameTextView.text = list[adapterPosition].name
                 numberTextView.text = list[adapterPosition].status
                 if (list[adapterPosition].image.isNotEmpty()) {
@@ -290,6 +292,35 @@ class FindFriendsActivity : AppCompatActivity() {
                 startActivity(profileIntent)
             }
         }
+
+        override fun getFilter(): Filter {
+            return object : Filter() {
+                //Background thread
+                override fun performFiltering(constraint: CharSequence?): FilterResults {
+                    val filteredListOfContactsModel = mutableListOf<ContactsModel>()
+                    if (constraint == null || constraint.isEmpty()) {
+                        filteredListOfContactsModel.addAll(contactsListFull)
+                    } else {
+                        val filterPattern = constraint.toString().toLowerCase().trim()
+                        for (item in contactsListFull) {
+                            if (item.name.toLowerCase().contains(filterPattern)) {
+                                filteredListOfContactsModel.add(item)
+                            }
+                        }
+                    }
+                    val results = FilterResults()
+                    results.values = filteredListOfContactsModel
+                    return results
+                }
+
+                //Main thread
+                override fun publishResults(p0: CharSequence?, filterResults: FilterResults?) {
+                    list.clear()
+                    list.addAll(filterResults?.values as List<ContactsModel>)
+                    notifyDataSetChanged()
+                }
+            }
+        }
     }
 
     private fun requestPermissions() {
@@ -304,5 +335,5 @@ class FindFriendsActivity : AppCompatActivity() {
                 this, getString(R.string.rationale_video_app), 124, *perms)
         }
     }
-  
+
 }

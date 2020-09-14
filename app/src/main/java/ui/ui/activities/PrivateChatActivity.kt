@@ -7,6 +7,7 @@ import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.media.MediaRecorder
@@ -40,10 +41,17 @@ import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.clear_chat_dialog.view.*
+import kotlinx.android.synthetic.main.create_group_dialog.view.*
+import kotlinx.android.synthetic.main.create_group_dialog.view.cancel_button
+import kotlinx.android.synthetic.main.create_group_dialog.view.user_image_view
+import kotlinx.android.synthetic.main.custom_toolbar.view.*
+import kotlinx.android.synthetic.main.private_message_layout.*
 import kotlinx.android.synthetic.main.video_player_dialog.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import models.GroupModel
 import models.PrivateMessageModel
 import notifications.*
 import java.io.ByteArrayOutputStream
@@ -94,8 +102,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     private lateinit var currentUserName: String
 
+
     private lateinit var messageSenderId : String
-    private lateinit var messageReceiverId : String
+
+    private var clicked = false
 
     private lateinit var currentMessage:String
     private lateinit var currentDate :String
@@ -104,18 +114,32 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     private lateinit var userImageView: ImageView
     private lateinit var userNameTextView: TextView
     private lateinit var lastSeenTextView: TextView
+    private lateinit var upButtonImageView: ImageView
 
     private lateinit var progressDialog: ProgressDialog
 
     private lateinit var bottomSheetDialog: BottomSheetDialog
 
+    private lateinit var myMenu: Menu
+
+    private lateinit var myItemView: View
+    private lateinit var myViewHolder: RecyclerView.ViewHolder
+
+    private var time : Int = 0
+    private var messageTimeInSeconds : Int = 0
+    private lateinit var messageTime : String
+
+    private var longClick = false
 
     private var checker:String = ""
     private var url:String = ""
     private lateinit var fileUri:Uri
 
+    private var blocked = false
 
     private var backPressed = false
+
+    private var shortClick = false
 
     private  var messagesAdapter = PrivateMessagesAdapter(emptyList())
 
@@ -128,6 +152,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     private var recorder:MediaRecorder? = null
     private var fileName:String = ""
 
+    private lateinit var toolbarView:View
+
+    private  var keysSelectedOnLongClick = HashMap<Int,String>()
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -156,9 +183,19 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
         getSenderName()
 
+        progressDialog = ProgressDialog(this)
+        progressDialog.setCanceledOnTouchOutside(false)
+
         activityPrivateChatBinding.sendMessageButton.setOnClickListener {
-            sendMessage()
-            pushNotification()
+            if (!blocked){
+                sendMessage()
+                pushNotification()
+            }
+
+            else{
+                showUnBlockContactDialog()
+            }
+
         }
 
         val linearLayout = LinearLayoutManager(this)
@@ -167,15 +204,32 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         activityPrivateChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount - 1)
 
         activityPrivateChatBinding.attachFileButton.setOnClickListener {
-             bottomSheetDialog = BottomSheetDialog()
-            bottomSheetDialog.show(supportFragmentManager, "exampleBottomSheet")
+
+            if (!blocked){
+                bottomSheetDialog = BottomSheetDialog()
+                bottomSheetDialog.show(supportFragmentManager, "exampleBottomSheet")
+            }
+
+            else{
+                showUnBlockContactDialog()
+            }
+
+
+
         }
 
         activityPrivateChatBinding.cameraButton.setOnClickListener {
-            takePhoto()
+
+            if (!blocked){
+                takePhoto()
+            }
+
+            else{
+                showUnBlockContactDialog()
+            }
         }
 
-        activityPrivateChatBinding.sendMessageEditText.addTextChangedListener(object : TextWatcher{
+        activityPrivateChatBinding.sendMessageEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
             }
 
@@ -184,11 +238,11 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             override fun afterTextChanged(text: Editable?) {
-                if (text.toString().isEmpty()){
+                if (text.toString().isEmpty()) {
                     activityPrivateChatBinding.sendMessageButton.visibility = View.INVISIBLE
                     activityPrivateChatBinding.sendVoiceMessageButton.visibility = View.VISIBLE
                     activityPrivateChatBinding.cameraButton.visibility = View.VISIBLE
-                }else{
+                } else {
                     activityPrivateChatBinding.sendMessageButton.visibility = View.VISIBLE
                     activityPrivateChatBinding.sendVoiceMessageButton.visibility = View.INVISIBLE
                     activityPrivateChatBinding.cameraButton.visibility = View.GONE
@@ -200,16 +254,85 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         fileName+= "/recorded_message.3gp"
 
         activityPrivateChatBinding.sendVoiceMessageButton.setOnTouchListener { p0, motionEvent ->
-            if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
-                soundOnStartVoiceMessage()
 
-            } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
-                soundOnReleaseVoiceMessage()
+            if (!blocked){
+
+                if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
+                    time = (System.currentTimeMillis() / 1000).toInt()
+                    soundOnStartVoiceMessage()
+
+                } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
+                    messageTimeInSeconds =  ((System.currentTimeMillis() / 1000) - time ).toInt()
+
+                    val minutes: Int = messageTimeInSeconds % 3600 / 60
+                    val secs: Int = messageTimeInSeconds % 60
+                    messageTime = java.lang.String.format(
+                        Locale.getDefault(),
+                        "%02d:%02d", minutes, secs
+                    )
+
+                    soundOnReleaseVoiceMessage()
+
+                }
 
             }
+
+            else{
+                showUnBlockContactDialog()
+            }
+
             true
         }
 
+        activityPrivateChatBinding.blockInfoTextView.setOnClickListener {
+            showUnBlockContactDialog()
+        }
+
+
+        activityPrivateChatBinding.mainToolbar.setOnClickListener {
+                activityPrivateChatBinding.replyMessageLayout.visibility = View.VISIBLE
+        }
+
+        activityPrivateChatBinding.cancelReplyingImageView.setOnClickListener {
+            activityPrivateChatBinding.replyMessageLayout.visibility = View.GONE
+        }
+
+
+
+    }
+
+
+    private fun checkForUpButton() {
+        if (!longClick) {
+            finish()
+            longClick = true
+        }
+        else{
+            clearMenuAndShowOriginalMenu()
+            if (keysSelectedOnLongClick.isNotEmpty()) {
+                //to remove any background
+               onStart()
+            }
+            myItemView.setBackgroundResource(android.R.color.transparent)
+          //  messagesAdapter.getItemViewType(myViewHolder.adapterPosition)
+            longClick = false
+        }
+    }
+
+    private fun clearMenuAndShowMessageStuff() {
+        myMenu.clear()
+        menuInflater.inflate(R.menu.long_click_menu,myMenu)
+        toolbarView.user_image_view_custom.visibility = View.GONE
+        toolbarView.user_name_text_view_custom.visibility = View.GONE
+        toolbarView.user_last_seen_custom.visibility = View.GONE
+    }
+
+    private fun clearMenuAndShowOriginalMenu() {
+        myMenu.clear()
+        menuInflater.inflate(R.menu.private_chat_menu,myMenu)
+        toolbarView.user_image_view_custom.visibility = View.VISIBLE
+        toolbarView.user_name_text_view_custom.visibility = View.VISIBLE
+        toolbarView.user_last_seen_custom.visibility = View.VISIBLE
     }
 
 
@@ -298,7 +421,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.mp4")
-                val uploadTask = filePath.putFile(fileUri)
+                val uploadTask = filePath.putFile(fileUri).addOnFailureListener{
+                    progressDialog.dismiss()
+                    Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                }.addOnProgressListener {
+                    val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+                    progressDialog.show()
+                    progressDialog.setMessage("$progress % Uploading...")
+                }
 
                 uploadTask.continueWithTask { task ->
                     if (!task.isSuccessful) {
@@ -337,9 +467,11 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                                 Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
                             }
+                            progressDialog.dismiss()
                         }
 
                     }
+
                 }
 
 
@@ -358,7 +490,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.mp3")
-                val uploadTask = filePath.putFile(fileUri)
+                val uploadTask = filePath.putFile(fileUri).addOnFailureListener{
+                    progressDialog.dismiss()
+                    Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                }.addOnProgressListener {
+                    val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+                    progressDialog.show()
+                    progressDialog.setMessage("$progress % Uploading...")
+                }
 
                 uploadTask.continueWithTask { task ->
                     if (!task.isSuccessful) {
@@ -398,9 +537,11 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                                 Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
                             }
+                            progressDialog.dismiss()
                         }
 
                     }
+
                 }
 
             }
@@ -420,7 +561,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.jpg")
-                val uploadTask = filePath.putFile(fileUri)
+                val uploadTask = filePath.putFile(fileUri).addOnFailureListener{
+                    progressDialog.dismiss()
+                    Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                }.addOnProgressListener {
+                    val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+                    progressDialog.show()
+                    progressDialog.setMessage("$progress % Uploading...")
+                }
 
                 uploadTask.continueWithTask { task ->
                     if (!task.isSuccessful) {
@@ -459,10 +607,12 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                                 Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
                             }
+                            progressDialog.dismiss()
                         }
 
                     }
                 }
+
 
             }
 
@@ -498,7 +648,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             val messagePushId = userMessageKeyRef.key.toString()
 
             val filePath = storageRef.child("$messagePushId.jpg")
-            val uploadTask = filePath.putBytes(b)
+            val uploadTask = filePath.putBytes(b).addOnFailureListener{
+                progressDialog.dismiss()
+                Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+            }.addOnProgressListener {
+                val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+                progressDialog.show()
+                progressDialog.setMessage("$progress % Uploading...")
+            }
 
             uploadTask.continueWithTask { task ->
                 if (!task.isSuccessful) {
@@ -537,6 +694,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                             Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
                         }
+                        progressDialog.dismiss()
                     }
 
                 }
@@ -553,65 +711,40 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     override fun onStart() {
         super.onStart()
-
-
-
-        rootRef.child(MESSAGES_CHILD).child(senderId).child(receiverId).addChildEventListener(
-            object : ChildEventListener {
-                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-
-                    val ourMessages = snapshot.getValue(PrivateMessageModel::class.java)
-                    if (ourMessages != null) {
-                        messagesList.add(ourMessages)
-                        messagesAdapter = PrivateMessagesAdapter(messagesList)
-                        activityPrivateChatBinding.privateChatRecyclerView.adapter = messagesAdapter
-                        messagesAdapter.notifyDataSetChanged()
-                        //to scroll to the bottom of recycler view
-                        if (messagesList.isNotEmpty()) {
-                            activityPrivateChatBinding.privateChatRecyclerView.smoothScrollToPosition(
-                                messagesList.size - 1
-                            )
-                        }
-                    }
-
-                }
-
-                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                }
-
-                override fun onChildRemoved(snapshot: DataSnapshot) {
-                }
-
-                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                }
-            })
-
+        retrieveMessages()
         updateUserStatus("online")
         displayLastSeen()
+        checkBlockedOrNot()
     }
 
 
     private fun setUpToolbar() {
 
-        val toolbarView = LayoutInflater.from(this).inflate(R.layout.custom_toolbar, null)
+         toolbarView = LayoutInflater.from(this).inflate(R.layout.custom_toolbar, null)
+
+
 
         setSupportActionBar(activityPrivateChatBinding.mainToolbar)
-       // supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowCustomEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         supportActionBar?.customView = toolbarView
 
+
         Log.i(TAG, "WWW setUpToolbar: $senderId")
         Log.i(TAG, "WWW setUpToolbar: $receiverId")
 
 
-        userImageView = findViewById(R.id.user_image_view)
-        userNameTextView = findViewById(R.id.user_name_text_view)
-        lastSeenTextView = findViewById(R.id.user_last_seen)
+        userImageView = findViewById(R.id.user_image_view_custom)
+        userNameTextView = findViewById(R.id.user_name_text_view_custom)
+        lastSeenTextView = findViewById(R.id.user_last_seen_custom)
+        upButtonImageView = findViewById(R.id.up_button_custom)
+
+
+        userImageView.setOnClickListener {
+            Toast.makeText(this, messagesList[0].messageKey, Toast.LENGTH_SHORT).show()
+        }
 
             usersRef.child(receiverId).addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -629,15 +762,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
                 }
             })
 
+        upButtonImageView.setOnClickListener { checkForUpButton() }
 
-
-//        activityPrivateChatBinding.mainToolbar.setTitleTextColor(Color.WHITE)
-//        activityPrivateChatBinding.mainToolbar.overflowIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
-      //  activityPrivateChatBinding.mainToolbar.navigationIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
+        activityPrivateChatBinding.mainToolbar.setTitleTextColor(Color.WHITE)
+        activityPrivateChatBinding.mainToolbar.overflowIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
+        activityPrivateChatBinding.mainToolbar.navigationIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
     }
 
 
@@ -902,12 +1034,18 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             val senderMessageGeneralLayout : LinearLayout = itemView.findViewById(R.id.sender_message_general_layout)
             val senderNameTextView : TextView = itemView.findViewById(R.id.sender_name_text_view)
 
+            val messageSentTimeTextView:TextView = itemView.findViewById(R.id.message_time_sent_text_view)
+            val messageReceivedTimeTextView:TextView = itemView.findViewById(R.id.message_time_received_text_view)
+
+            val globalSenderLayout:LinearLayout = itemView.findViewById(R.id.sender_message_layout)
+            val globalReceiverLayout:LinearLayout = itemView.findViewById(R.id.receiver_message_general_layout)
 
 
 
             init {
                 itemView.setOnClickListener(this)
                 itemView.setOnLongClickListener(this)
+                myItemView = itemView
             }
 
             fun bind(messageModel: PrivateMessageModel) {
@@ -932,23 +1070,59 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
 
             override fun onClick(item: View?) {
+                if ( keysSelectedOnLongClick.containsKey(adapterPosition)){
+                    item?.setBackgroundResource(android.R.color.transparent)
+                    keysSelectedOnLongClick.remove(adapterPosition)
+                    shortClick = true
+
+                    if (keysSelectedOnLongClick.isEmpty()){
+                        clearMenuAndShowOriginalMenu()
+                    }
+                }
+
+                if (longClick && !shortClick) {
+                    item?.setBackgroundResource(R.color.light_blue)
+                    keysSelectedOnLongClick[adapterPosition] = messagesList[adapterPosition].messageKey
+                }
+
+                shortClick = false
 
             }
 
             //to get message date
             @SuppressLint("SimpleDateFormat")
-            override fun onLongClick(p0: View?): Boolean {
-               val messageDate =messages[adapterPosition].date
-                val currentDate = SimpleDateFormat("MMM dd, yyyy").format(Calendar.getInstance().time)
-                if (messageDate == currentDate) {
-                    Snackbar.make(p0!!, "Sent: today", Snackbar.LENGTH_LONG).show()
-                }
-                else{
-                    Snackbar.make(p0!!, "Sent: $messageDate", Snackbar.LENGTH_LONG).show()
+            override fun onLongClick(view: View?): Boolean {
+                longClick = true
+
+                view?.setBackgroundResource(R.color.light_blue)
+                keysSelectedOnLongClick[adapterPosition] = messagesList[adapterPosition].messageKey
+                if (messages[adapterPosition].type == "pdf" || messages[adapterPosition].type == "docx"){
+                    clearMenuAndShowMessageStuff()
                 }
 
-               return true
+                else if (messages[adapterPosition].type == "text"){
+                    clearMenuAndShowMessageStuff()
+
+                }
+
+                else if (messages[adapterPosition].type == "image" || messages[adapterPosition].type == "captured image"){
+                    clearMenuAndShowMessageStuff()
+                }
+
+                else if (messages[adapterPosition].type == "audio"){
+                    clearMenuAndShowMessageStuff()
+                }
+
+                else if (messages[adapterPosition].type == "video"){
+                    clearMenuAndShowMessageStuff()
+                }
+
+
+
+                return true
+
             }
+
 
 
         }
@@ -960,6 +1134,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 parent,
                 false
             )
+
+            myViewHolder = PopularMoviesViewHolder(view)
+
             return PopularMoviesViewHolder(view)
         }
 
@@ -996,6 +1173,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 holder.receiverMessagePlay.visibility = View.GONE
                 holder.receiverMessageFrame.visibility = View.GONE
                 holder.senderMessageFrame.visibility = View.GONE
+
+                holder.messageSentTimeTextView.visibility = View.GONE
+                holder.messageReceivedTimeTextView.visibility = View.GONE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTextView.setBackgroundResource(R.drawable.sender_messages_background)
@@ -1048,6 +1228,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 holder.receiverMessagePlay.visibility = View.GONE
 
 
+
+
+                holder.messageSentTimeTextView.visibility = View.GONE
+                holder.messageReceivedTimeTextView.visibility = View.GONE
+
+//                holder.receiverMessageGeneralLayout.layoutParams = LinearLayout.LayoutParams(512,512)
+//                holder.senderMessageGeneralLayout.layoutParams = LinearLayout.LayoutParams(512,512)
+
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
                     holder.senderMessageTimeTextView.text = currentMessage.time
@@ -1056,6 +1244,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                     holder.senderMessageImageView.visibility = View.VISIBLE
                     holder.receiverMessageImageView.visibility = View.GONE
+
+
                     Picasso.get()
                         .load(currentMessage.message)
                         .into(holder.senderMessageImageView)
@@ -1080,6 +1270,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
 
 
+
                     Picasso.get()
                         .load(currentMessage.message)
                         .into(holder.receiverMessageImageView)
@@ -1095,6 +1286,12 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 holder.receiverMessageTextView.visibility = View.GONE
                 holder.senderMessageTextView.visibility = View.GONE
 
+
+                holder.messageSentTimeTextView.visibility = View.GONE
+                holder.messageReceivedTimeTextView.visibility = View.GONE
+
+//                holder.receiverMessageGeneralLayout.layoutParams = LinearLayout.LayoutParams(512,512)
+//                holder.senderMessageGeneralLayout.layoutParams = LinearLayout.LayoutParams(512,512)
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
@@ -1180,6 +1377,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 holder.receiverMessagePlay.visibility = View.GONE
 
 
+
+
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
                     holder.senderMessageTimeTextView.text = currentMessage.time
@@ -1192,11 +1391,15 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                     holder.receiverNameTextView.visibility = View.GONE
 
+                    holder.messageSentTimeTextView.visibility = View.VISIBLE
+
+                    holder.messageSentTimeTextView.text = currentMessage.messageTime
+
+                    holder.messageReceivedTimeTextView.visibility = View.INVISIBLE
 
 
 
-
-                    holder.senderMessageImageView.setImageResource(R.drawable.ic_audio)
+                    holder.senderMessageImageView.setImageResource(R.drawable.ic_mic)
                     holder.receiverMessageImageView.visibility = View.GONE
 
                     holder.receiverMessageGeneralLayout.visibility = View.GONE
@@ -1231,8 +1434,12 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                     holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
 
+                    holder.messageSentTimeTextView.visibility = View.INVISIBLE
+                    holder.messageReceivedTimeTextView.visibility = View.VISIBLE
 
-                    holder.receiverMessageImageView.setImageResource(R.drawable.ic_audio)
+                    holder.messageReceivedTimeTextView.text = currentMessage.messageTime
+
+                    holder.receiverMessageImageView.setImageResource(R.drawable.ic_mic)
 
                     holder.receiverMessageImageView.setOnClickListener {
                         val videoIntent = Intent(
@@ -1253,6 +1460,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 holder.senderMessageTextView.visibility = View.GONE
                 holder.senderMessagePlay.visibility = View.GONE
                 holder.receiverMessagePlay.visibility = View.GONE
+
+
+                holder.messageSentTimeTextView.visibility = View.GONE
+                holder.messageReceivedTimeTextView.visibility = View.GONE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
@@ -1292,74 +1503,6 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 //            if (fromUserId == senderId) {
 //                holder.itemView.setOnLongClickListener {
 //
-//                    if (myMessages.type == "pdf" || myMessages.type == "docx"){
-//                        val options = arrayOf("Download","Delete for me","Delete for every one", "Cancel")
-//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
-//                        alertDialogBuilder.setTitle("Delete message?")
-//
-//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
-//                            when(position) {
-//                                //Download
-//                                0 -> {
-//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-//                                    holder.itemView.context.startActivity(downloadIntent)
-//                                }
-//                                //Delete for me
-//                                1 -> {
-//
-//                                }
-//                                //Delete for every one
-//                                2 -> {}
-//
-//                            }
-//                        }.show()
-//                    }
-//
-//                    else if (myMessages.type == "text"){
-//                        val options = arrayOf("Delete for me","Delete for every one", "Cancel")
-//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
-//                        alertDialogBuilder.setTitle("Delete message?")
-//
-//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
-//                            when(position) {
-//                                //Delete for me
-//                                0 -> {
-//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-//                                    holder.itemView.context.startActivity(downloadIntent)
-//                                }
-//                                //Delete for every one
-//                                1 -> {
-//
-//                                }
-//
-//                            }
-//                        }.show()
-//                    }
-//
-//                    else if (myMessages.type == "image"){
-//                        val options = arrayOf("View","Download","Delete for me","Delete for every one", "Cancel")
-//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
-//                        alertDialogBuilder.setTitle("Delete message?")
-//
-//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
-//                            when(position) {
-//                                //Delete for me
-//                                0 -> {
-//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-//                                    holder.itemView.context.startActivity(downloadIntent)
-//                                }
-//                                //Delete for every one
-//                                1 -> {
-//
-//                                }
-//
-//                            }
-//                        }.show()
-//                    }
-//
-//                    return@setOnLongClickListener true
-//
-//                }
 //            }
 //
 //            else{
@@ -1450,22 +1593,149 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.private_chat_menu, menu)
+        myMenu = menu!!
         return true
+    }
+
+    private fun deleteSelectedMessages(positions:MutableList<Int>) {
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.establish_video_chat -> makeVideoCall()
+            R.id.establish_video_chat -> {
+                if (!blocked) {
+                    makeVideoCall()
+                } else {
+                    showUnBlockContactDialog()
+                }
+            }
+            R.id.establish_audio_chat ->{
+                if (!blocked) {
+                    makeAudioCall()
+                } else {
+                    showUnBlockContactDialog()
+                }
+            }
+            R.id.clear_chat -> showClearChatDialog()
+            R.id.private_chat_block_user -> showBlockContactDialog()
+            R.id.reply_message -> Toast.makeText(this, "Reply", Toast.LENGTH_SHORT).show()
+            R.id.star_message -> Toast.makeText(this, "Star", Toast.LENGTH_SHORT).show()
+            R.id.delete_message -> removeMessage()
+            R.id.copy_text_message -> Toast.makeText(this, "Copy", Toast.LENGTH_SHORT).show()
+            R.id.forward_message -> Toast.makeText(this, "Forward", Toast.LENGTH_SHORT).show()
 
-            R.id.establish_audio_chat -> makeAudioCall ()
 
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private fun deleteSentMessages () {
+    private fun showBlockContactDialog() {
+        alertBuilder = AlertDialog.Builder(this)
+        val dialogView = layoutInflater.inflate(R.layout.clear_chat_dialog,null)
+        alertBuilder.setView(dialogView)
+
+
+        val groupDialog =  alertBuilder.create()
+
+        dialogView.clear.text = "Block"
+        dialogView.info_text_view.text = "Blocked contacts will no longer be able to call you or send you messages"
+
+        groupDialog.show()
+
+        dialogView.clear.setOnClickListener {
+            blockContact()
+            groupDialog.dismiss()
+        }
+
+        dialogView.cancel.setOnClickListener {
+            groupDialog.dismiss()
+        }
 
     }
+
+    private fun showUnBlockContactDialog() {
+        alertBuilder = AlertDialog.Builder(this)
+        val dialogView = layoutInflater.inflate(R.layout.clear_chat_dialog,null)
+        alertBuilder.setView(dialogView)
+
+
+        val groupDialog =  alertBuilder.create()
+
+        dialogView.clear.text = "UnBlock"
+        dialogView.info_text_view.text = "Unblock this contact?"
+
+        groupDialog.show()
+
+        dialogView.clear.setOnClickListener {
+            unBlockContact()
+            groupDialog.dismiss()
+        }
+
+        dialogView.cancel.setOnClickListener {
+            groupDialog.dismiss()
+        }
+
+    }
+
+    private fun blockContact() {
+        val blockerMap = HashMap<String,Any>()
+        blockerMap[receiverId] = ""
+
+        val blockedMap = HashMap<String,Any>()
+        blockedMap[currentUserId] = ""
+
+        rootRef.child(USERS_CHILD).child(currentUserId).child("Blocked").updateChildren(blockerMap).addOnCompleteListener {
+            if (it.isComplete){
+                rootRef.child(USERS_CHILD).child(receiverId).child("Blocked").updateChildren(blockedMap).addOnCompleteListener {
+                }
+            }
+        }
+
+    }
+
+    private fun unBlockContact() {
+
+        rootRef.child(USERS_CHILD).child(currentUserId).child("Blocked").child(receiverId).removeValue().addOnCompleteListener {
+            if (it.isComplete){
+                rootRef.child(USERS_CHILD).child(receiverId).child("Blocked").child(currentUserId).removeValue().addOnCompleteListener {
+                    if (it.isComplete){
+                        blocked = false
+                        activityPrivateChatBinding.blockInfoTextView.visibility = View.GONE
+                    }
+                }
+            }
+        }
+
+    }
+
+    private fun clearChat() {
+       rootRef.child(MESSAGES_CHILD).child(currentUserId).removeValue().addOnCompleteListener {
+           if (it.isComplete){
+               rootRef.child(MESSAGES_CHILD).child(receiverId).removeValue().addOnCompleteListener {
+                   Toast.makeText(this, "Chat cleared successfully ", Toast.LENGTH_SHORT).show()
+               }
+           }
+       }
+    }
+
+    private fun removeMessage() {
+
+        for (messageKey in keysSelectedOnLongClick) {
+            rootRef.child(MESSAGES_CHILD).child(currentUserId).child(receiverId).child(messageKey.value).removeValue().addOnCompleteListener {
+                if (it.isComplete){
+                    rootRef.child(MESSAGES_CHILD).child(receiverId).child(currentUserId).child(messageKey.value).removeValue().addOnCompleteListener{
+                        if (it.isComplete){
+                            messagesAdapter.notifyDataSetChanged()
+                            myItemView.setBackgroundResource(android.R.color.transparent)
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
 
     @SuppressLint("SimpleDateFormat")
     private fun makeVideoCall () {
@@ -1492,10 +1762,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         callMap["type"] = "video"
         callMap["caller"] = senderId
 
-        rootRef.child("Users").child(senderId).child("Calls").child(messagePushId).updateChildren(callMap)
+        rootRef.child("Users").child(senderId).child("Calls").child(messagePushId).updateChildren(
+            callMap
+        )
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    rootRef.child("Users").child(receiverId).child("Calls").child(messagePushId).updateChildren(callMap)
+                    rootRef.child("Users").child(receiverId).child("Calls").child(messagePushId).updateChildren(
+                        callMap
+                    )
                         .addOnCompleteListener {
 
                         }
@@ -1534,10 +1808,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         callMap["type"] = "audio"
         callMap["caller"] = senderId
 
-        rootRef.child("Users").child(senderId).child("Calls").child(messagePushId).updateChildren(callMap)
+        rootRef.child("Users").child(senderId).child("Calls").child(messagePushId).updateChildren(
+            callMap
+        )
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    rootRef.child("Users").child(receiverId).child("Calls").child(messagePushId).updateChildren(callMap)
+                    rootRef.child("Users").child(receiverId).child("Calls").child(messagePushId).updateChildren(
+                        callMap
+                    )
                         .addOnCompleteListener {
 
                         }
@@ -1692,11 +1970,28 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             try {
                 prepare()
             } catch (e: IOException) {
-                Log.e(TAG, "startRecording: prepare() failed" )
+                Log.e(TAG, "startRecording: prepare() failed")
             }
 
             start()
         }
+    }
+
+    private fun checkBlockedOrNot() {
+        rootRef.child(USERS_CHILD).child(receiverId).child("Blocked").addValueEventListener(object :
+            ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (child in snapshot.children) {
+                    if (child.key.toString() == senderId) {
+                        blocked = true
+                        activityPrivateChatBinding.blockInfoTextView.visibility = View.VISIBLE
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+        })
     }
 
     private fun stopRecording() {
@@ -1721,7 +2016,16 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         val messagePushId = userMessageKeyRef.key.toString()
 
         val filePath = storageRef.child("$messagePushId.mp3")
-        val uploadTask = filePath.putFile(fileUri)
+        val uploadTask = filePath.putFile(fileUri).addOnFailureListener{
+            progressDialog.dismiss()
+            Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+        }.addOnProgressListener {
+            val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+            progressDialog.show()
+            progressDialog.setMessage("$progress % Uploading...")
+        }
+
+
 
         uploadTask.continueWithTask { task ->
             if (!task.isSuccessful) {
@@ -1741,6 +2045,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 currentTime = timeFormat.format(calender.time)
 
 
+
+
                 val messageImageBody = HashMap<String, Any>()
                 messageImageBody["message"] = url
                 messageImageBody["name"] = fileUri.lastPathSegment.toString()
@@ -1750,6 +2056,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 messageImageBody["messageKey"] = messagePushId
                 messageImageBody["date"] = currentDate
                 messageImageBody["time"] = currentTime
+                messageImageBody["messageTime"] = messageTime
 
                 val messageBodyDetails = HashMap<String, Any>()
                 messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
@@ -1763,6 +2070,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 }
 
             }
+            progressDialog.dismiss()
         }
     }
 
@@ -1776,12 +2084,114 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     }
 
     private fun soundOnReleaseVoiceMessage() {
-        val mediaPlayer: MediaPlayer? = MediaPlayer.create(this, R.raw.whatsapp_voice_message_release)
+        val mediaPlayer: MediaPlayer? = MediaPlayer.create(
+            this,
+            R.raw.whatsapp_voice_message_release
+        )
         stopRecording()
         mediaPlayer?.start() // no need to call prepare(); create() does that for you
         mediaPlayer?.setOnCompletionListener {
-            sendVoiceMessage()
+            showVoiceMessageDialog()
         }
+    }
+
+    private fun showVoiceMessageDialog(){
+        alertBuilder = AlertDialog.Builder(this)
+        val dialogView = layoutInflater.inflate(R.layout.clear_chat_dialog,null)
+        alertBuilder.setView(dialogView)
+
+        dialogView.info_text_view.text = "Send this voice?"
+        dialogView.clear.text = "Send"
+
+        val groupDialog =  alertBuilder.create()
+        groupDialog.show()
+
+        dialogView.clear.setOnClickListener {
+            sendVoiceMessage()
+            groupDialog.dismiss()
+        }
+
+        dialogView.cancel.setOnClickListener {
+            groupDialog.dismiss()
+        }
+
+    }
+
+
+    private fun showClearChatDialog(){
+        alertBuilder = AlertDialog.Builder(this)
+        val dialogView = layoutInflater.inflate(R.layout.clear_chat_dialog,null)
+        alertBuilder.setView(dialogView)
+
+
+       val groupDialog =  alertBuilder.create()
+        groupDialog.show()
+
+        dialogView.clear.setOnClickListener {
+            clearChat()
+            groupDialog.dismiss()
+        }
+
+        dialogView.cancel.setOnClickListener {
+            groupDialog.dismiss()
+        }
+
+    }
+
+    private fun retrieveMessages() {
+        rootRef.child(MESSAGES_CHILD).child(currentUserId).child(receiverId).addValueEventListener(
+            object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    messagesList.clear()
+                    var messageTime = ""
+                    for (message in snapshot.children) {
+
+                        val date = message.child("date").value.toString()
+                        val from = message.child("from").value.toString()
+                        val messageBody = message.child("message").value.toString()
+                        val messageKey = message.child("messageKey").value.toString()
+                        val seen = message.child("seen").value.toString()
+                        val time = message.child("time").value.toString()
+                        val to = message.child("to").value.toString()
+                        val type = message.child("type").value.toString()
+
+                        if (message.hasChild("messageTime")) {
+                            messageTime = message.child("messageTime").value.toString()
+                        } else {
+                            messageTime = ""
+                        }
+
+                        val currentMessage = PrivateMessageModel(
+                            from,
+                            messageBody,
+                            type,
+                            to,
+                            seen,
+                            messageKey,
+                            date,
+                            time,
+                            messageTime,
+                            ""
+                        )
+
+                        messagesList.add(currentMessage)
+                    }
+
+                    messagesAdapter = PrivateMessagesAdapter(messagesList)
+                    activityPrivateChatBinding.privateChatRecyclerView.adapter = messagesAdapter
+//                messagesAdapter.notifyDataSetChanged()
+                    //to scroll to the bottom of recycler view
+                    if (messagesList.isNotEmpty()) {
+                        activityPrivateChatBinding.privateChatRecyclerView.smoothScrollToPosition(
+                            messagesList.size - 1
+                        )
+                    }
+
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
     }
 
 }

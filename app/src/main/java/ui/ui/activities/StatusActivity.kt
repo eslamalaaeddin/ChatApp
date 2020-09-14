@@ -20,6 +20,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ServerValue
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -105,6 +106,7 @@ class StatusActivity : AppCompatActivity() {
             statusMap["statusid"] = statusKey
             statusMap["date"] = currentDate
             statusMap["time"] = currentTime
+            statusMap["timestamp"] = ServerValue.TIMESTAMP
 
             rootReference.child(USERS_CHILD).child(currentUserId).child("Status").child(statusKey).
             updateChildren(statusMap).addOnCompleteListener {

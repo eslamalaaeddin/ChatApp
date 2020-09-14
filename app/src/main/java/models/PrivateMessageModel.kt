@@ -8,7 +8,8 @@ class PrivateMessageModel(var from:String,
                           var messageKey:String,
                           var date:String,
                           var time:String,
+                          var messageTime:String,
                           var fileName:String) {
 
-    constructor() : this ("","","","","","","","","")
+    constructor() : this ("","","","","","","","","","")
 }

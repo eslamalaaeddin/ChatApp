@@ -10,15 +10,20 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp"
+        >
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_gravity="start"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
             android:layout_marginStart="8dp"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
             android:id="@+id/receiver_message_general_layout"
             android:background="@drawable/receiver_messages_background"
             >
@@ -63,14 +68,14 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:orientation="vertical"
                     >
 
                     <FrameLayout
                         android:id="@+id/receiver_message_Frame_view"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
                         android:layout_gravity="center"
                         >
                         <ImageView
@@ -85,28 +90,50 @@
 
                         <ImageView
                             android:id="@+id/receiver_message_play_view"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:layout_gravity="center"
                             android:layout_margin="8dp"
-                            android:scaleType="centerCrop"
+                            android:scaleType="fitCenter"
                             app:srcCompat="@drawable/ic_play_arrow"
                             />
 
                     </FrameLayout>
 
 
-
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="bottom|end"
-                        android:layout_gravity="bottom|end"
-                        android:paddingEnd="2dp"
-                        android:paddingBottom="4dp"
-                        tools:text="5:02 AM"
-                        android:textSize="12sp"
-                        android:id="@+id/receiver_time_sent_text_view" />
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:paddingBottom="2dp"
+                        >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="bottom|start"
+                            android:paddingStart="2dp"
+                            android:layout_gravity="bottom|end"
+                            tools:text="0:23"
+                            android:textSize="12sp"
+                            android:id="@+id/message_time_received_text_view" />
+
+
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="bottom|end"
+                            android:layout_gravity="bottom|end"
+                            android:paddingEnd="2dp"
+                            tools:text="5:02 AM"
+                            android:textSize="12sp"
+                            android:id="@+id/receiver_time_sent_text_view" />
+
+                    </LinearLayout>
+
+
 
                 </LinearLayout>
 
@@ -116,20 +143,24 @@
         </LinearLayout>
 
         <!-- Sender -->
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_gravity="end"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
             android:layout_marginEnd="8dp"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
             android:background="@drawable/sender_messages_background"
             android:id="@+id/sender_message_layout">
 
 
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:id="@+id/sender_message_general_layout"
@@ -163,13 +194,13 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:orientation="vertical">
 
                     <FrameLayout
                         android:id="@+id/sender_message_Frame_view"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
                         android:layout_gravity="center"
                         >
                         <ImageView
@@ -178,17 +209,18 @@
                             android:layout_height="match_parent"
                             android:layout_gravity="center"
                             android:layout_margin="4dp"
-                            android:scaleType="centerCrop"
+                            android:scaleType="fitXY"
                             />
 
                         <ImageView
                             android:id="@+id/sender_message_play_image_view"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:layout_gravity="center"
-                            android:scaleType="centerCrop"
+                            android:scaleType="fitCenter"
                             app:srcCompat="@drawable/ic_play_arrow"
                             android:layout_margin="8dp"
+
 
                             />
 
@@ -198,17 +230,40 @@
 
                 </LinearLayout>
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:gravity="bottom|end"
-                    android:paddingEnd="2dp"
-                    android:layout_gravity="bottom|end"
-                    android:paddingBottom="4dp"
-                    tools:text="5:02 AM"
-                    android:textSize="12sp"
-                    android:id="@+id/sender_time_sent_text_view" />
+                    android:orientation="horizontal"
+                    android:paddingBottom="2dp"
+                    >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="bottom|start"
+                        android:paddingStart="2dp"
+                        android:layout_gravity="bottom|end"
+
+                        tools:text="00:23"
+                        android:textSize="12sp"
+                        android:id="@+id/message_time_sent_text_view" />
+
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="match_parent"
+                        android:gravity="bottom|end"
+                        android:paddingEnd="2dp"
+                        android:layout_gravity="bottom|end"
+                        tools:text="5:02 AM"
+                        android:textSize="12sp"
+                        android:id="@+id/sender_time_sent_text_view" />
+
+
+                </LinearLayout>
+
 
             </LinearLayout>
 

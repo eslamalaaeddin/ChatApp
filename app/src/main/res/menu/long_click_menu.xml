@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item  android:title="Reply"
+        android:id="@+id/reply_message"
+        android:icon="@drawable/ic_baseline_reply_24"
+        app:showAsAction="always" />
+
+    <item  android:title="Star"
+        android:id="@+id/star_message"
+        android:icon="@drawable/ic_baseline_star_24"
+        app:showAsAction="always" />
+
+    <item  android:title="Delete"
+        android:id="@+id/delete_message"
+        android:icon="@drawable/ic_baseline_delete_24"
+        app:showAsAction="always" />
+
+    <item  android:title="C"
+        android:id="@+id/copy_text_message"
+        android:icon="@drawable/ic_copy_24"
+        app:showAsAction="always" />
+
+    <item  android:title="Forward"
+        android:id="@+id/forward_message"
+        android:icon="@drawable/ic_share_arrow"
+        app:showAsAction="always" />
+
+
+
+</menu>

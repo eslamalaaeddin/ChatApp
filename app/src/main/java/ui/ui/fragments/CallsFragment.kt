@@ -1,6 +1,7 @@
 package ui.ui.fragments
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.whatsapp.Callback
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.FragmentCallsBinding
@@ -36,6 +38,13 @@ class CallsFragment : Fragment() {
 
     private var callsAdapter = CallsAdapter(emptyList())
     private var callsList = mutableListOf<CallModel>()
+
+    private lateinit var callback: Callback
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        callback = context as Callback
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -205,7 +214,6 @@ class CallsFragment : Fragment() {
                             }
 
                             override fun onCancelled(error: DatabaseError) {
-                                TODO("Not yet implemented")
                             }
                         })
                 }
@@ -213,8 +221,9 @@ class CallsFragment : Fragment() {
             }
 
             override fun onClick(item: View?) {
-//                val group = list[adapterPosition]
-//                callback.onGroupClicked(group)
+                val callerId = list[adapterPosition].caller
+                callback.onCallClicked(callerId)
+
             }
 
             override fun onLongClick(item: View?): Boolean {

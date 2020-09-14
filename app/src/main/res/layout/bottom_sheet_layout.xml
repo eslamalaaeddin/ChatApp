@@ -11,6 +11,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
+        android:background="@drawable/bottom_sheet_round"
        >
 
         <LinearLayout
@@ -128,6 +129,7 @@
                     app:srcCompat="@drawable/ic_audio"
                     android:layout_marginBottom="8dp"
                     app:borderWidth="0dp"
+                    android:tint="@color/white"
                     android:layout_gravity="center" />
 
                 <TextView

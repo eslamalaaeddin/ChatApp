@@ -591,9 +591,9 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
         supportActionBar?.customView = toolbarView
 
-        groupImageView = findViewById(R.id.user_image_view)
-        groupNameTextView = findViewById(R.id.user_name_text_view)
-        groupStatusTextView = findViewById(R.id.user_last_seen)
+        groupImageView = findViewById(R.id.user_image_view_custom)
+        groupNameTextView = findViewById(R.id.user_name_text_view_custom)
+        groupStatusTextView = findViewById(R.id.user_last_seen_custom)
 
         groupStatusTextView.visibility = View.GONE
 

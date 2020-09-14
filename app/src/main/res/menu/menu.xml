@@ -6,4 +6,22 @@
     <item android:title="New group" android:id="@+id/create_new_group" app:showAsAction="never" />
     <item android:title="Settings" android:id="@+id/settings_item" app:showAsAction="never"/>
     <item android:title="Log out" android:id="@+id/log_out_item" app:showAsAction="never" />
+
+
+    <item
+        android:id="@+id/action_search_private"
+        android:icon="@drawable/ic_search"
+        android:title="Chats search"
+        android:iconTint="@color/white"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="never|collapseActionView" />
+
+    <item
+        android:id="@+id/action_search_group"
+        android:icon="@drawable/ic_search"
+        android:title="Groups search"
+        android:iconTint="@color/white"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="never|collapseActionView" />
+
 </menu>

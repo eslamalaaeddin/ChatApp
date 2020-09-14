@@ -6,6 +6,12 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:textColorHint">@color/white</item>
+
+        <!--This line changes the color of text in Toolbar-->
+<!--        <item name="android:textColorPrimary">@color/white</item>-->
+        <!--This line changes the color of icons in toolbar (back, overflow menu icons)-->
+<!--        <item name="android:textColorSecondary">@color/white</item>-->
+
     </style>
 
 
@@ -24,6 +30,8 @@
         parent="Widget.Design.BottomSheet.Modal">
         <item name="android:background">@drawable/round_background</item>
     </style>
+
+
 
 
 

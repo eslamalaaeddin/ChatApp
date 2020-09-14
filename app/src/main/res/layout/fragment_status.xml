@@ -15,8 +15,8 @@
 
         <FrameLayout
             android:id="@+id/frame_image_view"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:layout_gravity="start"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
@@ -27,8 +27,8 @@
 
             <com.mikhaellopez.circularimageview.CircularImageView
                 android:id="@+id/status_image_view"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
                 android:layout_gravity="center"
                 android:cropToPadding="true"
                 app:civ_border_color="@android:color/transparent"
@@ -90,7 +90,8 @@
             android:text="Tab to add status update"
             app:layout_constraintBottom_toBottomOf="@+id/frame_image_view"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/frame_image_view" />
+            app:layout_constraintStart_toEndOf="@+id/frame_image_view"
+            app:layout_constraintTop_toBottomOf="@+id/my_status_text_view" />
 
         <TextView
             android:id="@+id/recent_updates_text_view"
@@ -113,7 +114,10 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/recent_updates_text_view">
-
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                >
 
                 <LinearLayout
                     android:id="@+id/others_statuses_holder_linear_layout"
@@ -123,14 +127,12 @@
                     android:layout_marginBottom="8dp"
                     android:orientation="vertical">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/contacts_status_recycler_view"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:visibility="gone" />
-
 
                 </LinearLayout>
+
+            </ScrollView>
+
+
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab"
