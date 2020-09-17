@@ -14,11 +14,12 @@
         android:icon="@drawable/ic_baseline_delete_24"
         app:showAsAction="always" />
 
-
-    <item  android:title="Forward"
-        android:id="@+id/forward_message"
-        android:icon="@drawable/ic_baseline_share_24"
+    <item  android:title="Copy"
+        android:id="@+id/copy_text_message"
+        android:icon="@drawable/ic_copy_24"
         app:showAsAction="always" />
+
+
 
 
 

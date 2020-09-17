@@ -222,7 +222,13 @@ class CallsFragment : Fragment() {
 
             override fun onClick(item: View?) {
                 val callerId = list[adapterPosition].caller
-                callback.onCallClicked(callerId)
+                if (callerId == currentUserId){
+                    callback.onCallClicked(list[adapterPosition].toid)
+                }
+                else{
+                    callback.onCallClicked(callerId)
+
+                }
 
             }
 

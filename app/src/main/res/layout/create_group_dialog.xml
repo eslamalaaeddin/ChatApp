@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:gravity="center">
 
@@ -17,20 +18,23 @@
 
 
         <com.mikhaellopez.circularimageview.CircularImageView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:id="@+id/user_image_view"
-            app:srcCompat="@drawable/ic_group"
+            android:id="@+id/pick_photo_image_view"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:layout_gravity="center"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="32dp"
-            app:civ_border_color="@color/colorPrimary"
-            app:civ_border_width="1dp"
-            android:visibility="visible"
             android:cropToPadding="true"
-            />
+            android:scaleType="centerInside"
+            android:tint="@color/white"
+            app:civ_border_color="@android:color/transparent"
+            app:civ_circle_color="@color/light_gray"
+            app:layout_constraintCircle="@id/user_image_view"
+            app:layout_constraintCircleAngle="120"
+            app:layout_constraintCircleRadius="72dp"
+            app:srcCompat="@drawable/ic_camera"
+            app:tint="@color/white"
+            tools:layout_editor_absoluteX="272dp"
+            tools:layout_editor_absoluteY="404dp"
+            tools:ignore="MissingConstraints" />
 
 
         <EditText
@@ -39,7 +43,7 @@
             android:id="@+id/group_name_edit_text"
             android:hint="Enter group name"
             android:layout_gravity="center"
-            android:background="@android:color/transparent"
+            android:textColorHint="@color/colorAccent"
             />
 
     </LinearLayout>

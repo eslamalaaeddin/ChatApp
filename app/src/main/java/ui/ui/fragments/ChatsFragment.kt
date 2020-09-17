@@ -148,7 +148,7 @@ class ChatsFragment : Fragment() {
 
                         stateList.add(
                             UserStateModel(
-                                date, state, time
+                                date, state, time,"no","no"
                             )
                         )
 
@@ -317,6 +317,9 @@ class ChatsFragment : Fragment() {
                                         val currentMessageType =
                                             snapshot.children.last().child("type").value.toString()
 
+                                        val currentMessageState =
+                                            snapshot.children.last().child("seen").value.toString()
+
                                         lastMessageDateTextView.text =
                                             "${currentMessage.child("date").value.toString()} ${
                                                 currentMessage.child(
@@ -324,17 +327,39 @@ class ChatsFragment : Fragment() {
                                                 ).value.toString()
                                             }"
 
-                                        lastMessageDateTextView.setTextColor(
-                                            ContextCompat.getColor(
-                                                requireContext(),
-                                                R.color.green
+                                        if (currentMessageState == "yes"){
+
+                                            lastMessageDateTextView.setTextColor(
+                                                ContextCompat.getColor(
+                                                    requireContext(),
+                                                    R.color.light_gray
+                                                )
                                             )
-                                        )
 
-                                        messagesCountTextView.visibility = View.VISIBLE
+                                            messagesCountTextView.visibility = View.GONE
 
-                                        messagesCountTextView.text =
-                                            snapshot.childrenCount.toString()
+                                        }
+
+                                        else{
+                                            lastMessageDateTextView.text =
+                                                "${currentMessage.child("date").value.toString()} ${
+                                                    currentMessage.child(
+                                                        "time"
+                                                    ).value.toString()
+                                                }"
+
+                                            lastMessageDateTextView.setTextColor(
+                                                ContextCompat.getColor(
+                                                    requireContext(),
+                                                    R.color.green
+                                                )
+                                            )
+
+                                            messagesCountTextView.visibility = View.VISIBLE
+
+                                            messagesCountTextView.text =
+                                                snapshot.childrenCount.toString()
+                                        }
 
                                         //message is text
                                         if (currentMessageType == "text") {
@@ -432,33 +457,6 @@ class ChatsFragment : Fragment() {
 
                 Log.i(TAG, "CLICKED onClick: ")
 
-//                rootReference.child(Utils.MESSAGES_CHILD).child(currentUserId).child(userId).addListenerForSingleValueEvent(object:ChildEventListener{
-//                    override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-//                        //make messages seen
-//                        rootReference.child("Messages").child(currentUserId).child(userId)
-//                            .child(snapshot.key.toString())
-//                            .child("seen").setValue("yes").addOnCompleteListener {
-//                                rootReference.child("Messages").child(userId).child(currentUserId)
-//                                    .child(snapshot.key.toString())
-//                                    .child("seen").setValue("yes")
-//                            }
-//                    }
-//
-//                    override fun onChildChanged(
-//                        snapshot: DataSnapshot,
-//                        previousChildName: String?
-//                    ) {
-//                    }
-//
-//                    override fun onChildRemoved(snapshot: DataSnapshot) {
-//                    }
-//
-//                    override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-//                    }
-//
-//                    override fun onCancelled(error: DatabaseError) {
-//                    }
-//                })
 
 
                 callback.onUserChatClicked(userName, userId, userImage)
@@ -523,7 +521,7 @@ class ChatsFragment : Fragment() {
 
     //////////////////////////////////////////////////////Groups logic/////////////////////////////////////////////////
     private fun retrieveGroups() {
-        rootReference.child(USERS_CHILD).child("Groups").addValueEventListener(object :
+        rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").addValueEventListener(object :
             ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 groupsList.clear()
@@ -534,7 +532,7 @@ class ChatsFragment : Fragment() {
                     val status = group.child("status").value.toString()
                     val groupId = group.child("gid").value.toString()
 
-                    val currentGroup = GroupModel(name, image, status, groupId)
+                    val currentGroup = GroupModel(name, image, status, groupId,"","")
 
                     groupsList.add(0, currentGroup)
                 }
@@ -564,9 +562,15 @@ class ChatsFragment : Fragment() {
             View.OnClickListener, View.OnLongClickListener {
             private val groupNameTextView: TextView =
                 itemView.findViewById(R.id.group_name_text_view)
-            private val groupLastSeenTextView: TextView =
-                itemView.findViewById(R.id.group_status_text_view)
+            private val lastMessageTextView: TextView =
+                itemView.findViewById(R.id.group_last_message_text_view)
             private val groupImageView: ImageView = itemView.findViewById(R.id.group_image_view)
+
+            private val lastMessageTimeTextView : TextView= itemView.findViewById(R.id.date_text_view)
+            private val lastMessageSenderNameTextView : TextView= itemView.findViewById(R.id.last_message_sender_name_text_view)
+
+            private val checkedMessageImageView: ImageView =
+                itemView.findViewById(R.id.message_checked_image_view)
 
             init {
                 itemView.setOnClickListener(this)
@@ -575,7 +579,7 @@ class ChatsFragment : Fragment() {
 
             fun bind(group: GroupModel) {
                 groupNameTextView.text = group.name
-                groupLastSeenTextView.text = group.status
+               // groupLastSeenTextView.text = group.status
 
                 val imageUrl = group.image
                 if (imageUrl.isNotEmpty()) {
@@ -584,11 +588,146 @@ class ChatsFragment : Fragment() {
                         .placeholder(R.drawable.ic_group)
                         .into(groupImageView)
                 }
+
+                usersReference.child(currentUserId).addValueEventListener(object : ValueEventListener{
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        if (snapshot.hasChild("Groups")){
+                            usersReference.child(currentUserId).child("Groups").child(group.gid).addValueEventListener(object : ValueEventListener{
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    if (snapshot.hasChild("Messages")){
+                                        usersReference.child(currentUserId).child("Groups").
+                                        child(group.gid).child("Messages").addValueEventListener(object : ValueEventListener{
+                                            override fun onDataChange(snapshot: DataSnapshot) {
+                                                val lastMessage = snapshot.children.last()
+                                                val lastMessageTime = "${lastMessage.child("date").value.toString()} ${lastMessage.child("time").value.toString()}"
+
+                                                lastMessageTimeTextView.text = lastMessageTime
+                                            }
+
+                                            override fun onCancelled(error: DatabaseError) {
+                                            }
+                                        })
+                                    }
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                }
+                            })
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                    }
+                })
+
+
+
+               // Users messages
+                rootReference.child(USERS_CHILD).child(currentUserId).addValueEventListener(object : ValueEventListener{
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        if (snapshot.hasChild("Groups")){
+                            rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").addValueEventListener(object : ValueEventListener{
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                  for (group in snapshot.children){
+                                      if (group.hasChild("Messages")){
+                                          //if last message is from me
+                                          val lastMessageSenderId = group.child("Messages").children.last().child("from").value.toString()
+                                          val lastMessage = group.child("Messages").children.last().child("message").value.toString()
+                                          if (lastMessageSenderId == currentUserId){
+                                              lastMessageSenderNameTextView.visibility = View.GONE
+                                              val messageType = group.child("Messages").children.last().child("type").value.toString()
+
+                                              if (messageType == "text"){
+                                                  lastMessageTextView.text = lastMessage
+                                              }
+                                              else if (messageType == "audio"){
+                                                  lastMessageTextView.text = "Audio"
+                                              }
+                                              else if (messageType == "image" || messageType == "captured image"){
+                                                  lastMessageTextView.text = "Photo"
+                                              }
+                                              else if (messageType == "video") {
+                                                  lastMessageTextView.text = "Video"
+                                              }
+                                              else if (messageType == "pdf" || messageType == "docx") {
+                                                  lastMessageTextView.text = "Document"
+                                              }
+                                          }
+                                          //if last message is not from me
+                                          else{
+                                              lastMessageSenderNameTextView.visibility = View.VISIBLE
+                                              val messageType = group.child("Messages").children.last().child("type").value.toString()
+                                              usersReference.child(lastMessageSenderId).addValueEventListener(object : ValueEventListener{
+                                                  override fun onDataChange(snapshot: DataSnapshot) {
+
+                                                      lastMessageSenderNameTextView.text = "${snapshot.child("name").value.toString()}:"
+                                                  }
+
+                                                  override fun onCancelled(error: DatabaseError) {
+                                                  }
+                                              })
+
+                                              if (messageType == "text"){
+                                                  checkedMessageImageView.visibility = View.GONE
+                                                  lastMessageTextView.text = lastMessage
+                                              }
+                                              else if (messageType == "audio"){
+                                                  lastMessageTextView.text ="audio time"
+                                                  checkedMessageImageView.visibility = View.VISIBLE
+                                                  checkedMessageImageView.setImageResource(R.drawable.ic_mic)
+                                                  checkedMessageImageView.setColorFilter(
+                                                      resources.getColor(
+                                                          R.color.green
+                                                      ), PorterDuff.Mode.SRC_IN
+                                                  )
+                                              }
+                                              else if (messageType == "image" || messageType == "captured image"){
+                                                  lastMessageTextView.text ="Photo"
+                                                  checkedMessageImageView.visibility = View.VISIBLE
+                                                  checkedMessageImageView.setImageResource(R.drawable.ic_image)
+                                              }
+                                              else if (messageType == "video") {
+                                                  lastMessageTextView.text ="Video"
+                                                  checkedMessageImageView.visibility = View.VISIBLE
+                                                  checkedMessageImageView.setImageResource(R.drawable.ic_video_call)
+                                                  checkedMessageImageView.setColorFilter(
+                                                      resources.getColor(
+                                                          R.color.light_gray
+                                                      ), PorterDuff.Mode.SRC_IN
+                                                  )
+                                              }
+                                              else if (messageType == "pdf" || messageType == "docx") {
+                                                  lastMessageTextView.text = "Document"
+                                                  checkedMessageImageView.visibility = View.VISIBLE
+                                                  checkedMessageImageView.setImageResource(R.drawable.ic_file)
+                                                  checkedMessageImageView.setColorFilter(
+                                                      resources.getColor(
+                                                          R.color.light_gray
+                                                      ), PorterDuff.Mode.SRC_IN
+                                                  )
+                                              }
+
+                                          }
+                                      }
+                                  }
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                }
+                            })
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                    }
+                })
+
+
             }
 
             override fun onClick(item: View?) {
-                val group = list[adapterPosition]
-                callback.onGroupClicked(group)
+                val groupId = list[adapterPosition].gid
+                callback.onGroupClicked(groupId)
             }
 
             override fun onLongClick(item: View?): Boolean {

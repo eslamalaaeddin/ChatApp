@@ -125,14 +125,17 @@ class StatusFragment : Fragment() {
                         .addValueEventListener(object : ValueEventListener {
                             override fun onDataChange(snapshot: DataSnapshot) {
                                 for (status in snapshot.children) {
-                                    val statusCreationTime =
-                                        status.child("timestamp").value.toString().toLong()
-                                          if (Date().time - statusCreationTime >= 86400) {
-                                              rootReference.child(Utils.USERS_CHILD).child(currentUserId).
-                                              child("Status")
-                                                  .child(status.key.toString()).removeValue()
-                                          }
-                                    Log.i(TAG, "Timestamp: $statusCreationTime")
+
+                                    if (status.hasChild("timestamp")) {
+                                        val statusCreationTime =
+                                            status.child("timestamp").value.toString().toLong()
+                                        if (Date().time - statusCreationTime >= 86400) {
+                                            rootReference.child(Utils.USERS_CHILD)
+                                                .child(currentUserId).child("Status")
+                                                .child(status.key.toString()).removeValue()
+                                        }
+                                        Log.i(TAG, "Timestamp: $statusCreationTime")
+                                    }
                                 }
                                 }
 

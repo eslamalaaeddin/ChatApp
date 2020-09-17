@@ -5,7 +5,7 @@ import models.GroupModel
 //to delegate the response to clicks to the hosting activity
 interface Callback {
     //for group fragment clicks
-    fun onGroupClicked(groupName:GroupModel)
+    fun onGroupClicked(groupId:String)
 
     //for chat fragment clicks
     fun onUserChatClicked(userName:String, userId:String ,userImage:String)

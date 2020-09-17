@@ -5,9 +5,11 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -76,7 +78,33 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
             notificationManager.notify(notificationID, notification)
         }
-        //Message notification
+        //text Message notification
+        else if (message.data["messageType"] == "audio" ||
+            message.data["messageType"] == "video" ||
+            message.data["messageType"] == "image" ||message.data["messageType"] == "captured image"){
+            val intent = Intent(this, PrivateChatActivity::class.java)
+            intent.putExtra(USER_ID,message.data["uid"])
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationID = Random.nextInt()
+
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                createNotificationChannel(notificationManager)
+            }
+
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(message.data["messageType"])
+                .setContentText(message.data["messageKey"])
+                .setSmallIcon(R.drawable.whatsapp)
+                .setAutoCancel(true)
+                .setSound(Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE+ "://" +this.packageName +"/"+R.raw.new_message_sound))
+                .setContentIntent(pendingIntent)
+                .build()
+
+            notificationManager.notify(notificationID, notification)
+        }
+        //text message
         else{
             val intent = Intent(this, PrivateChatActivity::class.java)
             intent.putExtra(USER_ID,message.data["uid"])
@@ -94,6 +122,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 .setContentText(message.data["message"])
                 .setSmallIcon(R.drawable.whatsapp)
                 .setAutoCancel(true)
+                .setSound(Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE+ "://" +this.packageName +"/"+R.raw.new_message_sound))
                 .setContentIntent(pendingIntent)
                 .build()
 

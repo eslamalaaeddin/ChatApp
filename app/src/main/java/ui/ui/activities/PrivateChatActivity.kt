@@ -22,6 +22,7 @@ import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -34,7 +35,6 @@ import com.example.whatsapp.Utils.MESSAGES_CHILD
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityPrivateChatBinding
 import com.example.whatsapp.databinding.PrivateMessageLayoutBinding
-import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
@@ -42,16 +42,11 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.clear_chat_dialog.view.*
-import kotlinx.android.synthetic.main.create_group_dialog.view.*
-import kotlinx.android.synthetic.main.create_group_dialog.view.cancel_button
-import kotlinx.android.synthetic.main.create_group_dialog.view.user_image_view
 import kotlinx.android.synthetic.main.custom_toolbar.view.*
-import kotlinx.android.synthetic.main.private_message_layout.*
 import kotlinx.android.synthetic.main.video_player_dialog.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import models.GroupModel
 import models.PrivateMessageModel
 import notifications.*
 import java.io.ByteArrayOutputStream
@@ -82,7 +77,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         const val NOTIFICATION = "NOTIFICATION"
     }
 
-    private lateinit var activityPrivateChatBinding: ActivityPrivateChatBinding
+    private lateinit var privateChatBinding: ActivityPrivateChatBinding
 
     private lateinit var privateMessageLayoutBinding: PrivateMessageLayoutBinding
 
@@ -122,6 +117,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     private lateinit var myMenu: Menu
 
+    private var swipedMessageKey = ""
+
     private lateinit var myItemView: View
     private lateinit var myViewHolder: RecyclerView.ViewHolder
 
@@ -159,7 +156,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        activityPrivateChatBinding =
+        privateChatBinding =
             DataBindingUtil.setContentView(this, R.layout.activity_private_chat)
 
         auth = FirebaseAuth.getInstance()
@@ -186,7 +183,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         progressDialog = ProgressDialog(this)
         progressDialog.setCanceledOnTouchOutside(false)
 
-        activityPrivateChatBinding.sendMessageButton.setOnClickListener {
+        privateChatBinding.sendMessageButton.setOnClickListener {
             if (!blocked){
                 sendMessage()
                 pushNotification()
@@ -200,10 +197,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
         val linearLayout = LinearLayoutManager(this)
         linearLayout.stackFromEnd = true
-        activityPrivateChatBinding.privateChatRecyclerView.layoutManager = linearLayout
-        activityPrivateChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount - 1)
+        privateChatBinding.privateChatRecyclerView.layoutManager = linearLayout
+        privateChatBinding.privateChatRecyclerView.scrollToPosition(messagesAdapter.itemCount - 1)
 
-        activityPrivateChatBinding.attachFileButton.setOnClickListener {
+        privateChatBinding.attachFileButton.setOnClickListener {
 
             if (!blocked){
                 bottomSheetDialog = BottomSheetDialog()
@@ -218,7 +215,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
         }
 
-        activityPrivateChatBinding.cameraButton.setOnClickListener {
+        privateChatBinding.cameraButton.setOnClickListener {
 
             if (!blocked){
                 takePhoto()
@@ -229,7 +226,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
         }
 
-        activityPrivateChatBinding.sendMessageEditText.addTextChangedListener(object : TextWatcher {
+        privateChatBinding.sendMessageEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
             }
 
@@ -239,13 +236,16 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
             override fun afterTextChanged(text: Editable?) {
                 if (text.toString().isEmpty()) {
-                    activityPrivateChatBinding.sendMessageButton.visibility = View.INVISIBLE
-                    activityPrivateChatBinding.sendVoiceMessageButton.visibility = View.VISIBLE
-                    activityPrivateChatBinding.cameraButton.visibility = View.VISIBLE
+                    privateChatBinding.sendMessageButton.visibility = View.INVISIBLE
+                    privateChatBinding.sendVoiceMessageButton.visibility = View.VISIBLE
+                    privateChatBinding.cameraButton.visibility = View.VISIBLE
+                    makeMeNotTyping()
                 } else {
-                    activityPrivateChatBinding.sendMessageButton.visibility = View.VISIBLE
-                    activityPrivateChatBinding.sendVoiceMessageButton.visibility = View.INVISIBLE
-                    activityPrivateChatBinding.cameraButton.visibility = View.GONE
+                    privateChatBinding.sendMessageButton.visibility = View.VISIBLE
+                    privateChatBinding.sendVoiceMessageButton.visibility = View.INVISIBLE
+                    privateChatBinding.cameraButton.visibility = View.GONE
+
+                    makeMeTyping()
                 }
             }
         })
@@ -253,7 +253,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         fileName = Environment.getExternalStorageDirectory().absolutePath
         fileName+= "/recorded_message.3gp"
 
-        activityPrivateChatBinding.sendVoiceMessageButton.setOnTouchListener { p0, motionEvent ->
+        privateChatBinding.sendVoiceMessageButton.setOnTouchListener { p0, motionEvent ->
 
             if (!blocked){
 
@@ -284,23 +284,129 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             true
         }
 
-        activityPrivateChatBinding.blockInfoTextView.setOnClickListener {
+        privateChatBinding.blockInfoTextView.setOnClickListener {
             showUnBlockContactDialog()
         }
 
 
-        activityPrivateChatBinding.mainToolbar.setOnClickListener {
-                activityPrivateChatBinding.replyMessageLayout.visibility = View.VISIBLE
+        privateChatBinding.mainToolbar.setOnClickListener {
+                privateChatBinding.replyMessageLayout.visibility = View.VISIBLE
         }
 
-        activityPrivateChatBinding.cancelReplyingImageView.setOnClickListener {
-            activityPrivateChatBinding.replyMessageLayout.visibility = View.GONE
+        privateChatBinding.cancelReplyingImageView.setOnClickListener {
+            privateChatBinding.replyMessageLayout.visibility = View.GONE
+            swipedMessageKey = ""
         }
 
+        //Swiping
+        val itemTouchHelper =
+            ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0,
+                 ItemTouchHelper.RIGHT) {
+                override fun onMove(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder
+                ): Boolean {
+                    return false
+                }
 
+                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                    when(direction) {
+                        ItemTouchHelper.RIGHT -> {
+                            messagesAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                            privateChatBinding.replyMessageLayout.visibility = View.VISIBLE
+                            val messageType = messagesList[viewHolder.adapterPosition].type
+                            swipedMessageKey  = messagesList[viewHolder.adapterPosition].messageKey
+
+                            if (messagesList[viewHolder.adapterPosition].from == currentUserId) {
+                                privateChatBinding.replyToTextView.text = "You"
+
+                            }
+
+                            else{
+                                rootRef.child(USERS_CHILD).child(receiverId).child("name").addValueEventListener(object : ValueEventListener{
+                                    override fun onDataChange(snapshot: DataSnapshot) {
+                                        privateChatBinding.replyToTextView.text = snapshot.value.toString()
+                                    }
+
+                                    override fun onCancelled(error: DatabaseError) {
+                                    }
+                                })
+                            }
+
+                            if (messageType == "text") {
+                                privateChatBinding.replyMessageNameTextView.text =
+                                    messagesList[viewHolder.adapterPosition].message
+
+                                privateChatBinding.replyMessageTypeImageView.visibility = View.GONE
+
+                                privateChatBinding.replyMessageImage.visibility = View.VISIBLE
+
+                            }
+
+                            else if (messageType == "image" || messageType == "captured image"){
+
+                                privateChatBinding.replyMessageNameTextView.text = "Photo"
+
+                                privateChatBinding.replyMessageTypeImageView.visibility = View.VISIBLE
+                                privateChatBinding.replyMessageTypeImageView.setImageResource(R.drawable.ic_image)
+
+                                privateChatBinding.replyMessageImage.visibility = View.VISIBLE
+                                Picasso.get().
+                                load(messagesList[viewHolder.adapterPosition].message).
+                                into(privateChatBinding.replyMessageImage)
+                            }
+
+                            else if (messageType == "video"){
+
+                                privateChatBinding.replyMessageNameTextView.text = "Video"
+
+                                privateChatBinding.replyMessageTypeImageView.visibility = View.VISIBLE
+                                privateChatBinding.replyMessageTypeImageView.setImageResource(R.drawable.ic_video)
+
+                                privateChatBinding.replyMessageImage.visibility = View.VISIBLE
+
+                                Glide.with(this@PrivateChatActivity)
+                                    .asBitmap().load(messagesList[viewHolder.adapterPosition].message)
+                                    .into(privateChatBinding.replyMessageImage)
+                            }
+
+                            else if (messageType == "docx" || messageType == "pdf"){
+
+                                privateChatBinding.replyMessageNameTextView.text = "Document"
+
+                                privateChatBinding.replyMessageTypeImageView.visibility = View.VISIBLE
+                                privateChatBinding.replyMessageTypeImageView.setImageResource(R.drawable.ic_file)
+
+                                privateChatBinding.replyMessageImage.visibility = View.VISIBLE
+
+                                privateChatBinding.replyMessageImage.setImageResource(R.drawable.ic_file)
+
+                            }
+
+                            else if (messageType == "audio"){
+
+                                privateChatBinding.replyMessageNameTextView.text = "Audio"
+
+                                privateChatBinding.replyMessageTypeImageView.visibility = View.VISIBLE
+                                privateChatBinding.replyMessageTypeImageView.setImageResource(R.drawable.ic_mic)
+
+                                privateChatBinding.replyMessageImage.visibility = View.VISIBLE
+
+                                privateChatBinding.replyMessageImage.setImageResource(R.drawable.ic_mic)
+
+                            }
+
+                        }
+                    }
+                }
+
+
+            })
+
+        itemTouchHelper.attachToRecyclerView(privateChatBinding.privateChatRecyclerView)
 
     }
-
 
     private fun checkForUpButton() {
         if (!longClick) {
@@ -322,6 +428,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     private fun clearMenuAndShowMessageStuff() {
         myMenu.clear()
         menuInflater.inflate(R.menu.long_click_menu,myMenu)
+        toolbarView.user_image_view_custom.visibility = View.GONE
+        toolbarView.user_name_text_view_custom.visibility = View.GONE
+        toolbarView.user_last_seen_custom.visibility = View.GONE
+    }
+
+    private fun clearMenuAndShowTextMessageStuff() {
+        myMenu.clear()
+        menuInflater.inflate(R.menu.long_click_text_menu,myMenu)
         toolbarView.user_image_view_custom.visibility = View.GONE
         toolbarView.user_name_text_view_custom.visibility = View.GONE
         toolbarView.user_last_seen_custom.visibility = View.GONE
@@ -395,7 +509,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
 
 
-                        rootRef.updateChildren(messageBodyDetails)
+                        rootRef.updateChildren(messageBodyDetails).addOnCompleteListener {
+                            pushNotification()
+                        }
                         progressDialog.dismiss()
                     }
                 }.addOnFailureListener{
@@ -467,6 +583,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                                 Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
                             }
+                            else{
+                                pushMediaNotification("video",messagePushId)
+                            }
                             progressDialog.dismiss()
                         }
 
@@ -537,6 +656,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                                 Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
                             }
+                            else{
+                                pushMediaNotification("audio",messagePushId)
+                            }
                             progressDialog.dismiss()
                         }
 
@@ -545,7 +667,6 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 }
 
             }
-
 
 
             else if (checker =="image") {
@@ -606,6 +727,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                             if (!task.isSuccessful) {
                                 Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
+                            }
+                            else{
+                                pushMediaNotification("image",messagePushId)
                             }
                             progressDialog.dismiss()
                         }
@@ -694,6 +818,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                             Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
                         }
+                        else{
+                            pushMediaNotification("captured image",messagePushId)
+                        }
                         progressDialog.dismiss()
                     }
 
@@ -711,10 +838,35 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     override fun onStart() {
         super.onStart()
+        makeMeChatting()
         retrieveMessages()
         updateUserStatus("online")
         displayLastSeen()
         checkBlockedOrNot()
+        makeMessagesSeen()
+    }
+
+    private fun makeMessagesSeen() {
+
+                rootRef.child(MESSAGES_CHILD).child(receiverId).child(currentUserId).
+                addValueEventListener(object:ValueEventListener{
+                    override fun onDataChange(snapshot: DataSnapshot) {
+
+                        for (message in snapshot.children){
+                            //make messages seen
+                            rootRef.child("Messages").child(receiverId).child(currentUserId)
+                                .child(message.key.toString())
+                                .child("seen").setValue("yes")
+                        }
+
+
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+
+                    }
+                })
+
     }
 
 
@@ -724,7 +876,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
 
 
-        setSupportActionBar(activityPrivateChatBinding.mainToolbar)
+        setSupportActionBar(privateChatBinding.mainToolbar)
 //        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowCustomEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)
@@ -767,15 +919,15 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
         upButtonImageView.setOnClickListener { checkForUpButton() }
 
-        activityPrivateChatBinding.mainToolbar.setTitleTextColor(Color.WHITE)
-        activityPrivateChatBinding.mainToolbar.overflowIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
-        activityPrivateChatBinding.mainToolbar.navigationIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
+        privateChatBinding.mainToolbar.setTitleTextColor(Color.WHITE)
+        privateChatBinding.mainToolbar.overflowIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
+        privateChatBinding.mainToolbar.navigationIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
     }
 
 
     @SuppressLint("SimpleDateFormat")
     private fun sendMessage() {
-         currentMessage = activityPrivateChatBinding.sendMessageEditText.editableText.toString()
+         currentMessage = privateChatBinding.sendMessageEditText.editableText.toString()
 
         if(currentMessage.isNotEmpty()) {
             val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
@@ -831,7 +983,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         }
         //send a broadcast intent
        // sendBroadcast(Intent(ACTION_SHOW_NOTIFICATION), PERM_PRIVATE)
-        activityPrivateChatBinding.sendMessageEditText.text.clear()
+        privateChatBinding.sendMessageEditText.text.clear()
     }
 
     private fun getTokens() {
@@ -862,6 +1014,13 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         if (currentMessage.isNotEmpty()){
             sendNotification(notification)
         }
+    }
+
+    private fun pushMediaNotification(messageType:String,messageKey:String){
+        val notification =   PushMediaNotification(
+            MediaNotificationData(currentUserName, messageType,messageKey, Utils.senderId), receiverToken
+        )
+            sendMediaNotification(notification)
     }
 
     private fun pushVideoChatNotificationRequest () {
@@ -903,6 +1062,19 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         }
     }
 
+    private fun sendMediaNotification(notification: PushMediaNotification) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = RetrofitInstance.api.postMediaNotification(notification)
+            if(response.isSuccessful) {
+                Log.d(TAG, "Response: ${Gson().toJson(response)}")
+            } else {
+                Log.e(TAG, response.errorBody().toString())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, e.toString())
+        }
+    }
+
     private fun getSenderName(){
         usersRef.child(senderId).child("name").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -925,19 +1097,28 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 val date = snapshot.child("state").child("date").value.toString()
                 val state = snapshot.child("state").child("state").value.toString()
 
-                if (state == "offline") {
+                if (snapshot.child("state").hasChild("typing")) {
+                    val typingState = snapshot.child("state").child("typing").value.toString()
+                    if (typingState == "yes") {
+                        lastSeenTextView.text = "typing..."
+                    }
+                    else if (typingState == "no"){
+                        if (state == "offline") {
 
-                    lastSeenTextView.text = "Last seen: $time, $date"
-                } else if (state == "online") {
-                    lastSeenTextView.apply {
-                        text = state
-                        //setBackgroundResource(R.color.colorPrimary)
+                            lastSeenTextView.text = "Last seen: $time, $date"
+                        } else if (state == "online") {
+                            lastSeenTextView.apply {
+                                text = state
+                                //setBackgroundResource(R.color.colorPrimary)
+                            }
+                        }
                     }
                 }
+
+
             }
 
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
             }
         })
     }
@@ -978,6 +1159,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     override fun onStop() {
         super.onStop()
+        makeMeNotChatting()
         if (backPressed){
             updateUserStatus("online")
             backPressed = false
@@ -991,6 +1173,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     override fun onDestroy() {
         super.onDestroy()
+        makeMeNotChatting()
         if (backPressed){
             updateUserStatus("online")
             backPressed = false
@@ -1040,6 +1223,10 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             val globalSenderLayout:LinearLayout = itemView.findViewById(R.id.sender_message_layout)
             val globalReceiverLayout:LinearLayout = itemView.findViewById(R.id.receiver_message_general_layout)
 
+            val senderImageIndicator:ImageView = itemView.findViewById(R.id.sender_image_indicator)
+            val receiverImageIndicator:ImageView = itemView.findViewById(R.id.receiver_image_indicator)
+            val senderMessageCheckedImageView:ImageView = itemView.findViewById(R.id.sender_message_checked_image_view)
+
 
 
             init {
@@ -1080,9 +1267,14 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     }
                 }
 
+
                 if (longClick && !shortClick) {
                     item?.setBackgroundResource(R.color.light_blue)
                     keysSelectedOnLongClick[adapterPosition] = messagesList[adapterPosition].messageKey
+                }
+
+                if (longClick && shortClick && keysSelectedOnLongClick.isEmpty()){
+                    longClick = false
                 }
 
                 shortClick = false
@@ -1101,7 +1293,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 }
 
                 else if (messages[adapterPosition].type == "text"){
-                    clearMenuAndShowMessageStuff()
+                    clearMenuAndShowTextMessageStuff()
 
                 }
 
@@ -1163,6 +1355,17 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 holder.resetMargins()
             }
 
+            //sender
+//            if (swipedMessageKey == messagesList[holder.adapterPosition].messageKey
+//                &&messagesList[holder.adapterPosition].from == currentUserId  ) {
+//                holder.senderImageIndicator.visibility = View.VISIBLE
+//                holder.receiverImageIndicator.visibility = View.GONE
+//            }
+//            else if(swipedMessageKey == messagesList[holder.adapterPosition].messageKey
+//                &&messagesList[holder.adapterPosition].from == receiverId  ) {
+//                holder.senderImageIndicator.visibility = View.GONE
+//                holder.receiverImageIndicator.visibility = View.VISIBLE
+//            }
 
 
             if (fromMessagesType == "text") {
@@ -1500,83 +1703,55 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 }
             }
 
-//            if (fromUserId == senderId) {
-//                holder.itemView.setOnLongClickListener {
-//
-//            }
-//
-//            else{
-//                holder.itemView.setOnLongClickListener {
-//
-//                    if (myMessages.type == "pdf" || myMessages.type == "docx"){
-//                        val options = arrayOf("Download","Delete for me", "Cancel")
-//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
-//                        alertDialogBuilder.setTitle("Delete message?")
-//
-//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
-//                            when(position) {
-//                                //Download
-//                                0 -> {
-//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-//                                    holder.itemView.context.startActivity(downloadIntent)
-//                                }
-//                                //Delete for me
-//                                1 -> {
-//
-//                                }
-//                                //Delete for every one
-//                                2 -> {}
-//
-//                            }
-//                        }.show()
-//                    }
-//
-//                    else if (myMessages.type == "text"){
-//                        val options = arrayOf("Delete for me", "Cancel")
-//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
-//                        alertDialogBuilder.setTitle("Delete message?")
-//
-//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
-//                            when(position) {
-//                                //Delete for me
-//                                0 -> {
-//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-//                                    holder.itemView.context.startActivity(downloadIntent)
-//                                }
-//                                //Delete for every one
-//                                1 -> {
-//
-//                                }
-//
-//                            }
-//                        }.show()
-//                    }
-//
-//                    else if (myMessages.type == "image"){
-//                        val options = arrayOf("View","Download","Delete for me", "Cancel")
-//                        val alertDialogBuilder = AlertDialog.Builder(holder.itemView.context)
-//                        alertDialogBuilder.setTitle("Delete message?")
-//
-//                        alertDialogBuilder.setItems(options) { dialogInterface, position->
-//                            when(position) {
-//                                //Delete for me
-//                                0 -> {
-//                                    val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(myMessages.message))
-//                                    holder.itemView.context.startActivity(downloadIntent)
-//                                }
-//                                //Delete for every one
-//                                1 -> {
-//
-//                                }
-//
-//                            }
-//                        }.show()
-//                    }
-//
-//                    return@setOnLongClickListener true
-//
-//                }
-//            }
+            rootRef.child(USERS_CHILD).child(receiverId).child("state")
+               .addValueEventListener(object : ValueEventListener{
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        if (snapshot.hasChild("chatting")) {
+                            rootRef.child(USERS_CHILD).child(receiverId).child("state").child("chatting")
+                                .addValueEventListener(object :ValueEventListener{
+                                    override fun onDataChange(snapshot: DataSnapshot) {
+                                        if (currentMessage.seen == "yes" && snapshot.value.toString() == "yes") {
+                                            holder.senderMessageCheckedImageView.setColorFilter(
+                                                resources.getColor(
+                                                    R.color.blue
+                                                ), PorterDuff.Mode.SRC_IN
+                                            )
+
+                                            rootRef.child(MESSAGES_CHILD).child(senderId).child(receiverId).child(currentMessage.messageKey).child("submitted").setValue("yes").addOnCompleteListener {
+                                                rootRef.child(MESSAGES_CHILD).child(receiverId).child(senderId).child(currentMessage.messageKey).child("submitted").setValue("yes")
+                                            }
+                                        }
+
+                                    }
+
+                                    override fun onCancelled(error: DatabaseError) {
+                                    }
+                                })
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                    }
+                } )
+
+            rootRef.child(MESSAGES_CHILD).child(currentUserId).child(receiverId).child(currentMessage.messageKey).
+            addValueEventListener(object : ValueEventListener{
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.hasChild("submitted")){
+                        holder.senderMessageCheckedImageView.setColorFilter(
+                            resources.getColor(
+                                R.color.blue
+                            ), PorterDuff.Mode.SRC_IN
+                        )
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
+
+
+
         }
 
        override fun getItemId(position: Int): Long {
@@ -1597,9 +1772,6 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         return true
     }
 
-    private fun deleteSelectedMessages(positions:MutableList<Int>) {
-
-    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
@@ -1619,15 +1791,30 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
             R.id.clear_chat -> showClearChatDialog()
             R.id.private_chat_block_user -> showBlockContactDialog()
-            R.id.reply_message -> Toast.makeText(this, "Reply", Toast.LENGTH_SHORT).show()
             R.id.star_message -> Toast.makeText(this, "Star", Toast.LENGTH_SHORT).show()
             R.id.delete_message -> removeMessage()
             R.id.copy_text_message -> Toast.makeText(this, "Copy", Toast.LENGTH_SHORT).show()
-            R.id.forward_message -> Toast.makeText(this, "Forward", Toast.LENGTH_SHORT).show()
+            R.id.forward_message -> shareSelectedMessages(keysSelectedOnLongClick)
 
 
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun shareSelectedMessages(keysMap:HashMap<Int,String>) {
+//        if (keysMap.isNotEmpty()){
+//        val shareIntent =  Intent(Intent.ACTION_SEND);
+//        shareIntent.type = "text/plain";
+//        for (item in keysMap){
+//            shareIntent.putExtra(Intent.EXTRA_TEXT, item.value)
+//        }
+          //  startActivity(shareIntent)
+            longClick = false
+            shortClick = false
+            keysSelectedOnLongClick.clear()
+//        }
+
+
     }
 
     private fun showBlockContactDialog() {
@@ -1701,7 +1888,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 rootRef.child(USERS_CHILD).child(receiverId).child("Blocked").child(currentUserId).removeValue().addOnCompleteListener {
                     if (it.isComplete){
                         blocked = false
-                        activityPrivateChatBinding.blockInfoTextView.visibility = View.GONE
+                        privateChatBinding.blockInfoTextView.visibility = View.GONE
                     }
                 }
             }
@@ -1728,6 +1915,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                         if (it.isComplete){
                             messagesAdapter.notifyDataSetChanged()
                             myItemView.setBackgroundResource(android.R.color.transparent)
+                            shortClick = false
+                            keysSelectedOnLongClick.clear()
                         }
                     }
                 }
@@ -1984,7 +2173,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 for (child in snapshot.children) {
                     if (child.key.toString() == senderId) {
                         blocked = true
-                        activityPrivateChatBinding.blockInfoTextView.visibility = View.VISIBLE
+                        privateChatBinding.blockInfoTextView.visibility = View.VISIBLE
                     }
                 }
             }
@@ -2057,6 +2246,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 messageImageBody["date"] = currentDate
                 messageImageBody["time"] = currentTime
                 messageImageBody["messageTime"] = messageTime
+                messageImageBody["seen"] = "no"
 
                 val messageBodyDetails = HashMap<String, Any>()
                 messageBodyDetails["$messageSenderRef/$messagePushId"] = messageImageBody
@@ -2066,6 +2256,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     if (!task.isSuccessful) {
                         Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
 
+                    }
+                    else{
+                        pushMediaNotification("audio",messagePushId)
                     }
                 }
 
@@ -2139,7 +2332,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     }
 
     private fun retrieveMessages() {
-        rootRef.child(MESSAGES_CHILD).child(currentUserId).child(receiverId).addValueEventListener(
+        rootRef.child(MESSAGES_CHILD).child(receiverId).child(senderId).addValueEventListener(
             object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     messagesList.clear()
@@ -2178,11 +2371,11 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     }
 
                     messagesAdapter = PrivateMessagesAdapter(messagesList)
-                    activityPrivateChatBinding.privateChatRecyclerView.adapter = messagesAdapter
+                    privateChatBinding.privateChatRecyclerView.adapter = messagesAdapter
 //                messagesAdapter.notifyDataSetChanged()
                     //to scroll to the bottom of recycler view
                     if (messagesList.isNotEmpty()) {
-                        activityPrivateChatBinding.privateChatRecyclerView.smoothScrollToPosition(
+                        privateChatBinding.privateChatRecyclerView.smoothScrollToPosition(
                             messagesList.size - 1
                         )
                     }
@@ -2192,6 +2385,46 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 override fun onCancelled(error: DatabaseError) {
                 }
             })
+    }
+
+    private fun makeMeChatting(){
+        rootRef.child(USERS_CHILD).child(currentUserId).child("state").child("chatting").setValue("yes")
+    }
+
+    private fun makeMeTyping(){
+        rootRef.child(USERS_CHILD).child(currentUserId).child("state").child("typing").setValue("yes")
+    }
+
+    private fun makeMeNotTyping(){
+        rootRef.child(USERS_CHILD).child(currentUserId).child("state").child("typing").setValue("no")
+    }
+
+    private fun makeMeNotChatting(){
+        rootRef.child(USERS_CHILD).child(currentUserId).child("state").child("chatting").setValue("no")
+    }
+
+    private fun checkIfUserIsTyping() {
+        rootRef.child(USERS_CHILD).child(currentUserId).child("state").addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+               if (snapshot.hasChild("typing")){
+                   rootRef.child(USERS_CHILD).child(currentUserId).
+                   child("state").child("typing").addValueEventListener(object : ValueEventListener{
+                       override fun onDataChange(snapshot: DataSnapshot) {
+                         if (snapshot.value.toString() == "yes"){
+
+                         }
+                       }
+
+                       override fun onCancelled(error: DatabaseError) {
+                       }
+                   })
+               }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+        })
+
     }
 
 }

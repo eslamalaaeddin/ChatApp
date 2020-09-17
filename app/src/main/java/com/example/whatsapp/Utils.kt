@@ -1,5 +1,6 @@
 package com.example.whatsapp
 
+import models.ContactsModel
 import ui.ui.fragments.ChatsFragment
 
 /*
@@ -31,6 +32,8 @@ object Utils {
 
     var privateChatsAdapter : ChatsFragment.ContactAdapterFromFirebase? = null
     var groupsChatAdapter : ChatsFragment.GroupsAdapter? = null
+
+    var dummyList = mutableListOf<ContactsModel>()
 
 
 

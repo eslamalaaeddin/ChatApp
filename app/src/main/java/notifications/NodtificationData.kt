@@ -11,3 +11,10 @@ data class VideoChatNotificationData (
     val message:String,
     val uid:String
 )
+
+data class MediaNotificationData (
+    val title:String,
+    val messageType:String,
+    val messageKey:String,
+    val uid:String
+)

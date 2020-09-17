@@ -107,6 +107,7 @@
                     android:layout_height="match_parent"
                     android:scaleType="centerInside"
                     android:cropToPadding="true"
+                    android:tint="@color/white"
                     app:srcCompat="@drawable/ic_mic"
                     app:civ_border_color="@color/text_input_box"
                     app:civ_circle_color="@color/text_input_box"

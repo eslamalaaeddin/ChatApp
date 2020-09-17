@@ -196,7 +196,7 @@ class MainActivity : AppCompatActivity() , Callback {
 
             if (groupName.isNotEmpty()) {
                 //Should be take from user input
-                createNewGroup(GroupModel(groupName,"","Hello I am $groupName",""))
+                createNewGroup(GroupModel(groupName,"","Hello I am $groupName","","",""))
                 groupDialog.dismiss()
             }
 
@@ -274,7 +274,8 @@ class MainActivity : AppCompatActivity() , Callback {
 
                 R.id.find_friends_item -> sendUserToFindFriendsActivity()
 //                R.id.create_new_group -> showNewGroupDialog()
-                R.id.create_new_group -> showNewGroupDialog()
+//                R.id.create_new_group -> showNewGroupDialog()
+                R.id.create_new_group -> startActivity(Intent(this,AddGroupActivity::class.java))
                 R.id.settings_item -> sendUserToSettingsActivity()
                 R.id.log_out_item -> {
                     auth.signOut()
@@ -286,14 +287,14 @@ class MainActivity : AppCompatActivity() , Callback {
 
 
 
-    private fun sendUserToGroupChatActivity(group: GroupModel) {
+    private fun sendUserToGroupChatActivity(groupId: String) {
         val groupChatIntent = Intent(this , GroupsChatActivity::class.java)
-        groupChatIntent.putExtra(GROUP_ID,group.gid)
+        groupChatIntent.putExtra(GROUP_ID,groupId)
         startActivity(groupChatIntent)
     }
 
-    override fun onGroupClicked(group: GroupModel) {
-        sendUserToGroupChatActivity(group)
+    override fun onGroupClicked(groupId: String) {
+        sendUserToGroupChatActivity(groupId)
     }
 
     override fun onUserChatClicked(userName: String, userId: String, userImage:String) {
@@ -302,6 +303,8 @@ class MainActivity : AppCompatActivity() , Callback {
         privateChatIntent?.putExtra(USER_ID,userId)
         privateChatIntent?.putExtra(USER_IMAGE,userImage)
         startActivity(privateChatIntent)
+
+
     }
 
     override fun onStatusClicked(id: String) {

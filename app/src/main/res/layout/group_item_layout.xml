@@ -44,29 +44,69 @@
             >
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:id="@+id/group_name_text_view"
+                android:layout_gravity="left"
                 tools:text="Friends for ever"
                 android:textSize="14sp"
                 android:textColor="@android:color/black"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/date_text_view"
+                tools:text="9/7/2020"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:textColor="@color/light_gray"
                 />
 
 
 
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:gravity="center"
+            >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/last_message_sender_name_text_view"
+                tools:text="Mohamed"
+                android:textSize="12sp"
+
+                android:layout_marginEnd="1dp"
+                android:textColor="@android:color/black"
+                />
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                app:srcCompat="@drawable/ic_check_24"
+                android:layout_marginEnd="1dp"
+                android:id="@+id/message_checked_image_view"
+                app:tint="@color/light_gray" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/group_status_text_view"
+            android:id="@+id/group_last_message_text_view"
             tools:text="Last seen"
             android:textSize="12sp"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="1dp"
             android:layout_marginEnd="4dp"
             android:textColor="@android:color/black"
             />
 
+        </LinearLayout>
 
 
     </LinearLayout>

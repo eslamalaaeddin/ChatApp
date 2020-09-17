@@ -17,4 +17,9 @@ interface NotificationApi {
     @Headers("Authorization: key=$SERVER_KEY", "Content-Type:$CONTENT_TYPE")
     @POST("fcm/send")
     suspend fun postVideoNotification(@Body notification: PushVideoChatNotification): Response<ResponseBody>
+
+
+    @Headers("Authorization: key=$SERVER_KEY", "Content-Type:$CONTENT_TYPE")
+    @POST("fcm/send")
+    suspend fun postMediaNotification(@Body notification: PushMediaNotification): Response<ResponseBody>
 }

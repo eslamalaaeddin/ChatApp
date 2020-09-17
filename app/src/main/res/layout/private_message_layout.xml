@@ -27,6 +27,14 @@
             android:id="@+id/receiver_message_general_layout"
             android:background="@drawable/receiver_messages_background"
             >
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:layout_marginTop="4dp"
+                android:visibility="gone"
+                android:id="@+id/receiver_image_indicator"
+                android:backgroundTint="@color/dark_orange"
+                android:background="@drawable/round_background"/>
 
             <TextView
                 android:id="@+id/receiver_name_text_view"
@@ -116,7 +124,7 @@
                             android:paddingStart="2dp"
                             android:layout_gravity="bottom|end"
                             tools:text="0:23"
-                            android:textSize="12sp"
+                            android:textSize="10sp"
                             android:id="@+id/message_time_received_text_view" />
 
 
@@ -128,7 +136,7 @@
                             android:layout_gravity="bottom|end"
                             android:paddingEnd="2dp"
                             tools:text="5:02 AM"
-                            android:textSize="12sp"
+                            android:textSize="10sp"
                             android:id="@+id/receiver_time_sent_text_view" />
 
                     </LinearLayout>
@@ -157,7 +165,14 @@
             android:background="@drawable/sender_messages_background"
             android:id="@+id/sender_message_layout">
 
-
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:layout_marginTop="4dp"
+                android:id="@+id/sender_image_indicator"
+                android:backgroundTint="@color/blue"
+                android:visibility="gone"
+                android:background="@drawable/round_background"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -246,7 +261,7 @@
                         android:layout_gravity="bottom|end"
 
                         tools:text="00:23"
-                        android:textSize="12sp"
+                        android:textSize="10sp"
                         android:id="@+id/message_time_sent_text_view" />
 
 
@@ -258,8 +273,17 @@
                         android:paddingEnd="2dp"
                         android:layout_gravity="bottom|end"
                         tools:text="5:02 AM"
-                        android:textSize="12sp"
+                        android:textSize="10sp"
                         android:id="@+id/sender_time_sent_text_view" />
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:gravity="bottom|end"
+                        android:paddingEnd="2dp"
+                        android:src="@drawable/ic_check"
+                        android:layout_gravity="bottom|end"
+                        android:id="@+id/sender_message_checked_image_view" />
 
 
                 </LinearLayout>
@@ -268,6 +292,10 @@
             </LinearLayout>
 
         </LinearLayout>
+
+
+
+
 
 
     </FrameLayout>
