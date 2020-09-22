@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:orientation="horizontal"
+    android:padding="1dp"
+    >
+
+
+    <com.mikhaellopez.circularimageview.CircularImageView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:id="@+id/participant_image_view"
+        app:srcCompat="@drawable/ic_person"
+        android:layout_gravity="start"
+        app:civ_border_color="@android:color/transparent"
+        android:cropToPadding="true"
+        />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        >
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/participant_name_text_view"
+                android:layout_marginEnd="4dp"
+                tools:text="Islam AlaaEddin"
+                android:textSize="16sp"
+                android:layout_marginStart="4dp"
+                android:textColor="@android:color/black"
+                />
+
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/participant_status_text_view"
+                tools:text="Ok"
+                android:textSize="12sp"
+                android:gravity="left|center"
+                android:layout_marginEnd="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_gravity="start"
+                android:textColor="@android:color/black"
+                />
+
+
+
+    </LinearLayout>
+</LinearLayout>
+

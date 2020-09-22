@@ -10,20 +10,31 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp"
+        >
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_gravity="start"
-            android:layout_marginTop="56dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
             android:layout_marginStart="8dp"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
             android:id="@+id/receiver_message_general_layout"
             android:background="@drawable/receiver_messages_background"
             >
-
-
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:layout_marginTop="4dp"
+                android:visibility="gone"
+                android:id="@+id/receiver_image_indicator"
+                android:backgroundTint="@color/dark_orange"
+                android:background="@drawable/round_background"/>
 
             <TextView
                 android:id="@+id/receiver_name_text_view"
@@ -32,10 +43,12 @@
                 android:layout_marginStart="4dp"
                 android:gravity="center|top"
                 android:layout_gravity="start"
-                tools:text="Fawzy Elfawwaz"
+                android:text="Fawzy ElFawaz"
+                android:textColor="@android:color/holo_red_light"
                 android:padding="2dp"
-                android:textSize="14sp"
-                android:textColor="@android:color/holo_red_light" />
+                android:visibility="visible"
+                android:textSize="12sp"
+                />
 
 
 
@@ -44,7 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:gravity="center|top"
+                android:gravity="center|top|start"
                 android:layout_gravity="start"
                 tools:text="."
                 android:padding="2dp"
@@ -53,7 +66,7 @@
 
             <!-- Receiver -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_gravity="end"
@@ -63,20 +76,21 @@
 
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    >
 
                     <FrameLayout
                         android:id="@+id/receiver_message_Frame_view"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
-                        android:layout_gravity="start"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        android:layout_gravity="center"
                         >
                         <ImageView
                             android:id="@+id/receiver_message_image_view"
-                            android:layout_width="56dp"
-                            android:layout_height="56dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:layout_gravity="center"
                             android:layout_margin="4dp"
                             android:scaleType="centerCrop"
@@ -85,28 +99,50 @@
 
                         <ImageView
                             android:id="@+id/receiver_message_play_view"
-                            android:layout_width="56dp"
-                            android:layout_height="56dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:layout_gravity="center"
                             android:layout_margin="8dp"
-                            android:scaleType="centerCrop"
+                            android:scaleType="fitCenter"
                             app:srcCompat="@drawable/ic_play_arrow"
                             />
 
                     </FrameLayout>
 
 
-
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="bottom|end"
-                        android:layout_gravity="bottom|end"
-                        android:paddingEnd="2dp"
-                        android:paddingBottom="4dp"
-                        tools:text="5:02 AM"
-                        android:textSize="12sp"
-                        android:id="@+id/receiver_time_sent_text_view" />
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:paddingBottom="2dp"
+                        >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="bottom|start"
+                            android:paddingStart="2dp"
+                            android:layout_gravity="bottom|end"
+                            tools:text="0:23"
+                            android:textSize="10sp"
+                            android:id="@+id/message_time_received_text_view" />
+
+
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="bottom|end"
+                            android:layout_gravity="bottom|end"
+                            android:paddingEnd="2dp"
+                            tools:text="5:02 AM"
+                            android:textSize="10sp"
+                            android:id="@+id/receiver_time_sent_text_view" />
+
+                    </LinearLayout>
+
+
 
                 </LinearLayout>
 
@@ -116,57 +152,31 @@
         </LinearLayout>
 
         <!-- Sender -->
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_gravity="end"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
             android:layout_marginEnd="8dp"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
             android:background="@drawable/sender_messages_background"
             android:id="@+id/sender_message_layout">
 
-            <FrameLayout
-                android:id="@+id/video_frame_layout"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:layout_gravity="center"
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:layout_marginTop="4dp"
+                android:id="@+id/sender_image_indicator"
+                android:backgroundTint="@color/blue"
                 android:visibility="gone"
-                >
-
-                <VideoView
-                    android:id="@+id/video_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginTop="0dp"
-                    android:layout_marginEnd="0dp"
-                    android:layout_marginStart="0dp"
-                    android:layout_marginBottom="0dp"
-                    android:visibility="gone"
-                    />
-
-                <ImageView
-                    android:id="@+id/audio_image_view"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="0dp"
-                    android:layout_marginEnd="0dp"
-                    android:layout_marginStart="0dp"
-                    android:layout_marginBottom="0dp"
-                    android:background="@drawable/ic_audio"
-                    android:backgroundTint="@color/colorPrimary"
-                    android:scaleType="fitCenter"
-                    />
-            </FrameLayout>
+                android:background="@drawable/round_background"/>
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:id="@+id/sender_message_general_layout"
@@ -179,76 +189,114 @@
                     android:layout_marginStart="4dp"
                     android:gravity="center|top"
                     android:layout_gravity="start"
+                    android:padding="2dp"
                     android:text="@string/dummy_text"
                     android:visibility="invisible"
                     android:textSize="1sp"
-                    android:textColor="@android:color/holo_red_light" />
-
-            <TextView
-                android:id="@+id/sender_message_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                tools:text="."
-                android:textSize="14sp"
-                android:padding="2dp"
-                android:textColor="@android:color/black"
-                android:layout_marginStart="4dp"
-                android:gravity="center"
-                android:layout_gravity="start" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <FrameLayout
-                    android:id="@+id/sender_message_Frame_view"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_gravity="start"
-                    >
-                    <ImageView
-                        android:id="@+id/sender_message_image_view"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
-                        android:layout_gravity="center"
-                        android:layout_margin="4dp"
-                        android:scaleType="centerCrop"
-                        />
-
-                    <ImageView
-                        android:id="@+id/sender_message_play_image_view"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
-                        android:layout_gravity="center"
-                        android:scaleType="centerCrop"
-                        app:srcCompat="@drawable/ic_play_arrow"
-                        android:layout_margin="8dp"
-
-                        />
-
-
-
-                </FrameLayout>
-
-            </LinearLayout>
+                    />
 
                 <TextView
+                    android:id="@+id/sender_message_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    tools:text="."
+                    android:textSize="14sp"
+                    android:padding="2dp"
+                    android:textColor="@android:color/black"
+                    android:layout_marginStart="4dp"
+                    android:gravity="center|top|start"
+                    android:layout_gravity="start" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:id="@+id/sender_message_Frame_view"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        android:layout_gravity="center"
+                        >
+                        <ImageView
+                            android:id="@+id/sender_message_image_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:layout_margin="4dp"
+                            android:scaleType="fitXY"
+                            />
+
+                        <ImageView
+                            android:id="@+id/sender_message_play_image_view"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_gravity="center"
+                            android:scaleType="fitCenter"
+                            app:srcCompat="@drawable/ic_play_arrow"
+                            android:layout_margin="8dp"
+
+
+                            />
+
+
+
+                    </FrameLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:gravity="bottom|end"
-                    android:paddingEnd="2dp"
-                    android:layout_gravity="bottom|end"
-                    android:paddingBottom="4dp"
-                    tools:text="5:02 AM"
-                    android:textSize="12sp"
-                    android:id="@+id/sender_time_sent_text_view" />
+                    android:orientation="horizontal"
+                    android:paddingBottom="2dp"
+                    >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="bottom|start"
+                        android:paddingStart="2dp"
+                        android:layout_gravity="bottom|end"
+
+                        tools:text="00:23"
+                        android:textSize="10sp"
+                        android:id="@+id/message_time_sent_text_view" />
+
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="match_parent"
+                        android:gravity="bottom|end"
+                        android:paddingEnd="2dp"
+                        android:layout_gravity="bottom|end"
+                        tools:text="5:02 AM"
+                        android:textSize="10sp"
+                        android:id="@+id/sender_time_sent_text_view" />
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:gravity="bottom|end"
+                        android:paddingEnd="2dp"
+                        android:src="@drawable/ic_check"
+                        android:layout_gravity="bottom|end"
+                        android:id="@+id/sender_message_checked_image_view" />
+
+
+                </LinearLayout>
+
 
             </LinearLayout>
 
         </LinearLayout>
+
+
+
+
 
 
     </FrameLayout>

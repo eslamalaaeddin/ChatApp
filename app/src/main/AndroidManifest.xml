@@ -28,15 +28,27 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="ui.ui.activities.GroupCreationActivity" android:parentActivityName="ui.ui.activities.AddGroupActivity"></activity>
+        <activity android:name="ui.ui.activities.GroupInfoActivity" android:parentActivityName="ui.ui.activities.GroupsChatActivity">
+<!--             <intent-filter>-->
+<!--             <action android:name="android.intent.action.MAIN" />-->
+
+
+<!--             <category android:name="android.intent.category.LAUNCHER" />-->
+<!--             </intent-filter>-->
+        </activity>
+        <activity
+            android:name="ui.ui.activities.GroupCreationActivity"
+            android:parentActivityName="ui.ui.activities.AddGroupActivity" />
         <activity
             android:name="ui.ui.activities.AddGroupActivity"
-            android:parentActivityName="ui.ui.activities.MainActivity"></activity>
+            android:parentActivityName="ui.ui.activities.MainActivity" />
         <activity android:name="ui.ui.activities.StatusViewerActivity" />
         <activity
             android:name="ui.ui.activities.StatusActivity"
             android:windowSoftInputMode="stateAlwaysHidden|adjustResize" />
-        <activity android:name="ui.ui.activities.GroupsChatActivity" android:parentActivityName="ui.ui.activities.MainActivity" />
+        <activity
+            android:name="ui.ui.activities.GroupsChatActivity"
+            android:parentActivityName="ui.ui.activities.MainActivity" />
         <activity android:name=".Demo">
 
             <!-- <intent-filter> -->

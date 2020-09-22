@@ -40,6 +40,7 @@ import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.clear_chat_dialog.view.*
 import kotlinx.android.synthetic.main.video_player_dialog.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -106,11 +107,14 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
     private lateinit var groupImageView: ImageView
     private lateinit var groupNameTextView: TextView
     private lateinit var groupStatusTextView: TextView
+    private lateinit var upButtonImageView: ImageView
 
     private lateinit var progressDialog: ProgressDialog
 
     private lateinit var bottomSheetDialog: BottomSheetDialog
-
+    private var time : Int = 0
+    private var messageTimeInSeconds : Int = 0
+    private lateinit var messageTime : String
 
     private var checker:String = ""
     private var url:String = ""
@@ -204,12 +208,23 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
         activityGroupChatBinding.sendVoiceMessageButton.setOnTouchListener { p0, motionEvent ->
             if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
+                time = (System.currentTimeMillis() / 1000).toInt()
                 soundOnStartVoiceMessage()
 
             } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
+                messageTimeInSeconds =  ((System.currentTimeMillis() / 1000) - time ).toInt()
+
+                val minutes: Int = messageTimeInSeconds % 3600 / 60
+                val secs: Int = messageTimeInSeconds % 60
+                messageTime = java.lang.String.format(
+                    Locale.getDefault(),
+                    "%02d:%02d", minutes, secs
+                )
+
                 soundOnReleaseVoiceMessage()
 
             }
+
             true
         }
 
@@ -223,7 +238,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
             getLoadingDialog()
 
-            //documents
+            //documents (not implemented yet)
             if (checker!="image" && checker!="video" && checker!="audio" && checker!="captured image" ) {
                 fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Document files")
@@ -316,6 +331,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 val userMessageKeyRef = rootRef.child(USERS_CHILD).child(currentUserId).
                 child("Groups").child(groupId).child(MESSAGES_CHILD).
                 push()
+
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.mp4")
@@ -332,54 +348,58 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                         currentTime = timeFormat.format(calender.time)
 
                         filePath.downloadUrl.addOnCompleteListener {
-                            rootRef.child(USERS_CHILD).child("Groups")
-                                .child(groupId).child(
-                                    MESSAGES_CHILD
-                                )
-                                .child(messagePushId).child("message")
-                                .setValue(it.result.toString()).addOnCompleteListener {
+                            url = it.result.toString()
 
+                            val messageImageBody = HashMap<String, Any>()
+                            //
+                            messageImageBody["message"] = url
+                            messageImageBody["name"] = fileUri.lastPathSegment.toString()
+                            messageImageBody["type"] = checker
+                            messageImageBody["from"] = senderId
+                            messageImageBody["to"] = receiverId
+                            messageImageBody["messageKey"] = messagePushId
+                            messageImageBody["date"] = currentDate
+                            messageImageBody["time"] = currentTime
+                            messageImageBody["seen"] = "no"
+
+                            val messageBodyDetails = HashMap<String, Any>()
+                            messageBodyDetails.put(messagePushId, messageImageBody)
+
+
+
+                            rootRef.child(USERS_CHILD).child(currentUserId).child("Groups")
+                                .child(groupId)
+                                .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        rootRef.child(USERS_CHILD).child(currentUserId)
+                                            .child("Groups").child(groupId).child("participants")
+                                            .addValueEventListener(object : ValueEventListener {
+                                                override fun onDataChange(snapshot: DataSnapshot) {
+                                                    for (participant in snapshot.children) {
+                                                        val participantId =
+                                                            participant.key.toString()
+                                                        rootRef.child(USERS_CHILD)
+                                                            .child(participantId).child("Groups")
+                                                            .child(groupId)
+                                                            .child(MESSAGES_CHILD)
+                                                            .updateChildren(messageBodyDetails)
+                                                    }
+                                                }
+
+                                                override fun onCancelled(error: DatabaseError) {
+                                                }
+                                            })
+                                    } else {
+                                        Toast.makeText(
+                                            this,
+                                            task.exception?.message,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
+                            progressDialog.dismiss()
                         }
-
-                        val messageImageBody = HashMap<String, Any>()
-                        //
-                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
-                        messageImageBody.put("type", checker)
-                        messageImageBody.put("from", senderId)
-                        messageImageBody.put("messageKey", messagePushId)
-                        messageImageBody.put("date", currentDate)
-                        messageImageBody.put("time", currentTime)
-
-                        val messageBodyDetails = HashMap<String, Any>()
-                        messageBodyDetails.put(messagePushId, messageImageBody)
-
-
-
-                        rootRef.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId)
-                            .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    rootRef.child(USERS_CHILD).child(currentUserId).
-                                    child("Groups").child(groupId).child("participants").
-                                    addValueEventListener(object : ValueEventListener{
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            for (participant in snapshot.children){
-                                                val participantId = participant.key.toString()
-                                                rootRef.child(USERS_CHILD).child(participantId).child("Groups").child(groupId)
-                                                    .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                                            }
-                                        }
-
-                                        override fun onCancelled(error: DatabaseError) {
-                                        }
-                                    })
-                                }
-                                else{
-                                    Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        progressDialog.dismiss()
                     }
                 }.addOnFailureListener{
                     progressDialog.dismiss()
@@ -417,53 +437,58 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                         currentTime = timeFormat.format(calender.time)
 
                         filePath.downloadUrl.addOnCompleteListener {
-                            rootRef.child(USERS_CHILD).child("Groups")
-                                .child(groupId).child(
-                                    MESSAGES_CHILD
-                                )
-                                .child(messagePushId).child("message")
-                                .setValue(it.result.toString()).addOnCompleteListener {
+                            url = it.result.toString()
 
+
+                            val messageImageBody = HashMap<String, Any>()
+                            //
+                            messageImageBody["message"] = url
+                            messageImageBody["name"] = fileUri.lastPathSegment.toString()
+                            messageImageBody["type"] = checker
+                            messageImageBody["from"] = senderId
+                            messageImageBody["to"] = receiverId
+                            messageImageBody["messageKey"] = messagePushId
+                            messageImageBody["date"] = currentDate
+                            messageImageBody["time"] = currentTime
+                            messageImageBody["seen"] = "no"
+
+                            val messageBodyDetails = HashMap<String, Any>()
+                            messageBodyDetails.put(messagePushId, messageImageBody)
+
+
+                            rootRef.child(USERS_CHILD).child(currentUserId).child("Groups")
+                                .child(groupId)
+                                .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        rootRef.child(USERS_CHILD).child(currentUserId)
+                                            .child("Groups").child(groupId).child("participants")
+                                            .addValueEventListener(object : ValueEventListener {
+                                                override fun onDataChange(snapshot: DataSnapshot) {
+                                                    for (participant in snapshot.children) {
+                                                        val participantId =
+                                                            participant.key.toString()
+                                                        rootRef.child(USERS_CHILD)
+                                                            .child(participantId).child("Groups")
+                                                            .child(groupId)
+                                                            .child(MESSAGES_CHILD)
+                                                            .updateChildren(messageBodyDetails)
+                                                    }
+                                                }
+
+                                                override fun onCancelled(error: DatabaseError) {
+                                                }
+                                            })
+                                    } else {
+                                        Toast.makeText(
+                                            this,
+                                            task.exception?.message,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
+                            progressDialog.dismiss()
                         }
-
-                        val messageImageBody = HashMap<String, Any>()
-                        //
-                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
-                        messageImageBody.put("type", checker)
-                        messageImageBody.put("from", senderId)
-                        messageImageBody.put("messageKey", messagePushId)
-                        messageImageBody.put("date", currentDate)
-                        messageImageBody.put("time", currentTime)
-
-                        val messageBodyDetails = HashMap<String, Any>()
-                        messageBodyDetails.put(messagePushId, messageImageBody)
-
-
-                        rootRef.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId)
-                            .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    rootRef.child(USERS_CHILD).child(currentUserId).
-                                    child("Groups").child(groupId).child("participants").
-                                    addValueEventListener(object : ValueEventListener{
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            for (participant in snapshot.children){
-                                                val participantId = participant.key.toString()
-                                                rootRef.child(USERS_CHILD).child(participantId).child("Groups").child(groupId)
-                                                    .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                                            }
-                                        }
-
-                                        override fun onCancelled(error: DatabaseError) {
-                                        }
-                                    })
-                                }
-                                else{
-                                    Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        progressDialog.dismiss()
                     }
                 }.addOnFailureListener{
                     progressDialog.dismiss()
@@ -501,54 +526,59 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                         currentTime = timeFormat.format(calender.time)
 
                         filePath.downloadUrl.addOnCompleteListener {
-                            rootRef.child(USERS_CHILD).child("Groups")
-                                .child(groupId).child(
-                                    MESSAGES_CHILD
-                                )
-                                .child(messagePushId).child("message")
-                                .setValue(it.result.toString()).addOnCompleteListener {
+                            url = it.result.toString()
 
+
+                            val messageImageBody = HashMap<String, Any>()
+                            //
+                            messageImageBody["message"] = url
+                            messageImageBody["name"] = fileUri.lastPathSegment.toString()
+                            messageImageBody["type"] = checker
+                            messageImageBody["from"] = senderId
+                            messageImageBody["to"] = receiverId
+                            messageImageBody["messageKey"] = messagePushId
+                            messageImageBody["date"] = currentDate
+                            messageImageBody["time"] = currentTime
+                            messageImageBody["seen"] = "no"
+
+                            val messageBodyDetails = HashMap<String, Any>()
+                            messageBodyDetails.put(messagePushId, messageImageBody)
+
+
+
+                            rootRef.child(USERS_CHILD).child(currentUserId).child("Groups")
+                                .child(groupId)
+                                .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        rootRef.child(USERS_CHILD).child(currentUserId)
+                                            .child("Groups").child(groupId).child("participants")
+                                            .addValueEventListener(object : ValueEventListener {
+                                                override fun onDataChange(snapshot: DataSnapshot) {
+                                                    for (participant in snapshot.children) {
+                                                        val participantId =
+                                                            participant.key.toString()
+                                                        rootRef.child(USERS_CHILD)
+                                                            .child(participantId).child("Groups")
+                                                            .child(groupId)
+                                                            .child(MESSAGES_CHILD)
+                                                            .updateChildren(messageBodyDetails)
+                                                    }
+                                                }
+
+                                                override fun onCancelled(error: DatabaseError) {
+                                                }
+                                            })
+                                    } else {
+                                        Toast.makeText(
+                                            this,
+                                            task.exception?.message,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
+                            progressDialog.dismiss()
                         }
-
-                        val messageImageBody = HashMap<String, Any>()
-                        //
-                        messageImageBody.put("name", fileUri.lastPathSegment.toString())
-                        messageImageBody.put("type", checker)
-                        messageImageBody.put("from", senderId)
-                        messageImageBody.put("messageKey", messagePushId)
-                        messageImageBody.put("date", currentDate)
-                        messageImageBody.put("time", currentTime)
-
-                        val messageBodyDetails = HashMap<String, Any>()
-                        messageBodyDetails.put(messagePushId, messageImageBody)
-
-
-
-                        rootRef.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId)
-                            .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    rootRef.child(USERS_CHILD).child(currentUserId).
-                                    child("Groups").child(groupId).child("participants").
-                                    addValueEventListener(object : ValueEventListener{
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            for (participant in snapshot.children){
-                                                val participantId = participant.key.toString()
-                                                rootRef.child(USERS_CHILD).child(participantId).child("Groups").child(groupId)
-                                                    .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                                            }
-                                        }
-
-                                        override fun onCancelled(error: DatabaseError) {
-                                        }
-                                    })
-                                }
-                                else{
-                                    Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        progressDialog.dismiss()
                     }
                 }.addOnFailureListener{
                     progressDialog.dismiss()
@@ -603,13 +633,15 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
 
                     val messageImageBody = HashMap<String, Any>()
-                    messageImageBody.put("message", url)
-                    messageImageBody.put("name", "image $messagePushId")
-                    messageImageBody.put("type", checker)
-                    messageImageBody.put("from", senderId)
-                    messageImageBody.put("messageKey", messagePushId)
-                    messageImageBody.put("date", currentDate)
-                    messageImageBody.put("time", currentTime)
+                    messageImageBody["message"] = url
+                    messageImageBody["name"] = "image $messagePushId"
+                    messageImageBody["type"] = checker
+                    messageImageBody["from"] = senderId
+                    messageImageBody["to"] = receiverId
+                    messageImageBody["messageKey"] = messagePushId
+                    messageImageBody["date"] = currentDate
+                    messageImageBody["time"] = currentTime
+                    messageImageBody["seen"] = "no"
 
                     val messageBodyDetails = HashMap<String, Any>()
                     messageBodyDetails.put(messagePushId, messageImageBody)
@@ -673,6 +705,22 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
         groupImageView = findViewById(R.id.user_image_view_custom)
         groupNameTextView = findViewById(R.id.user_name_text_view_custom)
         groupStatusTextView = findViewById(R.id.user_last_seen_custom)
+        upButtonImageView = findViewById(R.id.up_button_custom)
+
+        val groupInfoLayout:LinearLayout = findViewById(R.id.group_info_layout)
+
+        groupInfoLayout.setOnClickListener {
+            val groupInfoIntent = Intent(this,GroupInfoActivity::class.java)
+            groupInfoIntent.putExtra(GROUP_ID, groupId)
+            startActivity(groupInfoIntent)
+        }
+
+        upButtonImageView.setOnClickListener {
+            //temp
+            finish()
+        }
+
+
 
         groupStatusTextView.text = "tap here for group info"
 
@@ -937,14 +985,15 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
             val senderMessagePlay : ImageView = itemView.findViewById(R.id.sender_message_play_image_view)
             val receiverMessagePlay : ImageView = itemView.findViewById(R.id.receiver_message_play_view)
 
+
             val receiverMessageGeneralLayout : LinearLayout = itemView.findViewById(R.id.receiver_message_general_layout)
             val receiverNameTextView : TextView = itemView.findViewById(R.id.receiver_name_text_view)
 
             val senderMessageGeneralLayout : LinearLayout = itemView.findViewById(R.id.sender_message_general_layout)
-
             val senderNameTextView : TextView = itemView.findViewById(R.id.sender_name_text_view)
 
-            val senderVideoFrameLayout : FrameLayout = itemView.findViewById(R.id.video_frame_layout)
+            val messageSentTimeTextView:TextView = itemView.findViewById(R.id.message_time_sent_text_view)
+            val messageReceivedTimeTextView:TextView = itemView.findViewById(R.id.message_time_received_text_view)
 
 
             init {
@@ -954,8 +1003,6 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
             fun bind(messageModel: PrivateMessageModel) {
                 senderMessageTextView.text = messageModel.message
-
-
             }
 
 
@@ -1026,7 +1073,6 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
             }
 
 
-
             if (fromMessagesType == "text") {
                 holder.senderMessageImageView.visibility = View.GONE
                 holder.receiverMessageImageView.visibility = View.GONE
@@ -1035,7 +1081,9 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 holder.receiverMessagePlay.visibility = View.GONE
                 holder.receiverMessageFrame.visibility = View.GONE
                 holder.senderMessageFrame.visibility = View.GONE
-                holder.senderVideoFrameLayout.visibility = View.GONE
+
+                holder.messageSentTimeTextView.visibility = View.GONE
+                holder.messageReceivedTimeTextView.visibility = View.GONE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTextView.setBackgroundResource(R.drawable.sender_messages_background)
@@ -1050,7 +1098,6 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.receiverMessageLayout.visibility = View.GONE
                     holder.receiverMessageTimeTextView.visibility = View.GONE
                     holder.receiverMessageGeneralLayout.visibility = View.GONE
-                    holder.receiverNameTextView.visibility = View.GONE
 
 
 
@@ -1064,27 +1111,26 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.senderMessageGeneralLayout.visibility = View.GONE
                     holder.senderNameTextView.visibility = View.GONE
 
+                    holder.receiverNameTextView.visibility = View.VISIBLE
+                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(object : ValueEventListener{
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                           holder.receiverNameTextView.text = snapshot.child("name").value.toString()
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                        }
+                    })
 
                     holder.receiverMessageTextView.visibility = View.VISIBLE
                     holder.receiverMessageLayout.visibility = View.VISIBLE
                     holder.receiverMessageTimeTextView.visibility = View.VISIBLE
                     holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
-                    holder.receiverNameTextView.visibility = View.VISIBLE
 
                     holder.receiverMessageTextView.setBackgroundResource(R.drawable.receiver_messages_background)
                     holder.receiverMessageTextView.text = currentMessage.message
                     holder.receiverMessageTimeTextView.text = currentMessage.time
 
 
-                    rootRef.child(USERS_CHILD).child(currentMessage.from).child("name").addValueEventListener(object : ValueEventListener {
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            holder.receiverNameTextView.text = snapshot.value.toString()
-                        }
-
-                        override fun onCancelled(error: DatabaseError) {
-                        }
-
-                    })
 
 
 
@@ -1097,23 +1143,32 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 holder.senderMessageTextView.visibility = View.GONE
                 holder.senderMessagePlay.visibility = View.GONE
                 holder.receiverMessagePlay.visibility = View.GONE
-                holder.senderVideoFrameLayout.visibility = View.GONE
+
+
+
+
+                holder.messageSentTimeTextView.visibility = View.GONE
+                holder.messageReceivedTimeTextView.visibility = View.GONE
+
+//                holder.receiverMessageGeneralLayout.layoutParams = LinearLayout.LayoutParams(512,512)
+//                holder.senderMessageGeneralLayout.layoutParams = LinearLayout.LayoutParams(512,512)
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
                     holder.senderMessageTimeTextView.text = currentMessage.time
                     holder.receiverMessageLayout.visibility = View.GONE
                     holder.receiverMessageGeneralLayout.visibility = View.GONE
-                    holder.receiverNameTextView.visibility = View.GONE
 
                     holder.senderMessageImageView.visibility = View.VISIBLE
                     holder.receiverMessageImageView.visibility = View.GONE
+
+
                     Picasso.get()
                         .load(currentMessage.message)
                         .into(holder.senderMessageImageView)
 
                     holder.senderMessageImageView.setOnClickListener {
-                        showImage(currentMessage.message)
+                        showSentImage(currentMessage.message)
                     }
 
                 }
@@ -1129,24 +1184,24 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.receiverMessageImageView.visibility = View.VISIBLE
                     holder.senderMessageImageView.visibility = View.GONE
                     holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
-                    holder.receiverNameTextView.visibility = View.VISIBLE
 
-                    rootRef.child(USERS_CHILD).child(currentMessage.from).child("name").addValueEventListener(object : ValueEventListener {
+                    holder.receiverNameTextView.visibility = View.VISIBLE
+                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(object : ValueEventListener{
                         override fun onDataChange(snapshot: DataSnapshot) {
-                            holder.receiverNameTextView.text = snapshot.value.toString()
+                            holder.receiverNameTextView.text = snapshot.child("name").value.toString()
                         }
 
                         override fun onCancelled(error: DatabaseError) {
                         }
-
                     })
+
 
                     Picasso.get()
                         .load(currentMessage.message)
                         .into(holder.receiverMessageImageView)
 
                     holder.receiverMessageImageView.setOnClickListener {
-                        showImage(currentMessage.message)
+                        showSentImage(currentMessage.message)
                     }
                 }
             }
@@ -1155,7 +1210,13 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
                 holder.receiverMessageTextView.visibility = View.GONE
                 holder.senderMessageTextView.visibility = View.GONE
-                holder.senderVideoFrameLayout.visibility = View.GONE
+
+
+                holder.messageSentTimeTextView.visibility = View.GONE
+                holder.messageReceivedTimeTextView.visibility = View.GONE
+
+//                holder.receiverMessageGeneralLayout.layoutParams = LinearLayout.LayoutParams(512,512)
+//                holder.senderMessageGeneralLayout.layoutParams = LinearLayout.LayoutParams(512,512)
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
@@ -1170,7 +1231,6 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     //   holder.senderMessageImageView.setImageResource(R.drawable.ic_video)
                     holder.receiverMessageImageView.visibility = View.GONE
                     holder.receiverMessageGeneralLayout.visibility = View.GONE
-                    holder.receiverNameTextView.visibility = View.GONE
 
                     //Chosen frame interval
                     val interval: Long = 1* 1000
@@ -1188,9 +1248,8 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                         videoIntent.putExtra(VIDEO_URL, currentMessage.message)
                         startActivity(videoIntent)
 
+                        // showVideoPlayerDialog(myMessages.message)
 
-//                         showVideoPlayerDialog(myMessages.message)
-//
 
                     }
 
@@ -1208,16 +1267,17 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.senderMessageImageView.visibility = View.GONE
 
                     holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
+
                     holder.receiverNameTextView.visibility = View.VISIBLE
-                    rootRef.child(USERS_CHILD).child(currentMessage.from).child("name").addValueEventListener(object : ValueEventListener {
+                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(object : ValueEventListener{
                         override fun onDataChange(snapshot: DataSnapshot) {
-                            holder.receiverNameTextView.text = snapshot.value.toString()
+                            holder.receiverNameTextView.text = snapshot.child("name").value.toString()
                         }
 
                         override fun onCancelled(error: DatabaseError) {
                         }
-
                     })
+
                     //
                     //  holder.receiverMessageImageView.setImageResource(R.drawable.ic_video)
 
@@ -1251,7 +1311,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 holder.senderMessagePlay.visibility = View.GONE
                 holder.receiverMessagePlay.visibility = View.GONE
 
-//                holder.senderVideoFrameLayout.visibility = View.VISIBLE
+
 
 
                 if (fromUserId == messageSenderId) {
@@ -1263,11 +1323,21 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.senderMessageImageView.visibility = View.VISIBLE
                     holder.receiverMessageImageView.visibility = View.GONE
 
-                    holder.senderMessageImageView.setImageResource(R.drawable.ic_audio)
+
+                    holder.receiverNameTextView.visibility = View.GONE
+
+                    holder.messageSentTimeTextView.visibility = View.VISIBLE
+
+                    holder.messageSentTimeTextView.text = currentMessage.messageTime
+
+                    holder.messageReceivedTimeTextView.visibility = View.INVISIBLE
+
+
+
+                    holder.senderMessageImageView.setImageResource(R.drawable.ic_mic)
                     holder.receiverMessageImageView.visibility = View.GONE
 
                     holder.receiverMessageGeneralLayout.visibility = View.GONE
-                    holder.receiverNameTextView.visibility = View.GONE
 
 
                     holder.senderMessageImageView.setOnClickListener {
@@ -1298,18 +1368,23 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.senderNameTextView.visibility = View.GONE
 
                     holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
+
+                    holder.messageSentTimeTextView.visibility = View.INVISIBLE
+                    holder.messageReceivedTimeTextView.visibility = View.VISIBLE
+
+                    holder.messageReceivedTimeTextView.text = currentMessage.messageTime
+
                     holder.receiverNameTextView.visibility = View.VISIBLE
-                    rootRef.child(USERS_CHILD).child(currentMessage.from).child("name").addValueEventListener(object : ValueEventListener {
+                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(object : ValueEventListener{
                         override fun onDataChange(snapshot: DataSnapshot) {
-                            holder.receiverNameTextView.text = snapshot.value.toString()
+                            holder.receiverNameTextView.text = snapshot.child("name").value.toString()
                         }
 
                         override fun onCancelled(error: DatabaseError) {
                         }
-
                     })
 
-                    holder.receiverMessageImageView.setImageResource(R.drawable.ic_audio)
+                    holder.receiverMessageImageView.setImageResource(R.drawable.ic_mic)
 
                     holder.receiverMessageImageView.setOnClickListener {
                         val videoIntent = Intent(
@@ -1330,7 +1405,10 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 holder.senderMessageTextView.visibility = View.GONE
                 holder.senderMessagePlay.visibility = View.GONE
                 holder.receiverMessagePlay.visibility = View.GONE
-                holder.senderVideoFrameLayout.visibility = View.GONE
+
+
+                holder.messageSentTimeTextView.visibility = View.GONE
+                holder.messageReceivedTimeTextView.visibility = View.GONE
 
                 if (fromUserId == messageSenderId) {
                     holder.senderMessageTimeTextView.visibility = View.VISIBLE
@@ -1345,7 +1423,6 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.receiverMessageImageView.visibility = View.GONE
 
                     holder.receiverMessageGeneralLayout.visibility = View.GONE
-                    holder.receiverNameTextView.visibility = View.GONE
 
 
 
@@ -1360,17 +1437,18 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.receiverMessageImageView.visibility = View.VISIBLE
                     holder.senderMessageImageView.visibility = View.GONE
 
-                    holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
                     holder.receiverNameTextView.visibility = View.VISIBLE
-                    rootRef.child(USERS_CHILD).child(currentMessage.from).child("name").addValueEventListener(object : ValueEventListener {
+                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(object : ValueEventListener{
                         override fun onDataChange(snapshot: DataSnapshot) {
-                            holder.receiverNameTextView.text = snapshot.value.toString()
+                            holder.receiverNameTextView.text = snapshot.child("name").value.toString()
                         }
 
                         override fun onCancelled(error: DatabaseError) {
                         }
-
                     })
+
+                    holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
+
 
                     holder.receiverMessageImageView.setImageResource(R.drawable.ic_file)
 
@@ -1768,6 +1846,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 messageImageBody["from"] = senderId
                 messageImageBody["to"] = receiverId
                 messageImageBody["messageKey"] = messagePushId
+                messageImageBody["messageTime"] = messageTime
                 messageImageBody["date"] = currentDate
                 messageImageBody["time"] = currentTime
 
@@ -1800,7 +1879,6 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
             }
         }
     }
-
     private fun soundOnStartVoiceMessage() {
         val mediaPlayer: MediaPlayer? = MediaPlayer.create(this, R.raw.whatsapp_voice_message_start)
         mediaPlayer?.start()
@@ -1811,12 +1889,37 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
     }
 
     private fun soundOnReleaseVoiceMessage() {
-        val mediaPlayer: MediaPlayer? = MediaPlayer.create(this, R.raw.whatsapp_voice_message_release)
+        val mediaPlayer: MediaPlayer? = MediaPlayer.create(
+            this,
+            R.raw.whatsapp_voice_message_release
+        )
         stopRecording()
         mediaPlayer?.start() // no need to call prepare(); create() does that for you
         mediaPlayer?.setOnCompletionListener {
-            sendVoiceMessage()
+            showVoiceMessageDialog()
         }
+    }
+
+    private fun showVoiceMessageDialog(){
+        alertBuilder = AlertDialog.Builder(this)
+        val dialogView = layoutInflater.inflate(R.layout.clear_chat_dialog,null)
+        alertBuilder.setView(dialogView)
+
+        dialogView.info_text_view.text = "Send this voice?"
+        dialogView.clear.text = "Send"
+
+        val groupDialog =  alertBuilder.create()
+        groupDialog.show()
+
+        dialogView.clear.setOnClickListener {
+            sendVoiceMessage()
+            groupDialog.dismiss()
+        }
+
+        dialogView.cancel.setOnClickListener {
+            groupDialog.dismiss()
+        }
+
     }
 
     private fun retrieveMessages() {
@@ -1866,6 +1969,32 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 override fun onCancelled(error: DatabaseError) {
                 }
             })
+    }
+
+    fun showSentImage(imageUrl: String) {
+        val builder = Dialog(this)
+        builder.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        builder.window?.setBackgroundDrawable(
+            ColorDrawable(Color.TRANSPARENT)
+        )
+        builder.setOnDismissListener {
+            //nothing;
+        }
+        val imageView = ImageView(this)
+
+        Picasso.get()
+            .load(imageUrl)
+            .into(imageView)
+
+
+        builder.addContentView(
+            imageView, ActionBar.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+
+        builder.show()
     }
 
 }

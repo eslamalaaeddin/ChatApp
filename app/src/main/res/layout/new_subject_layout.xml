@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/main_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?android:attr/actionBarSize"
+                style="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:title="Enter new subject"
+                app:titleTextColor="@color/white"
+                android:background="@color/colorPrimary" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="24dp"
+                android:textColorHint="@color/light_gray"
+                android:textSize="18sp"
+                android:background="@android:color/transparent"
+                android:hint="subject..."
+                android:id="@+id/subject_edit_text"/>
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:layout_gravity="bottom"
+
+            >
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="Cancel"
+                android:id="@+id/cancel_adding_name"
+                android:background="@drawable/stroked_button"
+                />
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="OK"
+                android:id="@+id/submit_adding_name"
+                android:background="@drawable/stroked_button"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</layout>

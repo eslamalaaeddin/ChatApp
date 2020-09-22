@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:padding="8dp"
+    >
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/message_participant_text_view"
+        android:text="Message "
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/grey"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/view_participant_text_view"
+        android:text="View "
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/grey"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/make_participant_admin_text_view"
+        android:text="Make group admin"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/grey"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/remove_participant_text_view"
+        android:text="Remove "
+        android:textSize="18sp"
+        android:textColor="@color/grey"/>
+
+</LinearLayout>

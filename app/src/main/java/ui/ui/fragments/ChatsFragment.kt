@@ -521,30 +521,41 @@ class ChatsFragment : Fragment() {
 
     //////////////////////////////////////////////////////Groups logic/////////////////////////////////////////////////
     private fun retrieveGroups() {
-        rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").addValueEventListener(object :
-            ValueEventListener {
+
+        rootReference.child(USERS_CHILD).child(currentUserId).addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
-                groupsList.clear()
-                for (group in snapshot.children) {
+                if (snapshot.hasChild("Groups")){
+                    rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").addValueEventListener(object :
+                        ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            groupsList.clear()
+                            for (group in snapshot.children) {
 
-                    val name = group.child("name").value.toString()
-                    val image = group.child("image").value.toString()
-                    val status = group.child("status").value.toString()
-                    val groupId = group.child("gid").value.toString()
+                                val name = group.child("name").value.toString()
+                                val image = group.child("image").value.toString()
+                                val status = group.child("status").value.toString()
+                                val groupId = group.child("gid").value.toString()
 
-                    val currentGroup = GroupModel(name, image, status, groupId,"","")
+                                val currentGroup = GroupModel(name, image, status, groupId,"","")
 
-                    groupsList.add(0, currentGroup)
+                                groupsList.add(0, currentGroup)
+                            }
+                            groupsAdapter = GroupsAdapter(groupsList)
+                            Utils.groupsChatAdapter = groupsAdapter
+                            fragmentChatsBinding.groupsRecyclerView.adapter = groupsAdapter
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                            Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
+                        }
+                    })
                 }
-                groupsAdapter = GroupsAdapter(groupsList)
-                Utils.groupsChatAdapter = groupsAdapter
-                fragmentChatsBinding.groupsRecyclerView.adapter = groupsAdapter
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
             }
         })
+
     }
 
     //Adapter

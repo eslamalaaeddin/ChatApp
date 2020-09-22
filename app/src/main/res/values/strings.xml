@@ -10,6 +10,7 @@
     <string name="setting">Settings</string>
     <string name="cancel">Cancel</string>
     <string name="dummy_text">.....................................................................................................................................................................................................................</string>
+    <string name="group_desc_text_info">The group description is visible to participants of this group and people invited to this group</string>
 
 
     <integer-array name="banner_img_array">

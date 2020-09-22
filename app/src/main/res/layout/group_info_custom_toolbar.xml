@@ -13,31 +13,18 @@
         android:background="@color/colorPrimary"
         android:orientation="horizontal">
 
-        <com.mikhaellopez.circularimageview.CircularImageView
-            android:id="@+id/user_image_view_custom"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
-            android:cropToPadding="true"
-            app:civ_border_color="@color/colorPrimary"
-            app:civ_border_width="1dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/up_button_custom"
-            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
+            android:id="@+id/group_info_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/user_image_view_custom"
-            app:layout_constraintTop_toTopOf="parent"
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
-            android:id="@+id/group_info_layout"
-            >
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/up_button_custom"
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/user_name_text_view_custom"
@@ -66,15 +53,6 @@
         </LinearLayout>
 
 
-
-        <ImageView
-            android:id="@+id/up_button_custom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_baseline_arrow_back_24" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

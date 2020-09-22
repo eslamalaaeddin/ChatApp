@@ -457,7 +457,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
           getLoadingDialog()
 
-            //documents
+            //documents (not implemented yet)
             if (checker!="image" && checker!="video" && checker!="audio" && checker!="captured image" ) {
                 fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Document files")
@@ -2056,6 +2056,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
         }
     }
+
+
 
 
     private fun sendMeToAudioStorage() {

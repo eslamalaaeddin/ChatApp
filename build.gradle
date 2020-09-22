@@ -21,7 +21,7 @@ allprojects {
         jcenter()
         maven { url 'http://maven.google.com' }
         maven { url 'http://tokbox.bintray.com/maven' }
-
+        maven { url "https://jitpack.io" }
     }
 }
 

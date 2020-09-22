@@ -110,7 +110,7 @@ class StatusFragment : Fragment() {
             usersHaveStatusIds.clear()
         }
 
-        checkForStatusTime()
+        //checkForStatusTime()
 
     }
 
@@ -196,13 +196,9 @@ class StatusFragment : Fragment() {
         addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
 
-//                if (usersHaveStatusIds.isNotEmpty()) {
-//                    showSingleStatus(usersHaveStatusIds)
-//                }
 
                 for (child in snapshot.children) {
                     if (child.hasChild("Status")) {
-
                         rootReference.child(Utils.USERS_CHILD).child(child.key.toString())
                             .child("Status")
                             .addValueEventListener(object : ValueEventListener {

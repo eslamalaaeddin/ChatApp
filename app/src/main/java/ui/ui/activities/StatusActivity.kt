@@ -106,7 +106,7 @@ class StatusActivity : AppCompatActivity() {
             statusMap["statusid"] = statusKey
             statusMap["date"] = currentDate
             statusMap["time"] = currentTime
-            statusMap["timestamp"] = ServerValue.TIMESTAMP
+           // statusMap["timestamp"] = ServerValue.TIMESTAMP
 
             rootReference.child(USERS_CHILD).child(currentUserId).child("Status").child(statusKey).
             updateChildren(statusMap).addOnCompleteListener {
