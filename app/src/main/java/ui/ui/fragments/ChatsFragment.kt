@@ -124,22 +124,22 @@ class ChatsFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         checkForReceivingCalls()
-        usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
+        usersReference.addValueEventListener(object : ValueEventListener {
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 stateList.clear()
                 listFromFirebaseDb.clear()
-                for (phoneSnapshot in snapshot.children) {
-                    val id = phoneSnapshot.child("uid").value.toString()
-                    if (id != currentUserId && phoneSnapshot.key != "Groups") {
-                        val name = phoneSnapshot.child("name").value.toString()
-                        val image = phoneSnapshot.child("image").value.toString()
-                        val status = phoneSnapshot.child("status").value.toString()
-                        val currentPhoneNumber = phoneSnapshot.child("phoneNumber").value.toString()
+                for (dataSnapshot in snapshot.children) {
+                    val id = dataSnapshot.child("uid").value.toString()
+                    if (id != currentUserId && dataSnapshot.key != "Groups") {
+                        val name = dataSnapshot.child("name").value.toString()
+                        val image = dataSnapshot.child("image").value.toString()
+                        val status = dataSnapshot.child("status").value.toString()
+                        val currentPhoneNumber = dataSnapshot.child("phoneNumber").value.toString()
 
-                        val date = phoneSnapshot.child("state").child("date").value.toString()
-                        val time = phoneSnapshot.child("state").child("time").value.toString()
-                        val state = phoneSnapshot.child("state").child("state").value.toString()
+                        val date = dataSnapshot.child("state").child("date").value.toString()
+                        val time = dataSnapshot.child("state").child("time").value.toString()
+                        val state = dataSnapshot.child("state").child("state").value.toString()
 
                         usersIdsList.add(id)
                         usersNamesList.add(name)
@@ -232,6 +232,7 @@ class ChatsFragment : Fragment() {
                         .addValueEventListener(object : ValueEventListener {
                             @SuppressLint("SetTextI18n")
                             override fun onDataChange(snapshot: DataSnapshot) {
+
 
                                 //there is a messages
                                 if (snapshot.value != null && snapshot.hasChildren()) {
@@ -426,6 +427,7 @@ class ChatsFragment : Fragment() {
                                 } else {
                                     userLastSeenTextView.text = "No messages yet"
                                     checkedMessageImageView.visibility = View.GONE
+                                    messagesCountTextView.visibility = View.GONE
                                 }
                             }
 
@@ -590,7 +592,7 @@ class ChatsFragment : Fragment() {
 
             fun bind(group: GroupModel) {
                 groupNameTextView.text = group.name
-               // groupLastSeenTextView.text = group.status
+                // groupLastSeenTextView.text = group.status
 
                 val imageUrl = group.image
                 if (imageUrl.isNotEmpty()) {
@@ -633,94 +635,94 @@ class ChatsFragment : Fragment() {
 
 
 
-               // Users messages
+                // Users messages
                 rootReference.child(USERS_CHILD).child(currentUserId).addValueEventListener(object : ValueEventListener{
                     override fun onDataChange(snapshot: DataSnapshot) {
                         if (snapshot.hasChild("Groups")){
                             rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").addValueEventListener(object : ValueEventListener{
                                 override fun onDataChange(snapshot: DataSnapshot) {
-                                  for (group in snapshot.children){
-                                      if (group.hasChild("Messages")){
-                                          //if last message is from me
-                                          val lastMessageSenderId = group.child("Messages").children.last().child("from").value.toString()
-                                          val lastMessage = group.child("Messages").children.last().child("message").value.toString()
-                                          if (lastMessageSenderId == currentUserId){
-                                              lastMessageSenderNameTextView.visibility = View.GONE
-                                              val messageType = group.child("Messages").children.last().child("type").value.toString()
+                                    for (group in snapshot.children){
+                                        if (group.hasChild("Messages")){
+                                            //if last message is from me
+                                            val lastMessageSenderId = group.child("Messages").children.last().child("from").value.toString()
+                                            val lastMessage = group.child("Messages").children.last().child("message").value.toString()
+                                            if (lastMessageSenderId == currentUserId){
+                                                lastMessageSenderNameTextView.visibility = View.GONE
+                                                val messageType = group.child("Messages").children.last().child("type").value.toString()
 
-                                              if (messageType == "text"){
-                                                  lastMessageTextView.text = lastMessage
-                                              }
-                                              else if (messageType == "audio"){
-                                                  lastMessageTextView.text = "Audio"
-                                              }
-                                              else if (messageType == "image" || messageType == "captured image"){
-                                                  lastMessageTextView.text = "Photo"
-                                              }
-                                              else if (messageType == "video") {
-                                                  lastMessageTextView.text = "Video"
-                                              }
-                                              else if (messageType == "pdf" || messageType == "docx") {
-                                                  lastMessageTextView.text = "Document"
-                                              }
-                                          }
-                                          //if last message is not from me
-                                          else{
-                                              lastMessageSenderNameTextView.visibility = View.VISIBLE
-                                              val messageType = group.child("Messages").children.last().child("type").value.toString()
-                                              usersReference.child(lastMessageSenderId).addValueEventListener(object : ValueEventListener{
-                                                  override fun onDataChange(snapshot: DataSnapshot) {
+                                                if (messageType == "text"){
+                                                    lastMessageTextView.text = lastMessage
+                                                }
+                                                else if (messageType == "audio"){
+                                                    lastMessageTextView.text = "Audio"
+                                                }
+                                                else if (messageType == "image" || messageType == "captured image"){
+                                                    lastMessageTextView.text = "Photo"
+                                                }
+                                                else if (messageType == "video") {
+                                                    lastMessageTextView.text = "Video"
+                                                }
+                                                else if (messageType == "pdf" || messageType == "docx") {
+                                                    lastMessageTextView.text = "Document"
+                                                }
+                                            }
+                                            //if last message is not from me
+                                            else{
+                                                lastMessageSenderNameTextView.visibility = View.VISIBLE
+                                                val messageType = group.child("Messages").children.last().child("type").value.toString()
+                                                usersReference.child(lastMessageSenderId).addValueEventListener(object : ValueEventListener{
+                                                    override fun onDataChange(snapshot: DataSnapshot) {
 
-                                                      lastMessageSenderNameTextView.text = "${snapshot.child("name").value.toString()}:"
-                                                  }
+                                                        lastMessageSenderNameTextView.text = "${snapshot.child("name").value.toString()}:"
+                                                    }
 
-                                                  override fun onCancelled(error: DatabaseError) {
-                                                  }
-                                              })
+                                                    override fun onCancelled(error: DatabaseError) {
+                                                    }
+                                                })
 
-                                              if (messageType == "text"){
-                                                  checkedMessageImageView.visibility = View.GONE
-                                                  lastMessageTextView.text = lastMessage
-                                              }
-                                              else if (messageType == "audio"){
-                                                  lastMessageTextView.text ="audio time"
-                                                  checkedMessageImageView.visibility = View.VISIBLE
-                                                  checkedMessageImageView.setImageResource(R.drawable.ic_mic)
-                                                  checkedMessageImageView.setColorFilter(
-                                                      resources.getColor(
-                                                          R.color.green
-                                                      ), PorterDuff.Mode.SRC_IN
-                                                  )
-                                              }
-                                              else if (messageType == "image" || messageType == "captured image"){
-                                                  lastMessageTextView.text ="Photo"
-                                                  checkedMessageImageView.visibility = View.VISIBLE
-                                                  checkedMessageImageView.setImageResource(R.drawable.ic_image)
-                                              }
-                                              else if (messageType == "video") {
-                                                  lastMessageTextView.text ="Video"
-                                                  checkedMessageImageView.visibility = View.VISIBLE
-                                                  checkedMessageImageView.setImageResource(R.drawable.ic_video_call)
-                                                  checkedMessageImageView.setColorFilter(
-                                                      resources.getColor(
-                                                          R.color.light_gray
-                                                      ), PorterDuff.Mode.SRC_IN
-                                                  )
-                                              }
-                                              else if (messageType == "pdf" || messageType == "docx") {
-                                                  lastMessageTextView.text = "Document"
-                                                  checkedMessageImageView.visibility = View.VISIBLE
-                                                  checkedMessageImageView.setImageResource(R.drawable.ic_file)
-                                                  checkedMessageImageView.setColorFilter(
-                                                      resources.getColor(
-                                                          R.color.light_gray
-                                                      ), PorterDuff.Mode.SRC_IN
-                                                  )
-                                              }
+                                                if (messageType == "text"){
+                                                    checkedMessageImageView.visibility = View.GONE
+                                                    lastMessageTextView.text = lastMessage
+                                                }
+                                                else if (messageType == "audio"){
+                                                    lastMessageTextView.text ="audio time"
+                                                    checkedMessageImageView.visibility = View.VISIBLE
+                                                    checkedMessageImageView.setImageResource(R.drawable.ic_mic)
+                                                    checkedMessageImageView.setColorFilter(
+                                                        resources.getColor(
+                                                            R.color.green
+                                                        ), PorterDuff.Mode.SRC_IN
+                                                    )
+                                                }
+                                                else if (messageType == "image" || messageType == "captured image"){
+                                                    lastMessageTextView.text ="Photo"
+                                                    checkedMessageImageView.visibility = View.VISIBLE
+                                                    checkedMessageImageView.setImageResource(R.drawable.ic_image)
+                                                }
+                                                else if (messageType == "video") {
+                                                    lastMessageTextView.text ="Video"
+                                                    checkedMessageImageView.visibility = View.VISIBLE
+                                                    checkedMessageImageView.setImageResource(R.drawable.ic_video_call)
+                                                    checkedMessageImageView.setColorFilter(
+                                                        resources.getColor(
+                                                            R.color.light_gray
+                                                        ), PorterDuff.Mode.SRC_IN
+                                                    )
+                                                }
+                                                else if (messageType == "pdf" || messageType == "docx") {
+                                                    lastMessageTextView.text = "Document"
+                                                    checkedMessageImageView.visibility = View.VISIBLE
+                                                    checkedMessageImageView.setImageResource(R.drawable.ic_file)
+                                                    checkedMessageImageView.setColorFilter(
+                                                        resources.getColor(
+                                                            R.color.light_gray
+                                                        ), PorterDuff.Mode.SRC_IN
+                                                    )
+                                                }
 
-                                          }
-                                      }
-                                  }
+                                            }
+                                        }
+                                    }
                                 }
 
                                 override fun onCancelled(error: DatabaseError) {

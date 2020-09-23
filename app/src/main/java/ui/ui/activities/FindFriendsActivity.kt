@@ -40,6 +40,7 @@ class FindFriendsActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
 
     private lateinit var currentUser: FirebaseUser
+    private lateinit var currentUserId: String
 
     private  var phoneContactsAdapter =  ContactAdapterFromFirebase(mutableListOf())
 
@@ -57,6 +58,7 @@ class FindFriendsActivity : AppCompatActivity() {
         )
         auth = FirebaseAuth.getInstance()
         currentUser = auth.currentUser!!
+        currentUserId = auth.currentUser!!.uid
         usersReference = FirebaseDatabase.getInstance().reference.child("Users")
         setUpToolbar()
 
@@ -67,33 +69,45 @@ class FindFriendsActivity : AppCompatActivity() {
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 listFromFirebaseDb.clear()
-                for (phoneSnapshot in snapshot.children) {
-                    if (phoneSnapshot.hasChild("phoneNumber")) {
+                for ((k,user) in snapshot.children.withIndex()) {
+                    var tempId = ""
+                    if (user.hasChild("phoneNumber")) {
                         val currentPhoneNumber =
-                            phoneSnapshot.child("phoneNumber").value.toString()
-                        if (phoneSnapshot.child("phoneNumber").value != null) {
+                            user.child("phoneNumber").value.toString()
+
+                        tempId = user.child("uid").value.toString()
+                        if (user.child("phoneNumber").value != null) {
                             for ((i, item) in distinctContactList.withIndex()) {
                                 if (item.number == currentPhoneNumber || currentPhoneNumber.contains(
                                         item.number
                                     )
                                 ) {
-                                    val name = phoneSnapshot.child("name").value.toString()
-                                    val image = phoneSnapshot.child("image").value.toString()
-                                    val status = phoneSnapshot.child("status").value.toString()
-                                    val id = phoneSnapshot.child("uid").value.toString()
+                                    val name = user.child("name").value.toString()
+                                    val image = user.child("image").value.toString()
+                                    val status = user.child("status").value.toString()
+                                    val id = user.child("uid").value.toString()
 
-                                    listFromFirebaseDb.add(
-                                        ContactsModel(
-                                            name,
-                                            image,
-                                            status,
-                                            id,
-                                            currentPhoneNumber
+                                    Log.i(TAG, "onDataChange: ISLAM  $i")
+                                    Log.i(TAG, "onDataChange: ISLAM  $k")
+
+                                    //to ignore my profile
+                                    if (  id == currentUserId  ) {
+
+                                    } else {
+                                        listFromFirebaseDb.add(
+                                            ContactsModel(
+                                                name,
+                                                image,
+                                                status,
+                                                id,
+                                                currentPhoneNumber
+                                            )
                                         )
-                                    )
-                                    Log.i(TAG, "QQQQ onDataChange: $name   $currentPhoneNumber")
+                                    }
 
-
+                                    if (k>0 && listFromFirebaseDb.size > k && listFromFirebaseDb[k].uid == listFromFirebaseDb[k-1].uid ){
+                                        listFromFirebaseDb.removeAt(k)
+                                    }
 
                                 }
                             }
@@ -217,28 +231,28 @@ class FindFriendsActivity : AppCompatActivity() {
             holder: ContactAdapterFromFirebase.MyViewHolder,
             position: Int
         ) {
-            if (position>0 && list[position].phoneNumber == list[position-1].phoneNumber) {
-                holder.itemView.visibility = View.GONE
-            }
-            else{
+//            if (position>0 && list[position].phoneNumber == list[position-1].phoneNumber) {
+//                holder.itemView.visibility = View.GONE
+//            }
+//            else{
                 holder.bind()
-            }
+//            }
 
 
 
-                usersReference.child(currentUser.uid)
-                .addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        val currentPhoneNumber = snapshot.child("phoneNumber").value.toString()
-                        Log.i(TAG, "HHHHHHHHHHHHHHHHHHHHHHHHHHHH: $currentPhoneNumber")
-                        if (list[position].phoneNumber == currentPhoneNumber) {
-                            holder.itemView.visibility = View.GONE
-                        }
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                    }
-                })
+//                usersReference.child(currentUser.uid)
+//                .addValueEventListener(object : ValueEventListener {
+//                    override fun onDataChange(snapshot: DataSnapshot) {
+//                        val currentPhoneNumber = snapshot.child("phoneNumber").value.toString()
+//                        Log.i(TAG, "HHHHHHHHHHHHHHHHHHHHHHHHHHHH: $currentPhoneNumber")
+//                        if (list[position].phoneNumber == currentPhoneNumber) {
+//                            holder.itemView.visibility = View.GONE
+//                        }
+//                    }
+//
+//                    override fun onCancelled(error: DatabaseError) {
+//                    }
+//                })
 
 
         }

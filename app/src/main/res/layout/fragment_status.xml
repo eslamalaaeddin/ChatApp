@@ -114,10 +114,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/recent_updates_text_view">
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                >
+
 
                 <LinearLayout
                     android:id="@+id/others_statuses_holder_linear_layout"
@@ -127,12 +124,13 @@
                     android:layout_marginBottom="8dp"
                     android:orientation="vertical">
 
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:id="@+id/others_statuses_recycler_view"/>
+
 
                 </LinearLayout>
-
-            </ScrollView>
-
-
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab"
@@ -145,20 +143,6 @@
                 android:backgroundTint="#25D366"
                 app:borderWidth="0dp"
                 app:srcCompat="@drawable/ic_create" />
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/show_others_fab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:foregroundGravity="center"
-                android:layout_gravity="end|bottom"
-                app:fabCustomSize="40dp"
-                android:layout_marginEnd="26dp"
-                android:layout_marginBottom="80dp"
-                android:backgroundTint="@color/colorAccent"
-                app:borderWidth="0dp"
-                android:tint="@color/white"
-                app:srcCompat="@drawable/ic_group" />
 
         </FrameLayout>
 

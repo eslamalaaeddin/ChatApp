@@ -42,7 +42,9 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.clear_chat_dialog.view.*
+import kotlinx.android.synthetic.main.clicked_participant_dialog.view.*
 import kotlinx.android.synthetic.main.custom_toolbar.view.*
+import kotlinx.android.synthetic.main.remove_message_dialog.view.*
 import kotlinx.android.synthetic.main.video_player_dialog.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -843,7 +845,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         updateUserStatus("online")
         displayLastSeen()
         checkBlockedOrNot()
-        makeMessagesSeen()
+       // makeMessagesSeen()
     }
 
     private fun makeMessagesSeen() {
@@ -960,16 +962,16 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             messageBodyDetails["$messageSenderRef/$messagePushId"] = messageTextBody
             messageBodyDetails["$messageReceiverRef/$messagePushId"] = messageTextBody
 
-            val map = HashMap<String, Any>()
-            map["to"] = receiverId
-            map["from"] = senderId
-
-            rootRef.child(USERS_CHILD).child(currentUserId).child("Chats").updateChildren(map).addOnCompleteListener {
-                if (it.isComplete) {
-
-                    rootRef.child(USERS_CHILD).child(receiverId).child("Chats").updateChildren(map)
-                }
-            }
+//            val map = HashMap<String, Any>()
+//            map["to"] = receiverId
+//            map["from"] = senderId
+//
+//            rootRef.child(USERS_CHILD).child(currentUserId).child("Chats").updateChildren(map).addOnCompleteListener {
+//                if (it.isComplete) {
+//
+//                    rootRef.child(USERS_CHILD).child(receiverId).child("Chats").updateChildren(map)
+//                }
+//            }
 
             rootRef.updateChildren(messageBodyDetails).addOnCompleteListener { task ->
                 if (!task.isSuccessful) {
@@ -984,6 +986,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         //send a broadcast intent
        // sendBroadcast(Intent(ACTION_SHOW_NOTIFICATION), PERM_PRIVATE)
         privateChatBinding.sendMessageEditText.text.clear()
+        addUserToMyChats()
     }
 
     private fun getTokens() {
@@ -1009,7 +1012,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     private fun pushNotification(){
       val notification =   PushNotification(
-          NotificationData(currentUserName, currentMessage, Utils.senderId), receiverToken
+          NotificationData(currentUserName, "", Utils.senderId), receiverToken
       )
         if (currentMessage.isNotEmpty()){
             sendNotification(notification)
@@ -1288,6 +1291,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
                 view?.setBackgroundResource(R.color.light_blue)
                 keysSelectedOnLongClick[adapterPosition] = messagesList[adapterPosition].messageKey
+                Log.i(TAG, "onLongClick: ISLAM ${keysSelectedOnLongClick[adapterPosition]}")
                 if (messages[adapterPosition].type == "pdf" || messages[adapterPosition].type == "docx"){
                     clearMenuAndShowMessageStuff()
                 }
@@ -1792,13 +1796,36 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             R.id.clear_chat -> showClearChatDialog()
             R.id.private_chat_block_user -> showBlockContactDialog()
             R.id.star_message -> Toast.makeText(this, "Star", Toast.LENGTH_SHORT).show()
-            R.id.delete_message -> removeMessage()
+            R.id.delete_message -> showRemoveMessageDialog()
             R.id.copy_text_message -> Toast.makeText(this, "Copy", Toast.LENGTH_SHORT).show()
             R.id.forward_message -> shareSelectedMessages(keysSelectedOnLongClick)
 
 
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun showRemoveMessageDialog(){
+        alertBuilder = AlertDialog.Builder(this)
+        val dialogView = layoutInflater.inflate(R.layout.remove_message_dialog,null)
+        alertBuilder.setView(dialogView)
+
+
+        val groupDialog =  alertBuilder.create()
+        groupDialog.show()
+
+        dialogView.remove_for_you.setOnClickListener {
+            removeMessageForMe()
+            groupDialog.dismiss()
+        }
+
+        dialogView.remove_for_everyone.setOnClickListener {
+            removeMessageForEveryOne()
+            groupDialog.dismiss()
+        }
+
+
+
     }
 
     private fun shareSelectedMessages(keysMap:HashMap<Int,String>) {
@@ -1906,7 +1933,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
        }
     }
 
-    private fun removeMessage() {
+    private fun removeMessageForEveryOne() {
 
         for (messageKey in keysSelectedOnLongClick) {
             rootRef.child(MESSAGES_CHILD).child(currentUserId).child(receiverId).child(messageKey.value).removeValue().addOnCompleteListener {
@@ -1917,12 +1944,29 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                             myItemView.setBackgroundResource(android.R.color.transparent)
                             shortClick = false
                             keysSelectedOnLongClick.clear()
+
                         }
                     }
                 }
             }
         }
+        clearMenuAndShowOriginalMenu()
+    }
 
+    private fun removeMessageForMe() {
+        for (messageKey in keysSelectedOnLongClick) {
+            rootRef.child(MESSAGES_CHILD).child(receiverId).child(currentUserId).child(messageKey.value).removeValue().addOnCompleteListener {
+                if (it.isComplete){
+                        if (it.isComplete){
+                            messagesAdapter.notifyDataSetChanged()
+                            myItemView.setBackgroundResource(android.R.color.transparent)
+                            shortClick = false
+                            keysSelectedOnLongClick.clear()
+                        }
+                }
+            }
+        }
+        clearMenuAndShowOriginalMenu()
     }
 
 
@@ -2427,6 +2471,36 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
             }
         })
 
+    }
+
+    private fun addUserToMyChats() {
+//        usersRef.child(receiverId).addValueEventListener(object : ValueEventListener {
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//
+//                val name = snapshot.child("name").value.toString()
+//                val imageUrl = snapshot.child("image").value.toString()
+//                val phoneNumber = snapshot.child("phoneNumber").value.toString()
+//                val status = snapshot.child("status").value.toString()
+//                val uid = snapshot.child("uid").value.toString()
+//                val deviceToken = snapshot.child("device token").value.toString()
+//
+//                val chatting = snapshot.child("state").child("chatting").value.toString()
+//                val date = snapshot.child("state").child("date").value.toString()
+//                val state = snapshot.child("state").child("state").value.toString()
+//                val time = snapshot.child("state").child("time").value.toString()
+//                val typing = snapshot.child("state").child("typing").value.toString()
+//
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//            }
+//        })
+
+        rootRef.child(USERS_CHILD).child(currentUserId).child("Chats").child(receiverId).setValue("").addOnCompleteListener {
+            if (it.isComplete){
+                rootRef.child(USERS_CHILD).child(receiverId).child("Chats").child(currentUserId).setValue("")
+            }
+        }
     }
 
 }

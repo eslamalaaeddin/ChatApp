@@ -80,7 +80,8 @@ class StatusFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         retrieveMyStatuses()
-        retrieveOthersStatuses()
+        //retrieveOthersStatuses()
+        getStatuses()
     }
 
     override fun onCreateView(
@@ -104,15 +105,12 @@ class StatusFragment : Fragment() {
             startActivity(Intent(context, StatusActivity::class.java))
         }
 
-        fragmentStatusBinding.showOthersFab.setOnClickListener {
-//            insertPoint.removeAllViews()
-            showSingleStatus(usersHaveStatusIds.distinct())
-            usersHaveStatusIds.clear()
-        }
-
+        fragmentStatusBinding.othersStatusesRecyclerView.layoutManager = LinearLayoutManager(context)
         //checkForStatusTime()
 
     }
+
+
 
 
     private fun checkForStatusTime() {
@@ -195,8 +193,6 @@ class StatusFragment : Fragment() {
         rootReference.child(Utils.USERS_CHILD).
         addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-
-
                 for (child in snapshot.children) {
                     if (child.hasChild("Status")) {
                         rootReference.child(Utils.USERS_CHILD).child(child.key.toString())
@@ -279,8 +275,10 @@ class StatusFragment : Fragment() {
 
                     }
                 }
-
+                showSingleStatus(usersHaveStatusIds.distinct())
+                usersHaveStatusIds.clear()
             }
+
 
             override fun onCancelled(error: DatabaseError) {
                 Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
@@ -422,9 +420,67 @@ class StatusFragment : Fragment() {
 
     }
 
+    private fun getStatuses() {
+        rootReference.child(USERS_CHILD).addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+               for (user in snapshot.children){
+                   if (user.child("uid").value.toString() != currentUserId && user.hasChild("Status")) {
+                       rootReference.child(USERS_CHILD).
+                       child(user.key.toString()).child("Status").addValueEventListener(object : ValueEventListener{
+                           override fun onDataChange(snapshot: DataSnapshot) {
+                               othersStatusList.clear()
+                              // val currentUserStatusesCount = snapshot.childrenCount.toInt()
+                               val status = snapshot.children.last()
+                                   val by =
+                                       status.child("by").value.toString()
+                                   val text =
+                                       status.child("text").value.toString()
+                                   val color =
+                                       status.child("color").value.toString()
+                                   val viewersId =
+                                       status.child("viewersid").value.toString()
+//                                   val viewsCount =
+//                                       status.child("viewscount").value.toString()
+                                   val viewsCount =
+                                       snapshot.childrenCount.toInt()
 
+                                   val statusId =
+                                       status.child("statusid").value.toString()
+                                   val date =
+                                       status.child("date").value.toString()
+                                   val time =
+                                       status.child("time").value.toString()
+                                   val currentStatus = StatusModel(
+                                       by,
+                                       text,
+                                       color,
+                                       viewersId,
+                                       viewsCount.toString(),
+                                       statusId,
+                                       date,
+                                       time
+                                   )
 
-    inner class ContactsStatusAdapter(private var list: List<StatusModel>) : RecyclerView.Adapter<ContactsStatusAdapter.ContactsStatusHolder>() {
+                               othersStatusList.add(currentStatus)
+                               contactsStatusAdapter = ContactsStatusAdapter(othersStatusList)
+                                fragmentStatusBinding.othersStatusesRecyclerView.adapter =
+                                    contactsStatusAdapter
+                           }
+
+                           override fun onCancelled(error: DatabaseError) {
+                           }
+                       })
+                   }
+               }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+        })
+    }
+
+    inner class ContactsStatusAdapter(private var list: List<StatusModel>) :
+        RecyclerView.Adapter<ContactsStatusAdapter.ContactsStatusHolder>() {
 
         inner class ContactsStatusHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener, View.OnLongClickListener {
             private val statusTextView : TextView = itemView.findViewById(R.id.status_text_view)
@@ -447,7 +503,7 @@ class StatusFragment : Fragment() {
 
                 statusTextView.background = drawable
                 statusTextView.text = statusModel.text
-                statusCountTextView.visibility = View.INVISIBLE
+                statusCountTextView.text = statusModel.viewscount
 
                 rootReference.child(Utils.USERS_CHILD).child(statusModel.by).
                 child("name").addValueEventListener(object : ValueEventListener {
