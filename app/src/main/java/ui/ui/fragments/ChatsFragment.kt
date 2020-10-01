@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.Callback
 import models.ContactsModel
 
@@ -77,10 +78,10 @@ class ChatsFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        auth = FirebaseAuth.getInstance()
+        auth = (activity?.application as BaseApplication).getFirebaseAuthenticationReference()
         currentUser = auth.currentUser!!
 
-        rootReference = FirebaseDatabase.getInstance().reference
+        rootReference = (activity?.application as BaseApplication).getDatabaseRootReference()
         currentUserId = currentUser.uid
         usersReference = FirebaseDatabase.getInstance().reference.child("Users")
         messagesReference = FirebaseDatabase.getInstance().reference.child("Messages")

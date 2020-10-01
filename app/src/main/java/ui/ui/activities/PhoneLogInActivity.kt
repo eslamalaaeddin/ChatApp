@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.R
 import com.example.whatsapp.databinding.ActivityPhoneLogInBinding
 import com.google.firebase.FirebaseException
@@ -33,7 +34,7 @@ class PhoneLogInActivity : AppCompatActivity() {
             R.layout.activity_phone_log_in
         )
 
-        auth = FirebaseAuth.getInstance()
+        auth = (application as BaseApplication).getFirebaseAuthenticationReference()
 
         activityPhoneLogInBinding.sendVerificationCodeButton.setOnClickListener {
 

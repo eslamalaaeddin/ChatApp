@@ -15,6 +15,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.USERS_CHILD
@@ -33,6 +34,7 @@ class FindFriendsActivity : AppCompatActivity() {
     private lateinit var activityFindFriendsBinding: ActivityFindFriendsBinding
 
     private lateinit var usersReference: DatabaseReference
+    private lateinit var rootReference: DatabaseReference
 
     private var contactsNumbersList = mutableListOf<String>()
 
@@ -56,10 +58,11 @@ class FindFriendsActivity : AppCompatActivity() {
             this,
             R.layout.activity_find_friends
         )
-        auth = FirebaseAuth.getInstance()
+        auth = (application as BaseApplication).getFirebaseAuthenticationReference()
+        rootReference = (application as BaseApplication).getDatabaseRootReference()
         currentUser = auth.currentUser!!
         currentUserId = auth.currentUser!!.uid
-        usersReference = FirebaseDatabase.getInstance().reference.child("Users")
+        usersReference = rootReference.child("Users")
         setUpToolbar()
 
         requestPermissions()

@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.USERS_CHILD
@@ -40,9 +41,9 @@ class SettingsActivity : AppCompatActivity() {
 
         setUpToolbar()
 
-        auth = FirebaseAuth.getInstance()
+        auth = (application as BaseApplication).getFirebaseAuthenticationReference()
 
-        rootRef = FirebaseDatabase.getInstance().reference
+        rootRef = (application as BaseApplication).getDatabaseRootReference()
 
         currentUser = auth.currentUser!!
 

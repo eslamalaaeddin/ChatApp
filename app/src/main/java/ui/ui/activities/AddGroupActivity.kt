@@ -16,6 +16,7 @@ import android.widget.*
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
 import com.example.whatsapp.databinding.ActivityAddGroupBinding
@@ -35,6 +36,7 @@ class AddGroupActivity : AppCompatActivity() {
     private lateinit var addParticipantsTextView: TextView
 
     private lateinit var usersReference: DatabaseReference
+    private lateinit var rootReference: DatabaseReference
 
     private var contactsNumbersList = mutableListOf<String>()
 
@@ -60,9 +62,10 @@ class AddGroupActivity : AppCompatActivity() {
 
         setUpToolbar()
 
-        auth = FirebaseAuth.getInstance()
+        auth = (application as BaseApplication).getFirebaseAuthenticationReference()
+        rootReference = (application as BaseApplication).getDatabaseRootReference()
         currentUser = auth.currentUser!!
-        usersReference = FirebaseDatabase.getInstance().reference.child("Users")
+        usersReference = rootReference.child("Users")
         setUpToolbar()
 
         requestPermissions()

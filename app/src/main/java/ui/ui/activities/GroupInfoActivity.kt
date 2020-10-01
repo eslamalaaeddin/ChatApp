@@ -23,10 +23,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
-import com.example.whatsapp.BottomSheetDialog
-import com.example.whatsapp.ChangeIconBottomSheet
+import com.example.whatsapp.*
 import com.example.whatsapp.R
-import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityGroupInfoBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -112,12 +110,13 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
         super.onCreate(savedInstanceState)
        groupBinding = DataBindingUtil.setContentView(this,R.layout.activity_group_info)
 
-        auth = FirebaseAuth.getInstance()
+        auth = (application as BaseApplication).getFirebaseAuthenticationReference()
         currentUser = auth.currentUser!!
         currentUserId = currentUser.uid
+        rootReference = (application as BaseApplication).getDatabaseRootReference()
 
-        usersReference = FirebaseDatabase.getInstance().reference.child("Users")
-        rootReference = FirebaseDatabase.getInstance().reference
+        usersReference = rootReference.child("Users")
+
 
         groupId = intent.getStringExtra(GROUP_ID).toString()
         //groupId = "8a722852-4609-43c5-87a3-5c9f9c054de8"

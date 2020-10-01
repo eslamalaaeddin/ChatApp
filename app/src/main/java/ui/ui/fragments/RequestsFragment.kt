@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.whatsapp.BaseApplication
 import models.ContactsModel
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
@@ -33,6 +34,7 @@ class RequestsFragment : Fragment() {
 
     private lateinit var contactsReference: DatabaseReference
     private lateinit var auth: FirebaseAuth
+    private lateinit var rootReference: DatabaseReference
     private lateinit var currentUser: FirebaseUser
     private lateinit var usersReference: DatabaseReference
     private lateinit var contactsAdapter: FirebaseRecyclerAdapter<ContactsModel, ContactsViewHolder>
@@ -41,10 +43,11 @@ class RequestsFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        auth = FirebaseAuth.getInstance()
+        auth = (activity?.application as BaseApplication).getFirebaseAuthenticationReference()
         currentUser = auth.currentUser!!
-        usersReference = FirebaseDatabase.getInstance().reference.child(Utils.USERS_CHILD)
-        contactsReference = FirebaseDatabase.getInstance().reference.child(Utils.CHAT_REQUESTS_CHILD).child(currentUser.uid)
+        rootReference = (activity?.application as BaseApplication).getDatabaseRootReference()
+        usersReference = rootReference.child(Utils.USERS_CHILD)
+        contactsReference = rootReference.child(Utils.CHAT_REQUESTS_CHILD).child(currentUser.uid)
     }
 
     override fun onCreateView(

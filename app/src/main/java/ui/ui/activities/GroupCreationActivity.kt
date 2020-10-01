@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
-import android.media.Image
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,18 +14,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
 import com.example.whatsapp.databinding.ActivityGroupCreationBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 import com.squareup.picasso.Picasso
 import models.ContactsModel
-import models.GroupModel
-import okhttp3.internal.Util
 import java.util.*
 import kotlin.collections.HashMap
 private const val GROUP_ID = "group id"
@@ -38,7 +34,7 @@ class GroupCreationActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
 
     //Database reference
-    private lateinit var rootRef: DatabaseReference
+    private lateinit var rootReference: DatabaseReference
 
     private  var currentUser: FirebaseUser? = null
 
@@ -51,16 +47,18 @@ class GroupCreationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         //get firebase auth
-        auth = FirebaseAuth.getInstance()
+        auth = (application as BaseApplication).getFirebaseAuthenticationReference()
 
-        usersRef = FirebaseDatabase.getInstance().reference.child(Utils.USERS_CHILD)
+        rootReference = (application as BaseApplication).getDatabaseRootReference()
+
+        usersRef = rootReference.child(Utils.USERS_CHILD)
 
         //get current user
         currentUser = auth.currentUser
 
         currentUserId = currentUser?.uid.toString()
 
-        rootRef = FirebaseDatabase.getInstance().reference
+
 
         groupCreationBinding = DataBindingUtil.setContentView(this,R.layout.activity_group_creation)
         setUpToolbar()
@@ -182,7 +180,7 @@ class GroupCreationActivity : AppCompatActivity() {
         groupMap.put("participants", "")
         groupMap.put("admin", currentUserId)
 
-        rootRef.child("Groups").child(gid).updateChildren(groupMap)
+        rootReference.child("Groups").child(gid).updateChildren(groupMap)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val map = HashMap<String,Any>()
@@ -190,14 +188,14 @@ class GroupCreationActivity : AppCompatActivity() {
 
                     Toast.makeText(this, "$groupName created successfully", Toast.LENGTH_SHORT).show()
 
-                    rootRef.child("Groups").child(gid).
+                    rootReference.child("Groups").child(gid).
                     child("participants").updateChildren(map).addOnCompleteListener {
                         for (participant in addedContacts){
                             map[participant.uid] = ""
-                            rootRef.child("Groups").child(gid).
+                            rootReference.child("Groups").child(gid).
                             child("participants").updateChildren(map).addOnCompleteListener {
 
-                                rootRef.child("Users").child(participant.uid).
+                                rootReference.child("Users").child(participant.uid).
                                 child("Groups").child(gid).setValue("").addOnCompleteListener {
 
                                             if (it.isComplete){

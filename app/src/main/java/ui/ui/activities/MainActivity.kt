@@ -12,10 +12,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
-import com.example.whatsapp.Callback
+import com.example.whatsapp.*
 import com.example.whatsapp.R
-import com.example.whatsapp.TabsAdapter
-import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.STATE_CHILD
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityMainBinding
@@ -52,9 +50,6 @@ class MainActivity : AppCompatActivity() , Callback {
 
     private lateinit var currentUserId : String
 
-    private lateinit var usersRef :DatabaseReference
-
-
     private lateinit var alertBuilder: AlertDialog.Builder
     private lateinit var groupDialog: AlertDialog
 
@@ -79,16 +74,16 @@ class MainActivity : AppCompatActivity() , Callback {
         //setUpTabs()
 
         //get firebase auth
-        auth = FirebaseAuth.getInstance()
+        auth = (application as BaseApplication).getFirebaseAuthenticationReference()
 
-        usersRef = FirebaseDatabase.getInstance().reference.child(USERS_CHILD)
+        Log.i(TAG, "ISLAM onCreate: ${auth.hashCode()}")
 
         //get current user
         currentUser = auth.currentUser
 
          currentUserId = currentUser?.uid.toString()
 
-        rootRef = FirebaseDatabase.getInstance().reference
+        rootRef = (application as BaseApplication).getDatabaseRootReference()
         Log.i(TAG, "onCreate: MAIN")
 
     }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.R
 import com.example.whatsapp.databinding.ActivityFindFriendsBinding
 import com.example.whatsapp.databinding.ActivityProfileBinding
@@ -37,9 +38,9 @@ class ProfileActivity : AppCompatActivity() {
 
         activityProfileBinding = DataBindingUtil.setContentView(this, R.layout.activity_profile)
 
-        rootRef = FirebaseDatabase.getInstance().reference
+        rootRef =(application as BaseApplication).getDatabaseRootReference()
 
-        auth = FirebaseAuth.getInstance()
+        auth = (application as BaseApplication).getFirebaseAuthenticationReference()
 
         chatRequestRef = rootRef.child("Chat requests")
 

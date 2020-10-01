@@ -11,6 +11,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
 import com.example.whatsapp.Utils.USERS_CHILD
@@ -42,10 +43,10 @@ class StatusActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        auth = FirebaseAuth.getInstance()
+        auth = (application as BaseApplication).getFirebaseAuthenticationReference()
         currentUser = auth.currentUser!!
 
-        rootReference = FirebaseDatabase.getInstance().reference
+        rootReference = (application as BaseApplication).getDatabaseRootReference()
         currentUserId = currentUser.uid
         usersReference = FirebaseDatabase.getInstance().reference.child("Users")
         contactsReference = FirebaseDatabase.getInstance().reference.child("Contacts").child(currentUser.uid)

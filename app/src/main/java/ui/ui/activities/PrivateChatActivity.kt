@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.BottomSheetDialog
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
@@ -163,14 +164,16 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         privateChatBinding =
             DataBindingUtil.setContentView(this, R.layout.activity_private_chat)
 
-        auth = FirebaseAuth.getInstance()
+        auth = (application as BaseApplication).getFirebaseAuthenticationReference()
+
+        Log.i(TAG, "ISLAM onCreate: ${auth.hashCode()}")
 
         senderId = auth.currentUser?.uid.toString()
         receiverId = intent.getStringExtra(USER_ID).toString()
 
         Utils.senderId = senderId
 
-        rootRef = FirebaseDatabase.getInstance().reference
+        rootRef = (application as BaseApplication).getDatabaseRootReference()
 
         usersRef = rootRef.child(USERS_CHILD)
 

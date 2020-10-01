@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivityCallingBinding
@@ -39,7 +40,7 @@ class CallingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityCallingBinding = DataBindingUtil.setContentView(this, R.layout.activity_calling)
-        rootRef = FirebaseDatabase.getInstance().reference
+        rootRef = (application as BaseApplication).getDatabaseRootReference()
         usersRef = rootRef.child(USERS_CHILD)
 
         //senderId

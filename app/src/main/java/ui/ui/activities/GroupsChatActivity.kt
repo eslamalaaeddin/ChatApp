@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.example.whatsapp.BaseApplication
 import com.example.whatsapp.BottomSheetDialog
 import com.example.whatsapp.R
 import com.example.whatsapp.Utils
@@ -139,7 +140,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
         activityGroupChatBinding =
             DataBindingUtil.setContentView(this, R.layout.activity_groups_chat)
 
-        auth = FirebaseAuth.getInstance()
+        auth =  (application as BaseApplication).getFirebaseAuthenticationReference()
 
         senderId = auth.currentUser?.uid.toString()
 
@@ -156,7 +157,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
         currentUserName = "Temp"
 
-        rootRef = FirebaseDatabase.getInstance().reference
+        rootRef = (application as BaseApplication).getDatabaseRootReference()
 
         usersRef = rootRef.child(USERS_CHILD)
 
