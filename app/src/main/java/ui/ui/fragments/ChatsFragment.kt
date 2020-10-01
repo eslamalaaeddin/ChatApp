@@ -32,6 +32,9 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.squareup.picasso.Picasso
 import models.GroupModel
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.HashMap
 
 private const val TAG = "ChatsFragment"
 private const val CALLER_ID = "receiver id"
@@ -124,7 +127,7 @@ class ChatsFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         checkForReceivingCalls()
-        usersReference.addValueEventListener(object : ValueEventListener {
+        usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 stateList.clear()
@@ -177,7 +180,43 @@ class ChatsFragment : Fragment() {
 
         })
         retrieveGroups()
+        //updateUserStatus("online")
         Log.i(TAG, "TTTT onStart: ")
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun updateUserStatus(state: String) {
+        var currentDate = ""
+        var currentTime = ""
+
+        val calender = Calendar.getInstance()
+        //get date and time
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy")
+        val timeFormat = SimpleDateFormat("hh:mm a")
+
+        currentDate = dateFormat.format(calender.time)
+        currentTime = timeFormat.format(calender.time)
+
+        val userStateMap = HashMap<String, Any> ()
+        userStateMap["date"] = currentDate
+        userStateMap["time"] = currentTime
+        userStateMap["state"] = state
+
+        rootReference.child(USERS_CHILD).child(currentUserId).child(Utils.STATE_CHILD).updateChildren(
+            userStateMap
+        )
+
+
+    }
+
+    override fun onStop() {
+        super.onStop()
+            //updateUserStatus("offline")
     }
 
     // to return contacts from firebase db
@@ -232,7 +271,6 @@ class ChatsFragment : Fragment() {
                         .addValueEventListener(object : ValueEventListener {
                             @SuppressLint("SetTextI18n")
                             override fun onDataChange(snapshot: DataSnapshot) {
-
 
                                 //there is a messages
                                 if (snapshot.value != null && snapshot.hasChildren()) {
@@ -351,7 +389,7 @@ class ChatsFragment : Fragment() {
 
                                             lastMessageDateTextView.setTextColor(
                                                 ContextCompat.getColor(
-                                                    requireContext(),
+                                                    context!!,
                                                     R.color.green
                                                 )
                                             )
@@ -524,10 +562,10 @@ class ChatsFragment : Fragment() {
     //////////////////////////////////////////////////////Groups logic/////////////////////////////////////////////////
     private fun retrieveGroups() {
 
-        rootReference.child(USERS_CHILD).child(currentUserId).addValueEventListener(object : ValueEventListener{
+        rootReference.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.hasChild("Groups")){
-                    rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").addValueEventListener(object :
+                    rootReference.child("Groups").addValueEventListener(object :
                         ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
                             groupsList.clear()
@@ -602,19 +640,24 @@ class ChatsFragment : Fragment() {
                         .into(groupImageView)
                 }
 
-                usersReference.child(currentUserId).addValueEventListener(object : ValueEventListener{
+                rootReference.addValueEventListener(object : ValueEventListener{
                     override fun onDataChange(snapshot: DataSnapshot) {
                         if (snapshot.hasChild("Groups")){
-                            usersReference.child(currentUserId).child("Groups").child(group.gid).addValueEventListener(object : ValueEventListener{
+                            rootReference.child("Groups").child(group.gid).addValueEventListener(object : ValueEventListener{
                                 override fun onDataChange(snapshot: DataSnapshot) {
                                     if (snapshot.hasChild("Messages")){
                                         usersReference.child(currentUserId).child("Groups").
                                         child(group.gid).child("Messages").addValueEventListener(object : ValueEventListener{
                                             override fun onDataChange(snapshot: DataSnapshot) {
-                                                val lastMessage = snapshot.children.last()
-                                                val lastMessageTime = "${lastMessage.child("date").value.toString()} ${lastMessage.child("time").value.toString()}"
+                                                if (snapshot.hasChildren()) {
+                                                    val lastMessage = snapshot.children.last()
+                                                    val lastMessageTime =
+                                                        "${lastMessage.child("date").value.toString()} ${
+                                                            lastMessage.child("time").value.toString()
+                                                        }"
 
-                                                lastMessageTimeTextView.text = lastMessageTime
+                                                    lastMessageTimeTextView.text = lastMessageTime
+                                                }
                                             }
 
                                             override fun onCancelled(error: DatabaseError) {
@@ -636,10 +679,10 @@ class ChatsFragment : Fragment() {
 
 
                 // Users messages
-                rootReference.child(USERS_CHILD).child(currentUserId).addValueEventListener(object : ValueEventListener{
+                rootReference.addValueEventListener(object : ValueEventListener{
                     override fun onDataChange(snapshot: DataSnapshot) {
                         if (snapshot.hasChild("Groups")){
-                            rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").addValueEventListener(object : ValueEventListener{
+                            rootReference.child("Groups").addValueEventListener(object : ValueEventListener{
                                 override fun onDataChange(snapshot: DataSnapshot) {
                                     for (group in snapshot.children){
                                         if (group.hasChild("Messages")){

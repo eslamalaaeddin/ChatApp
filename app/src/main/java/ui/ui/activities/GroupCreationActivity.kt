@@ -182,7 +182,7 @@ class GroupCreationActivity : AppCompatActivity() {
         groupMap.put("participants", "")
         groupMap.put("admin", currentUserId)
 
-        rootRef.child("Users").child(currentUserId).child("Groups").child(gid).updateChildren(groupMap)
+        rootRef.child("Groups").child(gid).updateChildren(groupMap)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val map = HashMap<String,Any>()
@@ -190,26 +190,20 @@ class GroupCreationActivity : AppCompatActivity() {
 
                     Toast.makeText(this, "$groupName created successfully", Toast.LENGTH_SHORT).show()
 
-                    rootRef.child("Users").child(currentUserId).child("Groups").child(gid).
+                    rootRef.child("Groups").child(gid).
                     child("participants").updateChildren(map).addOnCompleteListener {
                         for (participant in addedContacts){
                             map[participant.uid] = ""
-                            rootRef.child("Users").child(currentUserId).child("Groups").child(gid).
+                            rootRef.child("Groups").child(gid).
                             child("participants").updateChildren(map).addOnCompleteListener {
 
                                 rootRef.child("Users").child(participant.uid).
-                                child("Groups").child(gid).updateChildren(groupMap).addOnCompleteListener {
-                                    rootRef.child("Users").child(participant.uid).child("Groups").child(gid).
-                                    child("participants").updateChildren(map).addOnCompleteListener {
-                                        map[currentUserId] = ""
-                                        rootRef.child("Users").child(participant.uid).child("Groups").child(gid).
-                                        child("participants").updateChildren(map).addOnCompleteListener {
+                                child("Groups").child(gid).setValue("").addOnCompleteListener {
+
                                             if (it.isComplete){
                                                 sendUserToGroupChatActivity(gid)
                                                  finish()
                                             }
-                                        }
-                                    }
                                 }
                             }
                         }

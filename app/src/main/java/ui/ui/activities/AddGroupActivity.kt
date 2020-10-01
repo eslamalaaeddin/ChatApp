@@ -72,33 +72,45 @@ class AddGroupActivity : AppCompatActivity() {
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 listFromFirebaseDb.clear()
-                for (phoneSnapshot in snapshot.children) {
-                    if (phoneSnapshot.hasChild("phoneNumber")) {
+                for ((k,user) in snapshot.children.withIndex()) {
+                    var tempId = ""
+                    if (user.hasChild("phoneNumber")) {
                         val currentPhoneNumber =
-                            phoneSnapshot.child("phoneNumber").value.toString()
-                        if (phoneSnapshot.child("phoneNumber").value != null) {
+                            user.child("phoneNumber").value.toString()
+
+                        tempId = user.child("uid").value.toString()
+                        if (user.child("phoneNumber").value != null) {
                             for ((i, item) in distinctContactList.withIndex()) {
                                 if (item.number == currentPhoneNumber || currentPhoneNumber.contains(
                                         item.number
                                     )
                                 ) {
-                                    val name = phoneSnapshot.child("name").value.toString()
-                                    val image = phoneSnapshot.child("image").value.toString()
-                                    val status = phoneSnapshot.child("status").value.toString()
-                                    val id = phoneSnapshot.child("uid").value.toString()
+                                    val name = user.child("name").value.toString()
+                                    val image = user.child("image").value.toString()
+                                    val status = user.child("status").value.toString()
+                                    val id = user.child("uid").value.toString()
 
-                                    listFromFirebaseDb.add(
-                                        ContactsModel(
-                                            name,
-                                            image,
-                                            status,
-                                            id,
-                                            currentPhoneNumber
+                                    Log.i(TAG, "onDataChange: ISLAM  $i")
+                                    Log.i(TAG, "onDataChange: ISLAM  $k")
+
+                                    //to ignore my profile
+                                    if (  id == currentUser.uid  ) {
+
+                                    } else {
+                                        listFromFirebaseDb.add(
+                                            ContactsModel(
+                                                name,
+                                                image,
+                                                status,
+                                                id,
+                                                currentPhoneNumber
+                                            )
                                         )
-                                    )
-                                    Log.i(TAG, "QQQQ onDataChange: $name   $currentPhoneNumber")
+                                    }
 
-
+                                    if (k>0 && listFromFirebaseDb.size > k && listFromFirebaseDb[k].uid == listFromFirebaseDb[k-1].uid ){
+                                        listFromFirebaseDb.removeAt(k)
+                                    }
 
                                 }
                             }

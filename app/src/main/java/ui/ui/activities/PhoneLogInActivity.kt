@@ -93,7 +93,7 @@ class PhoneLogInActivity : AppCompatActivity() {
                 signInWithPhoneAuthCredential(credential)
             }
             else{
-                Toast.makeText(this, "Please enter your verification code", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Please enter your verification code", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -118,8 +118,9 @@ class PhoneLogInActivity : AppCompatActivity() {
 
                 if (task.isSuccessful) {
                     progressDialog.dismiss()
-                    Toast.makeText(this, "Congratulations!", Toast.LENGTH_SHORT).show()
-                    sendUserToMainActivity()
+                    //Toast.makeText(this, "Congratulations!", Toast.LENGTH_SHORT).show()
+                    //sendUserToMainActivity()
+                    sendUserToSettingsActivity()
                 } else {
                     Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
                 }
@@ -140,5 +141,12 @@ class PhoneLogInActivity : AppCompatActivity() {
         val mainActivityIntent = Intent(this, MainActivity::class.java)
         mainActivityIntent.putExtra(PHONE_NUMBER,phoneNumber)
         startActivity(mainActivityIntent)
+    }
+
+    private fun sendUserToSettingsActivity() {
+        val settingIntent = Intent(this , SettingsActivity::class.java)
+        settingIntent.putExtra(PHONE_NUMBER,phoneNumber)
+        startActivity(settingIntent)
+
     }
 }

@@ -28,7 +28,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="ui.ui.activities.GroupInfoActivity" android:parentActivityName="ui.ui.activities.GroupsChatActivity">
+        <activity android:name="ui.ui.activities.GroupInfoActivity" >
 <!--             <intent-filter>-->
 <!--             <action android:name="android.intent.action.MAIN" />-->
 

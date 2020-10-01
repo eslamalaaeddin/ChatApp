@@ -142,7 +142,14 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
         auth = FirebaseAuth.getInstance()
 
         senderId = auth.currentUser?.uid.toString()
-        groupId = intent.getStringExtra(GROUP_ID).toString()
+
+        if (savedInstanceState == null){
+            groupId = intent.getStringExtra(GROUP_ID).toString()
+        }
+
+
+
+
         receiverId = "123"
 
         Utils.senderId = senderId
@@ -191,11 +198,11 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
             }
 
             override fun afterTextChanged(text: Editable?) {
-                if (text.toString().isEmpty()){
+                if (text.toString().isEmpty()) {
                     activityGroupChatBinding.sendMessageButton.visibility = View.INVISIBLE
                     activityGroupChatBinding.sendVoiceMessageButton.visibility = View.VISIBLE
                     activityGroupChatBinding.cameraButton.visibility = View.VISIBLE
-                }else{
+                } else {
                     activityGroupChatBinding.sendMessageButton.visibility = View.VISIBLE
                     activityGroupChatBinding.sendVoiceMessageButton.visibility = View.INVISIBLE
                     activityGroupChatBinding.cameraButton.visibility = View.GONE
@@ -230,7 +237,6 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
     }
 
-
     @SuppressLint("SimpleDateFormat")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -244,9 +250,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 val storageRef = FirebaseStorage.getInstance().reference.child("Document files")
 
 
-                val userMessageKeyRef = rootRef.child(USERS_CHILD).child(currentUserId).
-                child("Groups").child(groupId).child(MESSAGES_CHILD).
-                push()
+                val userMessageKeyRef = rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).push()
 
                 val messagePushId = userMessageKeyRef.key.toString()
 
@@ -288,29 +292,9 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
 
 
-                        rootRef.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId)
-                            .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    rootRef.child(USERS_CHILD).child(currentUserId).
-                                    child("Groups").child(groupId).child("participants").
-                                    addValueEventListener(object : ValueEventListener{
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            for (participant in snapshot.children){
-                                                val participantId = participant.key.toString()
-                                                rootRef.child(USERS_CHILD).child(participantId).child("Groups").child(groupId)
-                                                    .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                                            }
-                                        }
-
-                                        override fun onCancelled(error: DatabaseError) {
-                                        }
-                                    })
-                                }
-                                else{
-                                    Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                        rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).updateChildren(
+                            messageBodyDetails
+                        )
                         progressDialog.dismiss()
                     }
                 }.addOnFailureListener{
@@ -327,10 +311,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Video files")
 
-
-                val userMessageKeyRef = rootRef.child(USERS_CHILD).child(currentUserId).
-                child("Groups").child(groupId).child(MESSAGES_CHILD).
-                push()
+                val userMessageKeyRef = rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).push()
 
                 val messagePushId = userMessageKeyRef.key.toString()
 
@@ -367,37 +348,10 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
 
 
-                            rootRef.child(USERS_CHILD).child(currentUserId).child("Groups")
-                                .child(groupId)
-                                .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                                .addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        rootRef.child(USERS_CHILD).child(currentUserId)
-                                            .child("Groups").child(groupId).child("participants")
-                                            .addValueEventListener(object : ValueEventListener {
-                                                override fun onDataChange(snapshot: DataSnapshot) {
-                                                    for (participant in snapshot.children) {
-                                                        val participantId =
-                                                            participant.key.toString()
-                                                        rootRef.child(USERS_CHILD)
-                                                            .child(participantId).child("Groups")
-                                                            .child(groupId)
-                                                            .child(MESSAGES_CHILD)
-                                                            .updateChildren(messageBodyDetails)
-                                                    }
-                                                }
+                            rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).updateChildren(
+                                messageBodyDetails
+                            )
 
-                                                override fun onCancelled(error: DatabaseError) {
-                                                }
-                                            })
-                                    } else {
-                                        Toast.makeText(
-                                            this,
-                                            task.exception?.message,
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
                             progressDialog.dismiss()
                         }
                     }
@@ -416,10 +370,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Audio files")
 
-
-                val userMessageKeyRef = rootRef.child(USERS_CHILD).child(currentUserId).
-                child("Groups").child(groupId).child(MESSAGES_CHILD).
-                push()
+                val userMessageKeyRef = rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).push()
 
                 val messagePushId = userMessageKeyRef.key.toString()
 
@@ -455,38 +406,9 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                             val messageBodyDetails = HashMap<String, Any>()
                             messageBodyDetails.put(messagePushId, messageImageBody)
 
-
-                            rootRef.child(USERS_CHILD).child(currentUserId).child("Groups")
-                                .child(groupId)
-                                .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                                .addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        rootRef.child(USERS_CHILD).child(currentUserId)
-                                            .child("Groups").child(groupId).child("participants")
-                                            .addValueEventListener(object : ValueEventListener {
-                                                override fun onDataChange(snapshot: DataSnapshot) {
-                                                    for (participant in snapshot.children) {
-                                                        val participantId =
-                                                            participant.key.toString()
-                                                        rootRef.child(USERS_CHILD)
-                                                            .child(participantId).child("Groups")
-                                                            .child(groupId)
-                                                            .child(MESSAGES_CHILD)
-                                                            .updateChildren(messageBodyDetails)
-                                                    }
-                                                }
-
-                                                override fun onCancelled(error: DatabaseError) {
-                                                }
-                                            })
-                                    } else {
-                                        Toast.makeText(
-                                            this,
-                                            task.exception?.message,
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
+                            rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).updateChildren(
+                                messageBodyDetails
+                            )
                             progressDialog.dismiss()
                         }
                     }
@@ -505,10 +427,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
 
-
-                val userMessageKeyRef = rootRef.child(USERS_CHILD).child(currentUserId).
-                child("Groups").child(groupId).child(MESSAGES_CHILD).
-                push()
+                val userMessageKeyRef = rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).push()
 
                 val messagePushId = userMessageKeyRef.key.toString()
 
@@ -544,39 +463,9 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                             val messageBodyDetails = HashMap<String, Any>()
                             messageBodyDetails.put(messagePushId, messageImageBody)
 
-
-
-                            rootRef.child(USERS_CHILD).child(currentUserId).child("Groups")
-                                .child(groupId)
-                                .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                                .addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        rootRef.child(USERS_CHILD).child(currentUserId)
-                                            .child("Groups").child(groupId).child("participants")
-                                            .addValueEventListener(object : ValueEventListener {
-                                                override fun onDataChange(snapshot: DataSnapshot) {
-                                                    for (participant in snapshot.children) {
-                                                        val participantId =
-                                                            participant.key.toString()
-                                                        rootRef.child(USERS_CHILD)
-                                                            .child(participantId).child("Groups")
-                                                            .child(groupId)
-                                                            .child(MESSAGES_CHILD)
-                                                            .updateChildren(messageBodyDetails)
-                                                    }
-                                                }
-
-                                                override fun onCancelled(error: DatabaseError) {
-                                                }
-                                            })
-                                    } else {
-                                        Toast.makeText(
-                                            this,
-                                            task.exception?.message,
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
+                            rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).updateChildren(
+                                messageBodyDetails
+                            )
                             progressDialog.dismiss()
                         }
                     }
@@ -604,10 +493,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
             val b = stream.toByteArray()
 
-
-            val userMessageKeyRef = rootRef.child(USERS_CHILD).child(currentUserId).
-            child("Groups").child(groupId).child(MESSAGES_CHILD).
-            push()
+            val userMessageKeyRef = rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).push()
 
             val messagePushId = userMessageKeyRef.key.toString()
 
@@ -647,29 +533,9 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     messageBodyDetails.put(messagePushId, messageImageBody)
 
 
-                    rootRef.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId)
-                        .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                rootRef.child(USERS_CHILD).child(currentUserId).
-                                child("Groups").child(groupId).child("participants").
-                                addValueEventListener(object : ValueEventListener{
-                                    override fun onDataChange(snapshot: DataSnapshot) {
-                                        for (participant in snapshot.children){
-                                            val participantId = participant.key.toString()
-                                            rootRef.child(USERS_CHILD).child(participantId).child("Groups").child(groupId)
-                                                .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                                        }
-                                    }
-
-                                    override fun onCancelled(error: DatabaseError) {
-                                    }
-                                })
-                            }
-                            else{
-                                Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                    rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).updateChildren(
+                        messageBodyDetails
+                    )
                   //  progressDialog.dismiss()
 
                 }
@@ -710,7 +576,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
         val groupInfoLayout:LinearLayout = findViewById(R.id.group_info_layout)
 
         groupInfoLayout.setOnClickListener {
-            val groupInfoIntent = Intent(this,GroupInfoActivity::class.java)
+            val groupInfoIntent = Intent(this, GroupInfoActivity::class.java)
             groupInfoIntent.putExtra(GROUP_ID, groupId)
             startActivity(groupInfoIntent)
         }
@@ -724,7 +590,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
         groupStatusTextView.text = "tap here for group info"
 
-        usersRef.child(currentUserId).child("Groups").child(groupId).addValueEventListener(object : ValueEventListener {
+        rootRef.child("Groups").child(groupId).addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
 
                 groupNameTextView.text = snapshot.child("name").value.toString()
@@ -735,8 +601,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                         .load(imageUrl)
                         .placeholder(R.drawable.ic_group)
                         .into(groupImageView)
-                }
-                else{
+                } else {
                     groupImageView.setImageResource(R.drawable.ic_group)
                 }
 
@@ -750,8 +615,14 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
 
         activityGroupChatBinding.mainToolbar.setTitleTextColor(Color.WHITE)
-        activityGroupChatBinding.mainToolbar.overflowIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
-        activityGroupChatBinding.mainToolbar.navigationIcon?.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_IN)
+        activityGroupChatBinding.mainToolbar.overflowIcon?.setColorFilter(
+            resources.getColor(R.color.white),
+            PorterDuff.Mode.SRC_IN
+        )
+        activityGroupChatBinding.mainToolbar.navigationIcon?.setColorFilter(
+            resources.getColor(R.color.white),
+            PorterDuff.Mode.SRC_IN
+        )
     }
 
 
@@ -760,9 +631,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
         if(currentMessage.isNotEmpty()) {
 
-            val userMessageKeyRef = rootRef.child(USERS_CHILD).child(currentUserId).
-            child("Groups").child(groupId).child(MESSAGES_CHILD).
-            push()
+            val userMessageKeyRef = rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).push()
 
             val messagePushId = userMessageKeyRef.key.toString()
 
@@ -785,34 +654,11 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
             val messageBodyDetails = HashMap<String, Any>()
             messageBodyDetails.put(messagePushId, messageTextBody)
 
-            rootRef.child(USERS_CHILD).child(currentUserId).
-            child("Groups").child(groupId).child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    rootRef.child(USERS_CHILD).child(currentUserId).
-                    child("Groups").child(groupId).child("participants").
-                    addValueEventListener(object : ValueEventListener{
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            for (participant in snapshot.children){
-                                val participantId = participant.key.toString()
-                                rootRef.child(USERS_CHILD).child(participantId).child("Groups").child(groupId)
-                                    .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                            }
-                        }
-
-                        override fun onCancelled(error: DatabaseError) {
-                        }
-                    })
-                }
-                else{
-                    Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
-                }
-            }
+            rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).updateChildren(
+                messageBodyDetails
+            )
         }
 
-        else{
-
-        }
         //send a broadcast intent
         // sendBroadcast(Intent(ACTION_SHOW_NOTIFICATION), PERM_PRIVATE)
         activityGroupChatBinding.sendMessageEditText.text.clear()
@@ -889,9 +735,10 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
         }
     }
 
-    private fun getSenderName(message:PrivateMessageModel) : String{
+    private fun getSenderName(message: PrivateMessageModel) : String{
         var senderName = "123"
-        rootRef.child(USERS_CHILD).child(message.from).child("name").addValueEventListener(object : ValueEventListener {
+        rootRef.child(USERS_CHILD).child(message.from).child("name").addValueEventListener(object :
+            ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 senderName = snapshot.toString()
             }
@@ -946,7 +793,12 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
         }
 
+        Utils.gid = groupId
+
+
     }
+
+
 
     override fun onDestroy() {
         super.onDestroy()
@@ -1112,14 +964,16 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.senderNameTextView.visibility = View.GONE
 
                     holder.receiverNameTextView.visibility = View.VISIBLE
-                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(object : ValueEventListener{
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                           holder.receiverNameTextView.text = snapshot.child("name").value.toString()
-                        }
+                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(
+                        object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                holder.receiverNameTextView.text =
+                                    snapshot.child("name").value.toString()
+                            }
 
-                        override fun onCancelled(error: DatabaseError) {
-                        }
-                    })
+                            override fun onCancelled(error: DatabaseError) {
+                            }
+                        })
 
                     holder.receiverMessageTextView.visibility = View.VISIBLE
                     holder.receiverMessageLayout.visibility = View.VISIBLE
@@ -1186,14 +1040,16 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
 
                     holder.receiverNameTextView.visibility = View.VISIBLE
-                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(object : ValueEventListener{
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            holder.receiverNameTextView.text = snapshot.child("name").value.toString()
-                        }
+                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(
+                        object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                holder.receiverNameTextView.text =
+                                    snapshot.child("name").value.toString()
+                            }
 
-                        override fun onCancelled(error: DatabaseError) {
-                        }
-                    })
+                            override fun onCancelled(error: DatabaseError) {
+                            }
+                        })
 
 
                     Picasso.get()
@@ -1269,14 +1125,16 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
 
                     holder.receiverNameTextView.visibility = View.VISIBLE
-                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(object : ValueEventListener{
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            holder.receiverNameTextView.text = snapshot.child("name").value.toString()
-                        }
+                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(
+                        object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                holder.receiverNameTextView.text =
+                                    snapshot.child("name").value.toString()
+                            }
 
-                        override fun onCancelled(error: DatabaseError) {
-                        }
-                    })
+                            override fun onCancelled(error: DatabaseError) {
+                            }
+                        })
 
                     //
                     //  holder.receiverMessageImageView.setImageResource(R.drawable.ic_video)
@@ -1375,14 +1233,16 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.messageReceivedTimeTextView.text = currentMessage.messageTime
 
                     holder.receiverNameTextView.visibility = View.VISIBLE
-                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(object : ValueEventListener{
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            holder.receiverNameTextView.text = snapshot.child("name").value.toString()
-                        }
+                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(
+                        object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                holder.receiverNameTextView.text =
+                                    snapshot.child("name").value.toString()
+                            }
 
-                        override fun onCancelled(error: DatabaseError) {
-                        }
-                    })
+                            override fun onCancelled(error: DatabaseError) {
+                            }
+                        })
 
                     holder.receiverMessageImageView.setImageResource(R.drawable.ic_mic)
 
@@ -1438,14 +1298,16 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                     holder.senderMessageImageView.visibility = View.GONE
 
                     holder.receiverNameTextView.visibility = View.VISIBLE
-                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(object : ValueEventListener{
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            holder.receiverNameTextView.text = snapshot.child("name").value.toString()
-                        }
+                    rootRef.child(USERS_CHILD).child(currentMessage.from).addValueEventListener(
+                        object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                holder.receiverNameTextView.text =
+                                    snapshot.child("name").value.toString()
+                            }
 
-                        override fun onCancelled(error: DatabaseError) {
-                        }
-                    })
+                            override fun onCancelled(error: DatabaseError) {
+                            }
+                        })
 
                     holder.receiverMessageGeneralLayout.visibility = View.VISIBLE
 
@@ -1790,7 +1652,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
             try {
                 prepare()
             } catch (e: IOException) {
-                Log.e(TAG, "startRecording: prepare() failed" )
+                Log.e(TAG, "startRecording: prepare() failed")
             }
 
             start()
@@ -1813,8 +1675,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
         val messageSenderRef = "${MESSAGES_CHILD}/$senderId/$receiverId"
         val messageReceiverRef = "${MESSAGES_CHILD}/$receiverId/$senderId"
 
-        val userMessageKeyRef = rootRef.child(USERS_CHILD).child("Groups").child(MESSAGES_CHILD).
-        push()
+        val userMessageKeyRef = rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).push()
 
         val messagePushId = userMessageKeyRef.key.toString()
 
@@ -1853,28 +1714,9 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
                 val messageBodyDetails = HashMap<String, Any>()
                 messageBodyDetails.put(messagePushId, messageImageBody)
 
-                rootRef.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId)
-                    .child(MESSAGES_CHILD).updateChildren(messageBodyDetails).addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        rootRef.child(USERS_CHILD).child(currentUserId).
-                        child("Groups").child(groupId).child("participants").
-                        addValueEventListener(object : ValueEventListener{
-                            override fun onDataChange(snapshot: DataSnapshot) {
-                                for (participant in snapshot.children){
-                                    val participantId = participant.key.toString()
-                                    rootRef.child(USERS_CHILD).child(participantId).child("Groups").child(groupId)
-                                        .child(MESSAGES_CHILD).updateChildren(messageBodyDetails)
-                                }
-                            }
-
-                            override fun onCancelled(error: DatabaseError) {
-                            }
-                        })
-                    }
-                     else{
-                        Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
-                    }
-                }
+                rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).updateChildren(
+                    messageBodyDetails
+                )
 
             }
         }
@@ -1902,7 +1744,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
 
     private fun showVoiceMessageDialog(){
         alertBuilder = AlertDialog.Builder(this)
-        val dialogView = layoutInflater.inflate(R.layout.clear_chat_dialog,null)
+        val dialogView = layoutInflater.inflate(R.layout.clear_chat_dialog, null)
         alertBuilder.setView(dialogView)
 
         dialogView.info_text_view.text = "Send this voice?"
@@ -1923,7 +1765,7 @@ class GroupsChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetListe
     }
 
     private fun retrieveMessages() {
-        rootRef.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId).child(MESSAGES_CHILD).addValueEventListener(
+        rootRef.child("Groups").child(groupId).child(MESSAGES_CHILD).addValueEventListener(
             object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     messagesList.clear()

@@ -117,6 +117,8 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     private lateinit var bottomSheetDialog: BottomSheetDialog
 
+    private var upButtonIsClicked = false
+
     private lateinit var myMenu: Menu
 
     private var swipedMessageKey = ""
@@ -182,6 +184,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
         getSenderName()
 
+        updateUserStatus("online")
         progressDialog = ProgressDialog(this)
         progressDialog.setCanceledOnTouchOutside(false)
 
@@ -412,6 +415,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     private fun checkForUpButton() {
         if (!longClick) {
+            upButtonIsClicked = true
             finish()
             longClick = true
         }
@@ -845,7 +849,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         updateUserStatus("online")
         displayLastSeen()
         checkBlockedOrNot()
-       // makeMessagesSeen()
+        makeMessagesSeen()
     }
 
     private fun makeMessagesSeen() {
@@ -854,12 +858,16 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                 addValueEventListener(object:ValueEventListener{
                     override fun onDataChange(snapshot: DataSnapshot) {
 
-                        for (message in snapshot.children){
-                            //make messages seen
-                            rootRef.child("Messages").child(receiverId).child(currentUserId)
-                                .child(message.key.toString())
-                                .child("seen").setValue("yes")
+                        for (message in snapshot.children) {
+
+                            if (message.child("seen").value.toString() == "no") {
+                                //make messages seen
+                                rootRef.child("Messages").child(receiverId).child(currentUserId)
+                                    .child(message.key.toString())
+                                    .child("seen").setValue("yes")
+                            }
                         }
+
 
 
                     }
@@ -1164,12 +1172,15 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
         super.onStop()
         makeMeNotChatting()
         if (backPressed){
+            Log.i(TAG, "onStop: $backPressed")
             updateUserStatus("online")
             backPressed = false
         }
+        else if (upButtonIsClicked ){
+            updateUserStatus("online")
+        }
         else{
               updateUserStatus("offline")
-
         }
 
     }
@@ -1177,14 +1188,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
     override fun onDestroy() {
         super.onDestroy()
         makeMeNotChatting()
-        if (backPressed){
-            updateUserStatus("online")
-            backPressed = false
-        }
-        else{
-            updateUserStatus("offline")
-
-        }
+        //updateUserStatus("offline")
     }
 
     override fun onBackPressed() {
@@ -1721,9 +1725,9 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                                                 ), PorterDuff.Mode.SRC_IN
                                             )
 
-                                            rootRef.child(MESSAGES_CHILD).child(senderId).child(receiverId).child(currentMessage.messageKey).child("submitted").setValue("yes").addOnCompleteListener {
-                                                rootRef.child(MESSAGES_CHILD).child(receiverId).child(senderId).child(currentMessage.messageKey).child("submitted").setValue("yes")
-                                            }
+//                                            rootRef.child(MESSAGES_CHILD).child(senderId).child(receiverId).child(currentMessage.messageKey).child("submitted").setValue("yes").addOnCompleteListener {
+//                                                rootRef.child(MESSAGES_CHILD).child(receiverId).child(senderId).child(currentMessage.messageKey).child("submitted").setValue("yes")
+//                                            }
                                         }
 
                                     }
@@ -1738,16 +1742,32 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
                     }
                 } )
 
+            //*/*/*/*/*/*/
             rootRef.child(MESSAGES_CHILD).child(currentUserId).child(receiverId).child(currentMessage.messageKey).
             addValueEventListener(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.hasChild("submitted")){
-                        holder.senderMessageCheckedImageView.setColorFilter(
-                            resources.getColor(
-                                R.color.blue
-                            ), PorterDuff.Mode.SRC_IN
-                        )
-                    }
+
+
+                     if (snapshot.child("seen").value.toString() =="yes") {
+
+//                         rootRef.child(USERS_CHILD).child(receiverId).child("state").
+//                         addValueEventListener(object : ValueEventListener{
+//                             override fun onDataChange(snapshot: DataSnapshot) {
+//                                if (snapshot.child("chatting").value.toString() == "yes"){
+                                    holder.senderMessageCheckedImageView.setColorFilter(
+                                        resources.getColor(
+                                            R.color.blue
+                                        ), PorterDuff.Mode.SRC_IN
+                                    )
+//                                }
+//                             }
+//
+//                             override fun onCancelled(error: DatabaseError) {
+//                             }
+//                         })
+
+
+                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -2435,6 +2455,7 @@ class PrivateChatActivity : VisibleActivity(), BottomSheetDialog.BottomSheetList
 
     private fun makeMeChatting(){
         rootRef.child(USERS_CHILD).child(currentUserId).child("state").child("chatting").setValue("yes")
+
     }
 
     private fun makeMeTyping(){

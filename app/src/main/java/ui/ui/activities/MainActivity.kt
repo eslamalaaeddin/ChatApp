@@ -62,6 +62,8 @@ class MainActivity : AppCompatActivity() , Callback {
 
     private lateinit var phoneNumber:String
 
+    private var userClicked = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,7 +76,7 @@ class MainActivity : AppCompatActivity() , Callback {
         setUpToolbar()
 
         //Setting the tabs
-        setUpTabs()
+        //setUpTabs()
 
         //get firebase auth
         auth = FirebaseAuth.getInstance()
@@ -93,24 +95,55 @@ class MainActivity : AppCompatActivity() , Callback {
 
     override fun onStart() {
         super.onStart()
-        Log.i(TAG, "onStart: MAIN")
+        Log.i(TAG, "onStart: MAIN $currentUser")
        // activityMainBinding.mainViewPager.currentItem = 0
-        if(currentUser == null) {
-            sendUserToPhoneLogInActivity()
-        }
+//        if(currentUser != null) {
+//            updateUserStatus("online")
+//        }
+//
+//        else{
+//            verifyUserExistence()
+//            updateUserStatus("online")
+//        }
 
-        else{
-            verifyUserExistence()
+        rootRef.child(USERS_CHILD).addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!snapshot.hasChild(currentUserId)){
+                    sendUserToPhoneLogInActivity()
+                }
+                else{
+                    setUpTabs()
+                    //updateUserStatus("online")
+                }
+            }
 
-            updateUserStatus("online")
-        }
+            override fun onCancelled(error: DatabaseError) {
+            }
+        })
     }
 
     override fun onStop() {
         super.onStop()
-        if(privateChatIntent == null) {
+        if(userClicked) {
+            updateUserStatus("online")
+        }
+        else{
             updateUserStatus("offline")
         }
+    }
+
+    private fun getData () {
+        rootRef.child(USERS_CHILD).addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.hasChild(currentUserId)){
+
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+        })
+
     }
 
     override fun onDestroy() {
@@ -138,30 +171,6 @@ class MainActivity : AppCompatActivity() , Callback {
         settingIntent.putExtra(PHONE_NUMBER,phoneNumber)
         startActivity(settingIntent)
 
-    }
-
-    private fun verifyUserExistence() {
-        val currentUserId = currentUser?.uid.toString()
-        val deviceToken = FirebaseInstanceId.getInstance().token
-        usersRef.child(currentUserId).child(Utils.DEVICE_TOKEN_CHILD).setValue(deviceToken)
-
-        rootRef.child("Users").child(currentUserId).addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                //if user name does exist
-                if (snapshot.child("name").exists()) {
-
-                }
-
-                else{
-                    sendUserToSettingsActivity()
-                    //Snackbar.make(activityMainBinding.mainToolbar,"HI",Snackbar.LENGTH_INDEFINITE).show()
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-
-            }
-        })
     }
 
     private fun setUpToolbar() {
@@ -294,10 +303,12 @@ class MainActivity : AppCompatActivity() , Callback {
     }
 
     override fun onGroupClicked(groupId: String) {
+        userClicked = true
         sendUserToGroupChatActivity(groupId)
     }
 
     override fun onUserChatClicked(userName: String, userId: String, userImage:String) {
+        userClicked = true
          privateChatIntent = Intent(this, PrivateChatActivity::class.java)
         privateChatIntent?.putExtra(USER_NAME,userName)
         privateChatIntent?.putExtra(USER_ID,userId)
@@ -308,12 +319,14 @@ class MainActivity : AppCompatActivity() , Callback {
     }
 
     override fun onStatusClicked(id: String) {
+        userClicked = true
         val userStatusIntent = Intent(this,StatusViewerActivity::class.java)
         userStatusIntent.putExtra(STATUS_IDENTIFIER,id)
         startActivity(userStatusIntent)
     }
 
     override fun onCallClicked(callerId: String) {
+        userClicked = true
         privateChatIntent = Intent(this, PrivateChatActivity::class.java)
         privateChatIntent?.putExtra(USER_ID,callerId)
         startActivity(privateChatIntent)

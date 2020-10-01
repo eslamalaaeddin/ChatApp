@@ -95,7 +95,7 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
 
     private var participantToBeDeletedIndex:Int = -1
 
-    private var idsToBeAdded = mutableListOf("OeR51NwJzGXpRdh4PoU9Cy0IU3i1")
+    private var idsToBeAdded = mutableListOf("HwjJm7TzEpa7zFCNyMUuJdp0eK02")
 
     private var groupDialog : Dialog? = null
     private var subjectDialog : Dialog? = null
@@ -103,7 +103,7 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
     private lateinit var bottomSheet: ChangeIconBottomSheet
 
     private var checker:String = ""
-    private lateinit var progressDialog: ProgressDialog
+  //  private lateinit var progressDialog: ProgressDialog
 
     private var url:String = ""
     private lateinit var fileUri: Uri
@@ -119,8 +119,8 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
         usersReference = FirebaseDatabase.getInstance().reference.child("Users")
         rootReference = FirebaseDatabase.getInstance().reference
 
-        //groupId = intent.getStringExtra(GROUP_ID).toString()
-        groupId = "8a722852-4609-43c5-87a3-5c9f9c054de8"
+        groupId = intent.getStringExtra(GROUP_ID).toString()
+        //groupId = "8a722852-4609-43c5-87a3-5c9f9c054de8"
 
         groupBinding.mediaRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL,false)
         groupBinding.participantsRecyclerView.layoutManager = LinearLayoutManager(this)
@@ -145,20 +145,41 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
         retrieveMessages()
         retrieveMyInfo()
         setUpToolbar()
+        //retrieveParticipants()
         retrieveGroupDescriptionValue()
     }
 
     private fun setUpToolbar() {
-
+        val toolbarView = LayoutInflater.from(this).inflate(R.layout.custom_toolbar, null)
         setSupportActionBar(groupBinding.mainToolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        //supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowCustomEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)
         supportActionBar?.subtitle= "tap here for group info"
 
+        supportActionBar?.customView = toolbarView
+
+        toolbarView.setBackgroundResource(android.R.color.transparent)
+
+       val groupImageView: ImageView = findViewById(R.id.user_image_view_custom)
+        groupNameTextView = findViewById(R.id.user_name_text_view_custom)
+        groupStatusTextView = findViewById(R.id.user_last_seen_custom)
+      val  upButtonImageView: ImageView  = findViewById(R.id.up_button_custom)
+
+        groupImageView.visibility = View.GONE
+        groupNameTextView.visibility = View.GONE
+        groupStatusTextView.visibility = View.GONE
+
+
+       // upButtonImageView.setBackgroundResource(android.R.color.transparent)
+
+        upButtonImageView.setOnClickListener {
+            //temp
+            finish()
+        }
+
         //Fetch group data
-        rootReference.child(USERS_CHILD).child(currentUserId).
-        child("Groups").child(groupId).addValueEventListener(object : ValueEventListener{
+        rootReference.child("Groups").child(groupId).addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
                 participantsIds.clear()
                 messagesIds.clear()
@@ -185,7 +206,6 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
                 else{
                     groupBinding.groupImageView.setImageResource(R.drawable.ic_group)
                 }
-
 
             }
 
@@ -226,7 +246,7 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
     }
 
     private fun retrieveMessages() {
-        rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId).child(Utils.MESSAGES_CHILD).addValueEventListener(
+        rootReference.child("Groups").child(groupId).child(Utils.MESSAGES_CHILD).addValueEventListener(
             object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     messagesList.clear()
@@ -277,7 +297,6 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
                    .addValueEventListener(object : ValueEventListener {
                        override fun onDataChange(snapshot: DataSnapshot) {
                            //participantsList.clear()
-
                            val name = snapshot.child("name").value.toString()
                            val imageUrl = snapshot.child("image").value.toString()
                            val status = snapshot.child("status").value.toString()
@@ -529,77 +548,27 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
     }
 
     private fun removeParticipantFromGroup(clickedParticipantId:String){
-        rootReference.child(USERS_CHILD).child(clickedParticipantId).child("Groups")
+        rootReference.child("Groups")
             .child(groupId).child("participants").child(clickedParticipantId).removeValue().addOnCompleteListener {
-
-                rootReference.child(USERS_CHILD).child(clickedParticipantId).child("Groups")
-                    .child(groupId).removeValue()
-
-
-                if (it.isComplete) {
-                    val iterator = participantsIds.iterator()
-                    while(iterator.hasNext()) {
-                        val participant = iterator.next()
-                        if (participant == clickedParticipantId) {
-                           participantToBeDeletedIndex = participantsIds.indexOf(participant)
-                        } else {
-                            rootReference.child(USERS_CHILD).child(participant).child("Groups")
-                                .child(groupId).child("participants").child(clickedParticipantId)
-                                .removeValue().addOnCompleteListener {
-                                    if (it.isComplete){
-                                        Toast.makeText(
-                                            this,
-                                            "Participant removed successfully",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        onStart()
-                                    }
-
-                                }
-                        }
-                    }
-                    participantsList.removeAt(participantToBeDeletedIndex)
-
-                    }
-
+                rootReference.child(USERS_CHILD).child(clickedParticipantId).child("Groups").child(groupId).removeValue()
                 }
         }
 
+
+    //Will be updated
     private fun addParticipants(idsToBeAdded:List<String>) {
-        val groupMap = HashMap<String, Any>()
-        groupMap.put("name", groupName)
-        groupMap.put("status", groupStatus)
-        groupMap.put("image", groupImageUrl)
-        groupMap.put("gid", groupId)
-        groupMap.put("participants", "")
-        groupMap.put("admin", currentUserId)
 
         for (id in idsToBeAdded){
-            rootReference.child(USERS_CHILD).child(id).child("Groups").child(groupId).
-            updateChildren(groupMap).addOnCompleteListener {
+            rootReference.child("Groups").child(groupId).
+            child("participants").child(id).setValue("").addOnCompleteListener {
                 if (it.isComplete){
                     participantsIds.add(id)
-                    val map = HashMap<String,Any>()
-                    map[id] = ""
-                    rootReference.child(USERS_CHILD).child(id).child("Groups").
-                    child(groupId).child("participants").updateChildren(map).addOnCompleteListener {task ->
-                        if (task.isComplete) {
-                            for (d in participantsIds) {
-                                map[d] = ""
-                                rootReference.child(USERS_CHILD).child(d).child("Groups").
-                                child(groupId).child("participants").updateChildren(map).addOnCompleteListener {
-                                    Toast.makeText(this, "Added successfully", Toast.LENGTH_SHORT).show()
-
-                                }
-                            }
-                        }
-                    }
+                    rootReference.child(USERS_CHILD).child(id).child("Groups").child(groupId).setValue("")
                 }
-                onStart()
 
             }
         }
-
+        onStart()
 
 
     }
@@ -635,39 +604,19 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
     }
 
     private fun addGroupDescription(description: String) {
-
-        rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId).
-        child("status").setValue(description).addOnCompleteListener {
-            for (id in participantsIds) {
-                rootReference.child(USERS_CHILD).child(id).
-                child("Groups").child(groupId).child("status").setValue(description).addOnCompleteListener {
-
-                }
-
-            }
-        }
+        rootReference.child("Groups").child(groupId).child("status").setValue(description)
     }
 
     private fun removeGroupDescription() {
-        rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId).
-        child("status").setValue("").addOnCompleteListener {
-            for (id in participantsIds) {
-                rootReference.child(USERS_CHILD).child(id).
-                child("Groups").child(groupId).child("status").setValue("").addOnCompleteListener {
-
-                }
-
-            }
-        }
+        rootReference.child("Groups").child(groupId).child("status").setValue("")
     }
 
     private fun retrieveGroupDescriptionValue(){
-        rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId).
+        rootReference.child("Groups").child(groupId).
         addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.hasChild("status")){
-                    rootReference.child(USERS_CHILD).child(currentUserId).
-                    child("Groups").child(groupId).child("status").
+                    rootReference.child("Groups").child(groupId).child("status").
                     addValueEventListener(object : ValueEventListener{
                         override fun onDataChange(snapshot: DataSnapshot) {
                             //Dialog is not shown
@@ -759,16 +708,7 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
 
     private fun changeGroupName(name: String) {
 
-        rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId).
-        child("name").setValue(name).addOnCompleteListener {
-            for (id in participantsIds) {
-                rootReference.child(USERS_CHILD).child(id).
-                child("Groups").child(groupId).child("name").setValue(name).addOnCompleteListener {
-
-                }
-
-            }
-        }
+        rootReference.child("Groups").child(groupId).child("name").setValue(name)
     }
 
     private fun showChangeGroupIconDialog () {
@@ -804,16 +744,7 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
     }
 
     private fun removeGroupIcon() {
-        rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId).
-        child("image").setValue("").addOnCompleteListener {
-            for (id in participantsIds) {
-                rootReference.child(USERS_CHILD).child(id).
-                child("Groups").child(groupId).child("image").setValue("").addOnCompleteListener {
-
-                }
-
-            }
-        }
+        rootReference.child("Groups").child(groupId).child("image").setValue("")
     }
 
     private fun takePhoto () {
@@ -834,25 +765,24 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
         if (requestCode == REQUEST_NUM && resultCode == RESULT_OK
             && checker!="captured image" && data != null && data.data != null) {
 
-            getLoadingDialog()
+           // getLoadingDialog()
 
             if (checker =="image") {
                 fileUri = data.data!!
                 val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
 
-                val userMessageKeyRef = rootReference.child(USERS_CHILD).child(currentUserId).
-                child("Groups").child(groupId).child("image").push()
+                val userMessageKeyRef = rootReference.child("Groups").child(groupId).child("image").push()
 
                 val messagePushId = userMessageKeyRef.key.toString()
 
                 val filePath = storageRef.child("$messagePushId.jpg")
                 val uploadTask = filePath.putFile(fileUri).addOnFailureListener{
-                    progressDialog.dismiss()
+                    //progressDialog.dismiss()
                     Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
                 }.addOnProgressListener {
-                    val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
-                    progressDialog.show()
-                    progressDialog.setMessage("$progress % Uploading...")
+                  //  val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+                   // progressDialog.show()
+                   // progressDialog.setMessage("$progress % Uploading...")
                 }
 
                 uploadTask.continueWithTask { task ->
@@ -863,28 +793,8 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
                 }.addOnCompleteListener {
                     if (it.isSuccessful) {
                         url = it.result.toString()
-
-                        rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId).
-                        child("image").setValue(url).addOnCompleteListener {
-
-                            for (id in participantsIds) {
-                                rootReference.child(USERS_CHILD).child(id).child("Groups")
-                                    .child(groupId).child("image").setValue(url)
-                                    .addOnCompleteListener { task ->
-                                        if (!task.isSuccessful) {
-                                            Toast.makeText(
-                                                this,
-                                                task.exception?.message,
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-
-                                        }
-
-                                        progressDialog.dismiss()
-                                    }
-
-                            }
-                        }
+                        rootReference.child("Groups").child(groupId).
+                        child("image").setValue(url)
                     }
                 }
 
@@ -895,7 +805,7 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
 
         else if (checker =="captured image" && requestCode == REQUEST_NUM && resultCode == RESULT_OK ) {
 
-            getLoadingDialog()
+            //getLoadingDialog()
             val storageRef = FirebaseStorage.getInstance().reference.child("Image files")
 
             val image = data?.extras!!["data"] as Bitmap?
@@ -905,19 +815,18 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
 
             val b = stream.toByteArray()
 
-            val userMessageKeyRef = rootReference.child(USERS_CHILD).child(currentUserId).
-            child("Groups").child(groupId).child("image").push()
+            val userMessageKeyRef = rootReference.child("Groups").child(groupId).child("image").push()
 
             val messagePushId = userMessageKeyRef.key.toString()
 
             val filePath = storageRef.child("$messagePushId.jpg")
             val uploadTask = filePath.putBytes(b).addOnFailureListener{
-                progressDialog.dismiss()
+              //  progressDialog.dismiss()
                 Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
             }.addOnProgressListener {
-                val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
-                progressDialog.show()
-                progressDialog.setMessage("$progress % Uploading...")
+//                val progress = ((100.0 * it.bytesTransferred) / it.totalByteCount).toInt()
+//                progressDialog.show()
+//                progressDialog.setMessage("$progress % Uploading...")
             }
 
             uploadTask.continueWithTask { task ->
@@ -928,26 +837,8 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
             }.addOnCompleteListener {
                 if (it.isSuccessful) {
                     url = it.result.toString()
-
-
-                    rootReference.child(USERS_CHILD).child(currentUserId).child("Groups").child(groupId).
-                    child("image").setValue(url).addOnCompleteListener {
-                        for (id in participantsIds) {
-                            rootReference.child(USERS_CHILD).child(id).
-                            child("Groups").child(groupId).child("image").setValue(url).addOnCompleteListener {
-
-                            }
-
-                        }
-                    }.addOnCompleteListener { task ->
-                        if (!task.isSuccessful) {
-                            Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
-
-                        }
-
-                        progressDialog.dismiss()
-                    }
-
+                    rootReference.child("Groups").child(groupId).
+                    child("image").setValue(url)
                 }
             }
 
@@ -959,13 +850,13 @@ class GroupInfoActivity : AppCompatActivity(),ChangeIconBottomSheet.BottomSheetL
 //        progressDialog.dismiss()
     }
 
-    private fun getLoadingDialog() {
-        progressDialog = ProgressDialog(this)
-            .also {
-                title = "Attachment is uploading"
-                it.setCanceledOnTouchOutside(false)
-                it.show()
-            }
-    }
+   // private fun getLoadingDialog() {
+//        progressDialog = ProgressDialog(this)
+//            .also {
+//                title = "Attachment is uploading"
+//                it.setCanceledOnTouchOutside(false)
+//                it.show()
+//            }
+//    }
 
 }

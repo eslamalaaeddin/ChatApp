@@ -48,4 +48,6 @@ object Utils {
 
     const val PRIMARY_COLOR = R.color.colorPrimary
 
+    var gid = ""
+
 }

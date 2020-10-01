@@ -9,10 +9,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.example.whatsapp.R
+import com.example.whatsapp.Utils
+import com.example.whatsapp.Utils.USERS_CHILD
 import com.example.whatsapp.databinding.ActivitySettingsBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.squareup.picasso.Picasso
@@ -61,8 +64,24 @@ class SettingsActivity : AppCompatActivity() {
             startActivityForResult(imageIntent, GALLERY_PICK_NUMBER)
         }
 
-        retrieveUserInfo()
+        rootRef.child(Utils.USERS_CHILD).addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.hasChild(currentUser.uid)){
+                        retrieveUserInfo()
+                }
+                else{
+                   activitySettingsBinding.phoneNumberEditText.setText(phoneNumber)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+        })
+
+
     }
+
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -140,6 +159,9 @@ class SettingsActivity : AppCompatActivity() {
 
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
+                        val deviceToken = FirebaseInstanceId.getInstance().token
+                        rootRef.child(USERS_CHILD).child(currentUser.uid).child(Utils.DEVICE_TOKEN_CHILD).setValue(deviceToken)
+
                         Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
                         sendUserToMainActivity()
                     }
@@ -162,8 +184,10 @@ class SettingsActivity : AppCompatActivity() {
                         val userName = snapshot.child("name").value.toString()
                         val userStatus = snapshot.child("status").value.toString()
                         val userImageUrl = snapshot.child("image").value.toString()
-                        val userPhoneNumber = snapshot.child("phoneNumber").value.toString()
-
+                        var userPhoneNumber = ""
+                        if (snapshot.hasChild("phoneNumber")) {
+                           phoneNumber = snapshot.child("phoneNumber").value.toString()
+                        }
                         Picasso.get()
                             .load(userImageUrl)
                             .placeholder(R.drawable.ic_person)
