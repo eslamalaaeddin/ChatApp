@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context="ui.ui.activities.SettingsActivity">
+        tools:context="com.example.whatsapp.ui.ui.activities.SettingsActivity">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/main_toolbar"
@@ -65,6 +65,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:hint="Name"
+            android:textColor="@color/black"
             android:inputType="textEmailAddress"
             app:layout_constraintBottom_toBottomOf="@+id/imageView2"
             app:layout_constraintEnd_toEndOf="parent"
@@ -78,6 +79,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:hint="Status"
+            android:textColor="@color/black"
             android:inputType="textEmailAddress"
             app:layout_constraintBottom_toBottomOf="@+id/imageView3"
             app:layout_constraintEnd_toEndOf="parent"
@@ -146,6 +148,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:ems="10"
+            android:textColor="@color/black"
             android:inputType="textPersonName"
             android:text="Name"
             app:layout_constraintBottom_toBottomOf="@+id/imageView4"

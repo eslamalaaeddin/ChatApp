@@ -13,24 +13,15 @@ class BaseApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-//        initializeFirebaseDatabase()
-//        initializeAuth()
-    }
-
-
-
-    fun getFirebaseAuthenticationReference () : FirebaseAuth {
-        return FirebaseAuth.getInstance()
-    }
-
-    fun getDatabaseRootReference() : DatabaseReference {
-        return FirebaseDatabase.getInstance().reference
+        initializeFirebaseDatabase()
+        initializeAuth()
     }
 
     companion object {
         private var databaseInstance: DatabaseReference? = null
         private var authInstance : FirebaseAuth? = null
-        fun initializeFirebaseDatabase() {
+
+        private fun initializeFirebaseDatabase() {
             if (databaseInstance == null) {
                 databaseInstance = FirebaseDatabase.getInstance().reference
             }
@@ -39,13 +30,12 @@ class BaseApplication : Application() {
             return databaseInstance ?: throw IllegalStateException("Database reference must be initialized")
         }
 
-        fun initializeAuth() {
+        private fun initializeAuth() {
             if (authInstance == null) {
                 authInstance = FirebaseAuth.getInstance()
             }
         }
-
-        fun getFirebaseAuth(): FirebaseAuth{
+        fun getAuth(): FirebaseAuth{
             return authInstance ?: throw IllegalStateException("Firebase auth must be initialized")
         }
 

@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context="ui.ui.activities.ProfileActivity">
+        tools:context="com.example.whatsapp.ui.ui.activities.ProfileActivity">
 
         <com.mikhaellopez.circularimageview.CircularImageView
             android:layout_width="256dp"

@@ -14,7 +14,7 @@
         android:orientation="vertical"
         android:id="@+id/layoutMain"
         android:background="@drawable/default_chat_wallpaper"
-        tools:context="ui.ui.activities.PrivateChatActivity">
+        tools:context="com.example.whatsapp.ui.ui.activities.PrivateChatActivity">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/main_toolbar"

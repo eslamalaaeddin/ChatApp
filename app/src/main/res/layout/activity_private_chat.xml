@@ -24,7 +24,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:context="ui.ui.activities.PrivateChatActivity">
+            tools:context="com.example.whatsapp.ui.ui.activities.PrivateChatActivity">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/main_toolbar"

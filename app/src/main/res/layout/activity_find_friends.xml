@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context="ui.ui.activities.FindFriendsActivity">
+        tools:context="com.example.whatsapp.ui.ui.activities.FindFriendsActivity">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/main_toolbar"

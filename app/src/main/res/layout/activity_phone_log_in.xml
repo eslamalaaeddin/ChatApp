@@ -13,13 +13,14 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        tools:context="ui.ui.activities.PhoneLogInActivity">
+        tools:context="com.example.whatsapp.ui.activities.PhoneLogInActivity">
 
         <EditText
             android:id="@+id/phone_number_edit_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="phone"
+            android:textColor="@color/black"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginTop="32dp"

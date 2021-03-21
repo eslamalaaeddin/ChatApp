@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@drawable/default_chat_wallpaper"
-        tools:context="ui.ui.activities.GroupsChatActivity">
+        tools:context="com.example.whatsapp.ui.ui.activities.GroupsChatActivity">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/main_toolbar"

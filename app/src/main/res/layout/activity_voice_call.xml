@@ -4,6 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="ui.ui.activities.VoiceCallActivity">
+    tools:context="com.example.whatsapp.ui.ui.activities.VoiceCallActivity">
 
 </androidx.constraintlayout.widget.ConstraintLayout>

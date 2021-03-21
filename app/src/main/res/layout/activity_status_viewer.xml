@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/status_viewer_frame_layout"
-        tools:context="ui.ui.activities.StatusViewerActivity">
+        tools:context="com.example.whatsapp.ui.ui.activities.StatusViewerActivity">
 
         <androidx.viewpager.widget.ViewPager
             android:layout_width="match_parent"

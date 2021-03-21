@@ -10,7 +10,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="ui.ui.activities.StatusActivity">
+        tools:context="com.example.whatsapp.ui.ui.activities.StatusActivity">
 
         <EditText
             android:id="@+id/status_edit_text"

@@ -3,7 +3,7 @@
     package="com.example.whatsapp">
 
     <permission
-        android:name="ui.ui.activities.PrivateChatActivity.PRIVATE"
+        android:name="com.example.whatsapp.ui.com.example.whatsapp.ui.activities.PrivateChatActivity.PRIVATE"
         android:protectionLevel="signature" />
 
     <uses-permission android:name="android.permission.INTERNET" /> <!-- for image cropping -->
@@ -22,34 +22,42 @@
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
+        android:name=".BaseApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:name=".BaseApplication"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="ui.ui.activities.GroupInfoActivity" >
-<!--             <intent-filter>-->
-<!--             <action android:name="android.intent.action.MAIN" />-->
+        <activity android:name="com.example.whatsapp.ui.activities.SplashActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.example.whatsapp.ui.ui.activities.GroupInfoActivity">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
 
 
-<!--             <category android:name="android.intent.category.LAUNCHER" />-->
-<!--             </intent-filter>-->
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
         </activity>
         <activity
-            android:name="ui.ui.activities.GroupCreationActivity"
-            android:parentActivityName="ui.ui.activities.AddGroupActivity" />
+            android:name="com.example.whatsapp.ui.activities.GroupCreationActivity"
+            android:parentActivityName="com.example.whatsapp.ui.activities.AddGroupActivity" />
         <activity
-            android:name="ui.ui.activities.AddGroupActivity"
-            android:parentActivityName="ui.ui.activities.MainActivity" />
-        <activity android:name="ui.ui.activities.StatusViewerActivity" />
+            android:name="com.example.whatsapp.ui.activities.AddGroupActivity"
+            android:parentActivityName="com.example.whatsapp.ui.ui.activities.MainActivity" />
+        <activity android:name="com.example.whatsapp.ui.ui.activities.StatusViewerActivity" />
         <activity
-            android:name="ui.ui.activities.StatusActivity"
+            android:name="com.example.whatsapp.ui.ui.activities.StatusActivity"
             android:windowSoftInputMode="stateAlwaysHidden|adjustResize" />
         <activity
-            android:name="ui.ui.activities.GroupsChatActivity"
-            android:parentActivityName="ui.ui.activities.MainActivity" />
+            android:name="com.example.whatsapp.ui.ui.activities.GroupsChatActivity"
+            android:parentActivityName="com.example.whatsapp.ui.ui.activities.MainActivity" />
         <activity android:name=".Demo">
 
             <!-- <intent-filter> -->
@@ -60,38 +68,38 @@
             <!-- </intent-filter> -->
 
         </activity>
-        <activity android:name="ui.ui.activities.VoiceCallActivity" />
-        <activity android:name="ui.ui.activities.VideoPlayerActivity" />
+        <activity android:name="com.example.whatsapp.ui.ui.activities.VoiceCallActivity" />
+        <activity android:name="com.example.whatsapp.ui.ui.activities.VideoPlayerActivity" />
         <activity
-            android:name="ui.ui.activities.VideoChatActivity"
+            android:name="com.example.whatsapp.ui.activities.VideoChatActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" />
-        <activity android:name="ui.ui.activities.VisibleActivity" />
-        <activity android:name="ui.ui.activities.CallingActivity" />
+        <activity android:name="com.example.whatsapp.ui.ui.activities.VisibleActivity" />
+        <activity android:name="com.example.whatsapp.ui.ui.activities.CallingActivity" />
         <activity
-            android:name="ui.ui.activities.PrivateChatActivity"
-            android:parentActivityName="ui.ui.activities.MainActivity" />
-        <activity android:name="ui.ui.activities.ProfileActivity" />
+            android:name="com.example.whatsapp.ui.ui.activities.PrivateChatActivity"
+            android:parentActivityName="com.example.whatsapp.ui.ui.activities.MainActivity" />
+        <activity android:name="com.example.whatsapp.ui.ui.activities.ProfileActivity" />
         <activity
-            android:name="ui.ui.activities.FindFriendsActivity"
-            android:parentActivityName="ui.ui.activities.MainActivity" />
-        <activity android:name="ui.ui.activities.PhoneLogInActivity" />
+            android:name="com.example.whatsapp.ui.ui.activities.FindFriendsActivity"
+            android:parentActivityName="com.example.whatsapp.ui.ui.activities.MainActivity" />
+        <activity android:name="com.example.whatsapp.ui.activities.PhoneLogInActivity" />
         <activity
-            android:name="ui.ui.activities.SettingsActivity"
-            android:parentActivityName="ui.ui.activities.MainActivity" />
-        <activity android:name="ui.ui.activities.MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:name="com.example.whatsapp.ui.ui.activities.SettingsActivity"
+            android:parentActivityName="com.example.whatsapp.ui.ui.activities.MainActivity" />
+        <activity android:name="com.example.whatsapp.ui.ui.activities.MainActivity">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
         </activity>
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
 
         <service
-            android:name="notifications.MyFirebaseMessagingService"
+            android:name="com.example.whatsapp.notifications.MyFirebaseMessagingService"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -100,7 +108,7 @@
         </service>
 
         <receiver
-            android:name="notifications.NotificationReceiver"
+            android:name="com.example.whatsapp.notifications.NotificationReceiver"
             android:exported="false"
             android:permission="activities.PrivateChatActivity.PRIVATE">
             <intent-filter android:priority="-999">
