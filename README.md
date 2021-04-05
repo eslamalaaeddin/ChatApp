@@ -3,6 +3,19 @@
 # Note
 I am working on audio and video calls.
 
+# Features 
+Phone number authentication. <br>
+One-to-one chat. <br>
+User last seen. <br>
+Multiple messages types (texts, images, videos, audios, and documents). <br>
+Groups chat. <br>
+Know if message seen or not. <br>
+Audio, and Video calls. <br>
+Clear chat history. <br>
+Blocked list. <br>
+Change statuses and see others statuses. <br>
+
+
 # Screen shots: 
 ---
 
