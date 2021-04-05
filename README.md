@@ -59,8 +59,6 @@ Change statuses and see others statuses. <br>
    <table align="center">
         <tr>
            <td><img src="images\13.jpg" width=288 height=512></td>
-          <td><img src="images\14.jpg" width=288 height=512></td>
-          <td><img src="images\15.jpg" width=288 height=512></td>
        </tr>
    </table>
     
